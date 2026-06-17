@@ -88,7 +88,7 @@ body{
 .hero-fade{position:absolute;left:0;right:0;bottom:0;height:180px;pointer-events:none;background:linear-gradient(180deg, transparent, var(--canvas));}
 .hero-content{position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:132px 24px 108px;width:100%;}
 .hero-eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-lite);margin-bottom:22px;display:flex;align-items:center;gap:10px;}
-.hero-h1{font-family:'General Sans',sans-serif;font-weight:600;font-size:clamp(36px,4.7vw,64px);line-height:1.04;letter-spacing:-.032em;margin:0;color:#fff;text-wrap:balance;}
+.hero-h1{font-family:'General Sans',sans-serif;font-weight:600;font-size:clamp(36px,4.7vw,64px);line-height:1.04;letter-spacing:-.032em;margin:0;color:#fff;text-wrap:balance;max-width:15.5em;}
 .hero-sub{font-size:19px;line-height:1.55;color:rgba(255,255,255,.62);max-width:33em;margin:22px 0 36px;}
 .hero-cta{display:flex;flex-wrap:wrap;gap:14px;align-items:center;}
 .hero-cred{margin-top:48px;padding-top:24px;border-top:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:12px;max-width:44em;}

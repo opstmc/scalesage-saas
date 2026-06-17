@@ -9,7 +9,7 @@ export default function Hero() {
       <div className="hero-fade" />
       <div data-nav-sentinel="" style={{ position: "absolute", bottom: 8, left: 0, width: 1, height: 1, pointerEvents: "none" }} />
       <div className="hero-content">
-        <div data-reveal="" style={{ maxWidth: "15.5em" }}>
+        <div data-reveal="">
           <div className="hero-eyebrow">
             <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent-lite)", boxShadow: "0 0 12px var(--accent-lite)" }} />
             AI &amp; Automation Specialists
