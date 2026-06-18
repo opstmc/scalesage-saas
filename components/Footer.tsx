@@ -1,51 +1,59 @@
-const EXPLORE = [
-  { href: "#framework", label: "How it works" },
-  { href: "#fixes", label: "What we fix" },
-  { href: "#industries", label: "Industries" },
-  { href: "#pricing", label: "Pricing" },
-  { href: "#proof", label: "Proof" },
-];
-
-const LEGAL = [
-  { href: "#", label: "Privacy Policy" },
-  { href: "#", label: "Cookies" },
-  { href: "#", label: "Terms" },
+const COLS = [
+  {
+    title: "Explore",
+    links: [
+      { href: "#how", label: "How it works" },
+      { href: "#pricing", label: "Pricing" },
+      { href: "#industries", label: "Industries" },
+      { href: "#catalyst", label: "Catalyst diagnostic" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { href: "#why", label: "About" },
+      { href: "#", label: "Partners" },
+      { href: "#contact", label: "Contact" },
+    ],
+  },
+  {
+    title: "Legal",
+    links: [
+      { href: "#", label: "Privacy" },
+      { href: "#", label: "Terms" },
+      { href: "#", label: "Cookies" },
+    ],
+  },
 ];
 
 export default function Footer() {
   return (
-    <footer className="footer">
+    <footer id="contact" className="footer">
       <div className="footer-inner">
         <div className="footer-grid">
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-              <span className="diamond" style={{ width: 12, height: 12, borderRadius: 3, background: "var(--accent)" }} />
-              <span className="font-display" style={{ fontWeight: 600, fontSize: 19, letterSpacing: "-.02em" }}>ScaleSage</span>
+              <span className="diamond" style={{ width: 12, height: 12, borderRadius: 3, background: "var(--accent-primary)" }} />
+              <span style={{ fontWeight: 600, fontSize: 19, letterSpacing: "-.02em", color: "var(--text-headline)" }}>ScaleSage</span>
             </div>
-            <p style={{ fontSize: 15, color: "var(--ink-soft)", margin: 0, maxWidth: "30em" }}>
-              AI &amp; automation specialists. We diagnose, build systems you own, and prove the results — premium expertise, made accessible.
+            <p style={{ fontSize: 15, color: "var(--text-muted)", margin: 0, maxWidth: "30em", lineHeight: 1.6 }}>
+              The business doctor for growing SMEs. We diagnose the leak, build the systems that close it, and prove the result in numbers.
             </p>
           </div>
-          <div>
-            <div className="mono" style={{ fontSize: 11.5, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 16 }}>Explore</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-              {EXPLORE.map((l) => (
-                <a key={l.label} href={l.href} className="footer-link">{l.label}</a>
-              ))}
+          {COLS.map((c) => (
+            <div key={c.title}>
+              <div className="eyebrow" style={{ color: "var(--text-faint)", marginBottom: 16 }}>{c.title}</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                {c.links.map((l) => (
+                  <a key={l.label} href={l.href} className="footer-link">{l.label}</a>
+                ))}
+              </div>
             </div>
-          </div>
-          <div>
-            <div className="mono" style={{ fontSize: 11.5, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 16 }}>Legal</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-              {LEGAL.map((l) => (
-                <a key={l.label} href={l.href} className="footer-link">{l.label}</a>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
-        <div style={{ borderTop: "1px solid var(--hairline)", paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 13.5, color: "var(--ink-faint)" }}>© TMC. ScaleSage is a specialist team — not an agency.</span>
-          <span className="mono" style={{ fontSize: 12, color: "var(--ink-faint)" }}>Customer Zero · built &amp; proven on ourselves</span>
+        <div style={{ borderTop: "1px solid var(--border-hair)", paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 13.5, color: "var(--text-faint)" }}>© 2026 ScaleSage. UK-registered · GDPR-compliant by design.</span>
+          <span style={{ fontSize: 13, color: "var(--text-faint)" }}>Founding client programme — open now.</span>
         </div>
       </div>
     </footer>

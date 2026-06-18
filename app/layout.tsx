@@ -1,27 +1,31 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import JourneyProvider from "@/components/JourneyProvider";
 
 const SITE_URL = "https://scalesage.vercel.app";
 
+export const viewport: Viewport = {
+  themeColor: "#0A1628",
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "ScaleSage — AI & Automation Specialists",
+    default: "ScaleSage — Diagnose. Build. Prove.",
     template: "%s · ScaleSage",
   },
   description:
-    "AI & automation specialists who diagnose your business, build custom AI systems you own, and prove the results in numbers. Diagnose. Build. Prove.",
+    "Your business is leaking. We find it, fix it, and prove it. ScaleSage is the business doctor for growing SMEs — we diagnose the leak, install the systems that close it, and prove the result in numbers.",
   applicationName: "ScaleSage",
   keywords: [
-    "AI automation specialists",
-    "custom AI agents",
-    "revenue recovery",
-    "AEO",
-    "GEO",
-    "AI search visibility",
-    "MEP",
-    "Catalyst Diagnostic",
+    "business doctor",
+    "AI systems for SMEs",
+    "missed call recovery",
+    "quote follow-up",
+    "review automation",
+    "AEO GEO visibility",
+    "Catalyst diagnostic",
+    "revenue leak",
   ],
   authors: [{ name: "ScaleSage" }],
   alternates: { canonical: "/" },
@@ -29,15 +33,15 @@ export const metadata: Metadata = {
     type: "website",
     url: SITE_URL,
     siteName: "ScaleSage",
-    title: "ScaleSage — AI & Automation Specialists",
+    title: "ScaleSage — Diagnose. Build. Prove.",
     description:
-      "We diagnose your business, build custom AI systems you own, and prove the results. Not an agency — a specialist team.",
+      "Your business is leaking. We find it, fix it, and prove it. The operating system for growing SMEs.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "ScaleSage — AI & Automation Specialists",
+    title: "ScaleSage — Diagnose. Build. Prove.",
     description:
-      "We diagnose your business, build custom AI systems you own, and prove the results. Not an agency — a specialist team.",
+      "Your business is leaking. We find it, fix it, and prove it. The operating system for growing SMEs.",
   },
   robots: { index: true, follow: true },
 };
@@ -51,40 +55,49 @@ const jsonLd = {
       name: "ScaleSage",
       url: SITE_URL,
       description:
-        "AI & automation specialists who diagnose, build custom AI systems you own, and prove the results.",
+        "The business doctor for growing SMEs. We diagnose the leak, build the systems that close it, and prove the result in numbers.",
       slogan: "Diagnose. Build. Prove.",
+      areaServed: ["GB", "EU"],
     },
     {
       "@type": "Service",
-      serviceType: "AI & Automation",
+      serviceType: "AI systems & automation for SMEs",
       provider: { "@id": `${SITE_URL}/#organization` },
-      areaServed: "GB",
+      areaServed: ["GB", "EU"],
     },
     {
       "@type": "FAQPage",
       mainEntity: [
         {
           "@type": "Question",
-          name: "What is the Catalyst Diagnostic?",
+          name: "How is this different from buying a £99 AI receptionist tool?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "A paid, structured diagnosis of your business. Before any call, our agents study your site, reviews and competitor stack and build a working demo of the highest-leverage fixes. You keep the report either way.",
+            text: "A tool is a part. We diagnose which leak is costing you the most, install the system that closes it, monitor it, and prove it moved your numbers. You buy the outcome, not the part.",
           },
         },
         {
           "@type": "Question",
-          name: "Do I own what you build?",
+          name: "We're a small business — is this overkill for us?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Yes. Every system and agent we build is owned by you. No templates, no lock-in.",
+            text: "Starter exists for exactly this: one acute leak, plugged, with a monthly ROI report. The Catalyst diagnostic shows you what your biggest leak is worth before you commit to anything.",
           },
         },
         {
           "@type": "Question",
-          name: "How does pricing work?",
+          name: "What happens if it doesn't work?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Tiers are public. Local from £297/mo, Business from £997/mo, Enterprise from £9,997/mo. The diagnostic fee is credited in full against your first retainer if you sign within 60 days.",
+            text: "Every system has a number against it, with a baseline measured at install. If we can't prove it moved your numbers, we didn't earn the retainer. Cancellation is self-serve.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Is our data safe?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "GDPR-compliant by design, UK and EU. We disclose exactly what the site loads, you own your data, and nothing is sold or used to train external AI.",
           },
         },
       ],
@@ -103,10 +116,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
-        <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="anonymous" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

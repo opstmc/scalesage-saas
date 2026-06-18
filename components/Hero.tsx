@@ -1,35 +1,64 @@
-import HeroField from "./HeroField";
+import DataStreamField from "./DataStreamField";
 import JourneyButton from "./JourneyButton";
+
+function SigCard({
+  tag,
+  headline,
+  meta,
+  className,
+}: {
+  tag: string;
+  headline: React.ReactNode;
+  meta: string;
+  className?: string;
+}) {
+  return (
+    <div className={`glass glass-hover sig-card ${className ?? ""}`}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--accent-primary)", boxShadow: "0 0 10px var(--accent-primary)", flex: "none" }} />
+        <span className="eyebrow" style={{ margin: 0, fontSize: 11 }}>{tag}</span>
+      </div>
+      <div style={{ fontWeight: 600, fontSize: 18, color: "var(--text-headline)", lineHeight: 1.25 }}>{headline}</div>
+      <div className="small" style={{ marginTop: 8, color: "var(--text-faint)" }}>{meta}</div>
+    </div>
+  );
+}
 
 export default function Hero() {
   return (
-    <section id="hero-band" className="hero">
-      <HeroField />
+    <section className="hero">
+      <DataStreamField />
       <div className="hero-vignette" />
       <div className="hero-fade" />
-      <div data-nav-sentinel="" style={{ position: "absolute", bottom: 8, left: 0, width: 1, height: 1, pointerEvents: "none" }} />
       <div className="hero-content">
         <div data-reveal="">
-          <div className="hero-eyebrow">
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent-lite)", boxShadow: "0 0 12px var(--accent-lite)" }} />
-            AI &amp; Automation Specialists
-          </div>
-          <h1 id="hero-headline" className="hero-h1">
-            Find the revenue you’re leaking. Then own the systems that recover it.
+          <div className="eyebrow">Diagnose. Build. Prove.</div>
+          <h1 className="display">
+            Your business is <span className="accent-em">leaking</span>. We find it. Fix it. Prove it.
           </h1>
+          <p className="lead" style={{ marginTop: 22, maxWidth: "34em", fontSize: 19 }}>
+            Missed calls, cold quotes, forgotten reviews, invisible search results — every leak has a number, and we close it.
+          </p>
+          <div className="hero-cta">
+            <JourneyButton className="btn btn-primary btn-lg">Run the Catalyst diagnostic</JourneyButton>
+            <a href="#how" className="btn btn-ghost btn-lg">See how it works</a>
+          </div>
+          <div className="hero-trust">
+            <div className="small" style={{ color: "var(--text-muted)", marginBottom: 14 }}>
+              Founding client programme · UK &amp; EU · GDPR-compliant by design
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {["Trades", "Property", "Clinics", "Hospitality"].map((s) => (
+                <span key={s} style={{ fontSize: 12.5, color: "var(--text-faint)", border: "1px solid var(--border-hair)", borderRadius: 8, padding: "6px 12px", letterSpacing: ".02em" }}>{s}</span>
+              ))}
+            </div>
+          </div>
         </div>
-        <p id="hero-subhead" data-reveal="" className="hero-sub">
-          We’re a specialist team that diagnoses your business, builds custom AI systems you own, and proves the results in numbers — so you capture more revenue and get found across the search frontier.
-        </p>
-        <div data-reveal="" className="hero-cta">
-          <JourneyButton className="btn btn-accent btn-lg">Book Your Catalyst Diagnostic</JourneyButton>
-          <a href="#leaking" className="btn btn-ghost">See what we fix</a>
-        </div>
-        <div data-reveal="" className="hero-cred">
-          <span style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--accent-lite)", boxShadow: "0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent)" }} />
-          <span className="mono" style={{ fontSize: 12.5, letterSpacing: ".04em", color: "rgba(255,255,255,.55)" }}>
-            Customer Zero — we run every system on ourselves before we sell it to you.
-          </span>
+
+        <div className="hero-signature" data-reveal="">
+          <SigCard tag="Capture" headline={<>Missed call → <span className="accent">booked in 00:12</span></>} meta="Voice AI · 24/7 coverage" />
+          <SigCard tag="Convert" headline={<>Quote follow-up · Day 1 · 3 · 7</>} meta="Sequenced until it converts" />
+          <SigCard tag="Be found" headline={<>You&rsquo;re the answer on AI search</>} meta="ChatGPT · Perplexity · Google" />
         </div>
       </div>
     </section>

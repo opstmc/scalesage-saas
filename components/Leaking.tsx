@@ -1,10 +1,10 @@
 const LEAKS = [
-  { n: "01", title: "Missed calls", dim: "Up to a third of inbound calls go unanswered. ", bright: "Recover them with an AI receptionist that books while you work." },
-  { n: "02", title: "Slow lead response", dim: "Leads go cold in minutes. ", bright: "Instant AI follow-up keeps every enquiry warm until it converts." },
-  { n: "03", title: "No follow-up", dim: "Most quotes are never chased. ", bright: "Automated sequences recover the ones you’d otherwise lose." },
-  { n: "04", title: "Invisible in AI search", dim: "Buyers ask ChatGPT, not just Google. ", bright: "If you’re not in the answer, you’re not in the running." },
-  { n: "05", title: "CRM chaos", dim: "Data scattered across inboxes and spreadsheets. ", bright: "One source of truth, kept clean by agents." },
-  { n: "06", title: "Manual quoting & admin", dim: "Hours lost every week. ", bright: "Automate the repetitive work; keep your people on the billable." },
+  { title: "Missed calls", line: "Every unanswered call is a customer dialing the next business.", stat: "30–60% of inbound calls go unanswered · 75% leave no voicemail [D]" },
+  { title: "Cold quotes", line: "Quotes sent and forgotten. No follow-up, no second chance.", stat: "The deal goes cold while you're on the next job [D]" },
+  { title: "Forgotten reviews", line: "Every happy customer is a 5-star review you didn't ask for.", stat: "Most businesses ask for none [D]" },
+  { title: "Lapsed customers", line: "Bought once, never came back — sitting in your database.", stat: "Worth more than every cold prospect combined [D]" },
+  { title: "Invisible online", line: "Customers ask ChatGPT, Google and Perplexity — and you don't come up.", stat: "AI search is where the next recommendation happens [D]" },
+  { title: "Admin drag", line: "Quoting, invoicing, chasing — hours AI does in minutes.", stat: "Time your team should be spending earning [D]" },
 ];
 
 export default function Leaking() {
@@ -12,19 +12,16 @@ export default function Leaking() {
     <section id="leaking" className="section">
       <div className="inner">
         <div className="section-head" data-reveal="">
-          <div className="eyebrow">What’s leaking?</div>
-          <h2 className="h2">Revenue rarely disappears. It leaks.</h2>
-          <p className="lead">Six places it slips out of most businesses — and the upside waiting on the other side of each.</p>
+          <div className="eyebrow">What&rsquo;s leaking?</div>
+          <h2 className="h2">Six places revenue slips out — quietly.</h2>
+          <p className="lead">This is where most growing businesses see themselves. Every leak has a number; we find it, then we close it.</p>
         </div>
         <div className="leak-grid">
           {LEAKS.map((l) => (
-            <div key={l.n} data-reveal="" className="leak-cell">
-              <div className="mono" style={{ fontSize: 12, color: "var(--ink-faint)", marginBottom: 14 }}>LEAK {l.n}</div>
-              <h3 className="font-display" style={{ fontWeight: 600, fontSize: 19, margin: "0 0 10px", letterSpacing: "-.01em" }}>{l.title}</h3>
-              <p style={{ fontSize: 15, color: "var(--ink-soft)", margin: 0 }}>
-                {l.dim}
-                <span style={{ color: "var(--ink)" }}>{l.bright}</span>
-              </p>
+            <div key={l.title} data-reveal="" className="glass glass-hover leak-card">
+              <h3 className="h3 teal-underline" style={{ fontSize: 20 }}>{l.title}</h3>
+              <p style={{ fontSize: 15, color: "var(--text-muted)", margin: 0, lineHeight: 1.55 }}>{l.line}</p>
+              <p className="leak-stat">{l.stat}</p>
             </div>
           ))}
         </div>

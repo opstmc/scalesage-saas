@@ -1,7 +1,8 @@
 /**
- * Sage / Catalyst Journey logic — ported verbatim (semantics) from the
- * ScaleSage.dc.html prototype. Pure functions + data, no DOM, fully
- * deterministic (scripted Sage, as the brief locked in).
+ * Sage / Catalyst diagnostic logic — "This isn't a form. It's a scan."
+ * Pure functions + data, no DOM, fully deterministic (scripted demo).
+ * Voice: business doctor for SMEs · leak language · Diagnose. Build. Prove.
+ * Tiers: Starter £597 / Pro £1,497 / Max £4,997.
  */
 
 export type Answers = Record<string, string | number>;
@@ -30,14 +31,14 @@ export interface Step {
 }
 
 export const INDUSTRY: Record<string, string> = {
-  mep: "Commercial MEP",
   trades: "trades & home services",
-  realestate: "real estate",
-  restaurant: "restaurant & hospitality",
-  saas: "B2B SaaS",
-  healthcare: "healthcare",
-  deeptech: "deeptech",
-  gov: "government & defense",
+  property: "property & estate agencies",
+  hospitality: "hospitality",
+  clinic: "clinics & healthcare",
+  beauty: "salons & personal care",
+  auto: "auto & repair",
+  professional: "professional services",
+  ecommerce: "e-commerce & retail",
   other: "business",
 };
 
@@ -45,18 +46,18 @@ export const STEPS: Step[] = [
   {
     id: "industry",
     kicker: "01 · Your world",
-    question: "What kind of business are we diagnosing?",
-    hint: "Pick the closest — it shapes everything Sage looks at next.",
+    question: "What kind of business are we scanning?",
+    hint: "Pick the closest — Sage already knows the leak patterns for your industry.",
     inputType: "choose",
     options: [
-      { value: "mep", label: "Commercial MEP / Construction", desc: "Mechanical, electrical, plumbing, data-center buildout" },
-      { value: "trades", label: "Trades & home services", desc: "Local, recurring, call-driven" },
-      { value: "realestate", label: "Real estate", desc: "Agencies, brokerages, property" },
-      { value: "restaurant", label: "Restaurants & hospitality" },
-      { value: "saas", label: "B2B SaaS" },
-      { value: "healthcare", label: "Healthcare" },
-      { value: "deeptech", label: "Deeptech / Space / Robotics" },
-      { value: "gov", label: "Government & Defense" },
+      { value: "trades", label: "Trades & home services", desc: "Plumbing, electrical, gas, building" },
+      { value: "property", label: "Property & estate agents", desc: "Sales, lettings, management" },
+      { value: "hospitality", label: "Hospitality & restaurants" },
+      { value: "clinic", label: "Clinics & healthcare" },
+      { value: "beauty", label: "Salons & personal care" },
+      { value: "auto", label: "Auto & repair" },
+      { value: "professional", label: "Professional services", desc: "Accountants, solicitors, recruitment" },
+      { value: "ecommerce", label: "E-commerce & retail" },
       { value: "other", label: "Something else" },
     ],
   },
@@ -69,7 +70,7 @@ export const STEPS: Step[] = [
     min: 1,
     max: 300,
     step: 1,
-    default: 12,
+    default: 8,
     minLabel: "Solo",
     maxLabel: "300+",
   },
@@ -77,7 +78,7 @@ export const STEPS: Step[] = [
     id: "stage",
     kicker: "03 · Stage",
     question: "Where are you on the growth curve?",
-    hint: "Be honest — it changes what we prioritise.",
+    hint: "Be honest — it changes what we fix first.",
     inputType: "choose",
     options: [
       { value: "starting", label: "Just starting" },
@@ -90,7 +91,7 @@ export const STEPS: Step[] = [
     id: "ai",
     kicker: "04 · AI maturity",
     question: "How much AI is already in your operation?",
-    hint: "There is no wrong answer here.",
+    hint: "There's no wrong answer here.",
     inputType: "choose",
     options: [
       { value: "none", label: "None yet" },
@@ -107,11 +108,11 @@ export const STEPS: Step[] = [
     inputType: "choose",
     options: [
       { value: "calls", label: "Missed calls & lost leads" },
-      { value: "followup", label: "Slow or no follow-up" },
-      { value: "search", label: "Invisible in search & AI answers" },
-      { value: "crm", label: "CRM & data chaos" },
-      { value: "admin", label: "Manual quoting & admin" },
-      { value: "scale", label: "Can't scale without hiring" },
+      { value: "quotes", label: "Cold quotes — no follow-up" },
+      { value: "reviews", label: "Forgotten reviews" },
+      { value: "lapsed", label: "Lapsed customers" },
+      { value: "search", label: "Invisible online & in AI search" },
+      { value: "admin", label: "Admin drag — quoting, invoicing, chasing" },
     ],
   },
   {
@@ -126,12 +127,12 @@ export const STEPS: Step[] = [
     id: "value",
     kicker: "07 · The stakes",
     question: "Roughly how much revenue slips away each month?",
-    hint: "A gut number is fine — it calibrates the diagnostic.",
+    hint: "A gut number is fine — it calibrates the scan.",
     inputType: "slide",
     min: 0,
     max: 100000,
     step: 1000,
-    default: 8000,
+    default: 6000,
     money: true,
     minLabel: "£0",
     maxLabel: "£100k+",
@@ -171,12 +172,12 @@ export function learnedChips(a: Answers): LearnedChip[] {
   return out;
 }
 
-export function computeTier(a: Answers): "local" | "business" | "enterprise" {
+export function computeTier(a: Answers): "starter" | "pro" | "max" {
   const team = Number(a.scale) || 0;
   const val = Number(a.value) || 0;
-  if (team >= 120 || ((a.industry === "gov" || a.industry === "deeptech") && team >= 40) || val >= 60000) return "enterprise";
-  if (team >= 15 || a.stage === "growing" || a.stage === "established" || val >= 20000) return "business";
-  return "local";
+  if (team >= 25 || val >= 30000 || (a.stage === "established" && val >= 15000)) return "max";
+  if (team >= 6 || a.stage === "growing" || a.stage === "established" || val >= 8000) return "pro";
+  return "starter";
 }
 
 export interface SnapshotLine {
@@ -197,23 +198,23 @@ export interface Snapshot {
 export function buildSnapshot(a: Answers): Snapshot {
   const ind = INDUSTRY[a.industry as string] || "business";
   const painObs: Record<string, string> = {
-    calls: "Unanswered calls are walking revenue out the door. An AI receptionist books them around the clock — typically 15–30% more captured.",
-    followup: "Leads cool within minutes. Instant, persistent AI follow-up keeps every enquiry warm until it converts.",
-    search: "Your buyers increasingly ask AI engines, not just Google — and right now you're likely absent from the answer.",
-    crm: "Scattered data is silent leakage. One clean source of truth, maintained by agents, stops the bleed.",
-    admin: "Hours vanish into manual quoting and admin each week. Automated, that time returns to billable work.",
-    scale: "Growth shouldn't mean more headcount. Systems absorb the load so your margins hold as you scale.",
+    calls: "Missed calls are your loudest leak — 30–60% of inbound calls go unanswered, and most callers just dial the next business. Voice AI captures and books them, day or night.",
+    quotes: "Quotes go cold while you're on the next job. Sequenced follow-up chases every one until it converts or closes — no second chance left on the table.",
+    reviews: "Every happy customer is a 5-star review you didn't ask for. An automated review engine turns finished jobs into the proof that wins the next ones.",
+    lapsed: "Past customers sitting in your database are worth more than every cold prospect combined. Reactivation campaigns bring them back on autopilot.",
+    search: "Your buyers ask ChatGPT, Perplexity and Google for a recommendation — and right now you don't come up. AEO/GEO visibility puts you in the answer.",
+    admin: "Quoting, invoicing and chasing eat hours your team should spend earning. Automated, that time comes straight back to billable work.",
   };
   const aiObs: Record<string, string> = {
-    none: "Starting from zero is an advantage — we build clean, owned systems with no legacy mess to unwind.",
-    experimenting: "You've proven appetite. We consolidate the scattered experiments into one system you own.",
-    tools: "You've proven appetite. We consolidate the scattered tools into one coherent system you own.",
-    embedded: "You're already operating with AI — the leverage now is governance, verification and provable ROI.",
+    none: "Starting from zero is an advantage — we install clean, owned systems with no legacy mess to unwind.",
+    experimenting: "You've proven appetite. We consolidate the scattered experiments into one operating system you own.",
+    tools: "You've proven appetite. We consolidate the scattered tools into one operating system you own.",
+    embedded: "You're already running on AI — the leverage now is governance, attribution and provable ROI.",
   };
   const indObs =
-    a.industry === "mep"
-      ? "In commercial MEP the leak is rarely the work — it's response speed, quoting throughput and being invisible when a GC searches for a partner."
-      : "For " + ind + ", the highest-leverage fixes are usually faster capture, relentless follow-up and AI-search visibility.";
+    a.industry === "trades"
+      ? "In the trades the leak is rarely the work — it's the missed call while you're on a job, the quote never chased, and the review never asked for. We close all three."
+      : "For " + ind + ", the pattern repeats: capture every enquiry, follow up relentlessly, stay findable in search, and let systems carry the admin.";
   const lines: SnapshotLine[] = [
     { tag: "01", text: indObs },
     { tag: "02", text: painObs[a.pain as string] || painObs.calls },
@@ -221,13 +222,31 @@ export function buildSnapshot(a: Answers): Snapshot {
   ];
   const tier = computeTier(a);
   const route = {
-    local: { tierLabel: "Local", track: "Local Health Check", price: "£150", ctaLabel: "Book your Local Health Check", note: "Fully credited against your first retainer if you sign within 60 days — and you keep the report either way." },
-    business: { tierLabel: "Business", track: "ScaleSage Diagnostic", price: "£750", ctaLabel: "Book your ScaleSage Diagnostic", note: "Credited in full against your first retainer if you sign within 60 days. The report is yours regardless." },
-    enterprise: { tierLabel: "Enterprise", track: "Specialist consultation", price: "Direct", ctaLabel: "Talk to a specialist", note: "Enterprise scope is set with a specialist directly — no automated tier, no templates." },
+    starter: {
+      tierLabel: "Starter",
+      track: "Starter",
+      price: "£597/mo",
+      ctaLabel: "Start the Catalyst diagnostic",
+      note: "Plug your biggest leak first — one core system installed, founder-led onboarding, and a monthly ROI report. The diagnostic shows what that leak is worth before you commit.",
+    },
+    pro: {
+      tierLabel: "Pro · most popular",
+      track: "Pro",
+      price: "£1,497/mo",
+      ctaLabel: "Start the Catalyst diagnostic",
+      note: "Two to three systems installed as one operating system, a full Catalyst diagnostic, quarterly strategy review, and a 90-day ROI proof report.",
+    },
+    max: {
+      tierLabel: "Max",
+      track: "Max",
+      price: "£4,997/mo",
+      ctaLabel: "Talk to us first",
+      note: "Full service stack, dedicated capacity, custom AI builds and weekly proof reporting — operational transformation with an executive strategy partnership.",
+    },
   }[tier];
   const indLabel = (STEPS[0].options!.find((o) => o.value === a.industry) || ({} as ChooseOption)).label || "business";
   return {
-    title: "Here's what we see in your " + (a.industry === "other" ? "business" : indLabel) + ".",
+    title: "Here's where you're leaking in your " + (a.industry === "other" ? "business" : indLabel.toLowerCase()) + ".",
     lines,
     ...route,
   };
@@ -236,32 +255,34 @@ export function buildSnapshot(a: Answers): Snapshot {
 /* ---------- Sage scripted brain ---------- */
 
 export const SAGE_SUGGEST = [
-  "What's the diagnostic?",
+  "What's the Catalyst diagnostic?",
   "How much does it cost?",
-  "Do I own what you build?",
+  "What if it doesn't work?",
   "How is this different?",
 ];
 
 export const SAGE_GREETING =
-  "Hi, I'm Sage. Ask me anything about the diagnostic, pricing, ownership, or what we build.";
+  "Hi, I'm Sage — ScaleSage's diagnostic intelligence. Ask me about the scan, pricing, what we fix, or how we prove it.";
 
 export function sageReply(q: string): string {
   const t = (q || "").toLowerCase();
-  if (/diagnostic|catalyst|audit|journey/.test(t))
-    return "The Catalyst Diagnostic is a paid, structured diagnosis of your business. Before any call, our agents study your site, reviews and competitor stack and build a working demo of the top fixes. Local Health Check is £150; the ScaleSage Diagnostic is £750 — and you keep the report either way.";
-  if (/price|pricing|cost|how much|fee|£|expensive|budget/.test(t))
-    return "Tiers are public: Local from £297/mo, Business from £997/mo, Enterprise from £9,997/mo. Your exact scope and quote are set by your diagnostic — and the diagnostic fee is credited in full against your first retainer if you sign within 60 days.";
-  if (/own|ownership|keep|lock.?in|template/.test(t))
-    return "You own everything we build — every system and agent. No templates, no lock-in. If we ever part ways, what we built stays with you.";
-  if (/fast|quick|long|time|timeline|when/.test(t))
-    return "The diagnostic turns around in days, not weeks — you'll often see a working demo before we've even met. Build timelines are set in your scope.";
-  if (/different|why|agency|better|compare/.test(t))
-    return "We diagnose before we pitch, prove with working demos, build systems you own, and verify outputs across multiple models. We're specialists — not a templated agency. Most agencies pitch features; we diagnose and deliver.";
+  if (/diagnostic|catalyst|scan|audit|journey|form/.test(t))
+    return "This isn't a form — it's a scan. The Catalyst diagnostic checks your missed calls, follow-up speed, search and AI visibility, retention and operations drag, then shows you exactly where revenue is leaving the building, what to fix first, and what recovery looks like in numbers. About 15 minutes.";
+  if (/price|pricing|cost|how much|fee|£|expensive|budget|tier/.test(t))
+    return "Three tiers, monthly: Starter £597 (one acute leak plugged), Pro £1,497 (a 2–3 system operating system — most popular), and Max £4,997 (full transformation, dedicated capacity). Not sure which? Run the Catalyst diagnostic — it shows what your leak is worth and what to fix first.";
+  if (/work|prove|proof|result|roi|guarantee|number|baseline/.test(t))
+    return "Every system has a number against it. We measure a baseline at install, track improvement weekly, and ship a ROI proof report every 90 days. If we can't prove it moved your numbers, we didn't earn the retainer.";
+  if (/own|ownership|keep|lock.?in|template|contract|cancel/.test(t))
+    return "The systems are built into your business, not bolted on — and cancellation is self-serve, never “email us”. No long lock-in. You stay in control.";
+  if (/different|why|agency|better|compare|tool|chatbot|receptionist|99/.test(t))
+    return "Most AI agencies hand you a tool — a chatbot, a £99 receptionist — and leave. We're the business doctor: we diagnose the leak, install the system that closes it, monitor it, and prove it moved your numbers. We don't sell tools; we fix what's costing you money.";
+  if (/fast|quick|long|time|timeline|when|live/.test(t))
+    return "The diagnostic turns around fast — you'll see your leak map in minutes. Build timelines are set in your scope; most first systems are live within days, not months.";
   if (/data|secur|gdpr|privacy|safe|train/.test(t))
-    return "Everything is encrypted, GDPR-compliant and consent-first. We never sell your data or use it to train external AI. You stay in control throughout.";
-  if (/build|service|fix|do you|offer|agent|automat|seo|aeo|search|visib/.test(t))
-    return "We build custom AI agents, automation (n8n/Make/custom), a Revenue Recovery OS, Search & AI Visibility (AEO/GEO/LLMO/SEO), Frontier Intelligence with working demos, a Trades Talent Engine, and AI Ops & Governance — all owned by you.";
-  if (/book|start|begin|talk|contact|human|call/.test(t))
-    return "The best way in is the Catalyst Journey — tap “Book Your Catalyst Diagnostic” anywhere on the page. No login or payment to begin, and Enterprise routes straight to a specialist.";
-  return "Good question. I'm scoped to ScaleSage — the diagnostic, pricing, ownership, security, and what we build. For anything beyond that, the Catalyst Diagnostic is the best next step. Want me to point you to it?";
+    return "GDPR-compliant by design, UK and EU. We disclose exactly what the site loads, you own your data, and nothing is sold or used to train external AI.";
+  if (/fix|service|do you|offer|build|voice|call|review|follow|seo|aeo|geo|visib|automat/.test(t))
+    return "We close leaks in five groups: capture every enquiry (voice AI, missed-call recovery), convert every quote (sequenced follow-up), bring back every customer (reactivation), be findable everywhere (AEO/GEO + reviews), and run without you (ops automation). The diagnostic decides which leak we close first.";
+  if (/book|start|begin|talk|contact|human|call you|speak/.test(t))
+    return "Best way in is the Catalyst diagnostic — tap “Start the Catalyst diagnostic” anywhere on the page. No payment to begin, and you can book a call with the team straight after if you'd rather talk first.";
+  return "Good question. I'm scoped to ScaleSage — the diagnostic, pricing, what we fix, ownership and how we prove results. The fastest way to your answer is the Catalyst diagnostic: it shows your leak, the fix, and the number. Want me to point you to it?";
 }

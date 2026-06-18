@@ -1,32 +1,38 @@
 # ScaleSage
 
-> AI & Automation Specialists. We diagnose your business, build custom AI systems you own, and prove the results in numbers — so you capture more revenue and get found across the search frontier (Google, SEO, and AI engines: ChatGPT, Claude, Perplexity, Gemini).
+> The business doctor for growing SMEs. Your business is leaking — we find it, fix it, and prove it. Diagnose. Build. Prove.
 
-ScaleSage is a specialist team — never an agency. Approach: the Business Doctor — we don't pitch, we diagnose. Diagnose → Build → Prove. We are "Customer Zero": we run every system on ourselves before we sell it.
+ScaleSage is not an AI automation agency that sells tools. We diagnose the leak, install the operating system that closes it, monitor it, and prove it moved your numbers. Founding client programme, UK & EU, GDPR-compliant by design.
 
-## What we do
-- Custom AI Agents — agents that answer, qualify and book, built for your business and owned by you.
-- Automation builds — n8n, Make or custom; the repetitive work runs itself.
-- Revenue Recovery OS — capture, follow-up and reactivation as one system.
-- Search & AI Visibility — AEO, GEO, LLMO and SEO so you're the answer across Google and AI engines.
-- Frontier Intelligence — market intelligence and working demos before you commit.
-- Trades Talent Engine — attract, screen and book skilled labour.
-- AI Ops & Governance — multi-model verification, guardrails and oversight.
+## The leaks we close
+- Missed calls — unanswered inbound calls walk to the next business.
+- Cold quotes — quotes sent and never followed up.
+- Forgotten reviews — happy customers who were never asked.
+- Lapsed customers — past buyers sitting dormant in the database.
+- Invisible online — not showing up when buyers ask ChatGPT, Perplexity or Google.
+- Admin drag — quoting, invoicing and chasing done by hand.
 
-## The Catalyst Diagnostic
-A paid, structured diagnosis. Before any call, our agents study your site, reviews and competitor stack and build a working demo of the highest-leverage fixes.
-- Local Health Check — £150
-- ScaleSage Diagnostic — £750
-Fully credited against your first retainer if you sign within 60 days. You keep the report either way. No login or payment to begin.
+## What we install (five systems)
+- Capture every enquiry — Voice AI, missed-call recovery, instant SMS, after-hours coverage.
+- Convert every quote — sequenced follow-up, objection handling, win-back, WhatsApp escalation.
+- Bring back every customer — database reactivation, retention, service reminders.
+- Be findable everywhere — AEO/GEO visibility (ChatGPT, Claude, Perplexity, Google), reviews, Google Business.
+- Run without you — operations automation, scheduling, invoicing, reporting.
 
-## Pricing (public)
-- Local — Starter £297/mo, Growth £597/mo, Scale £997/mo
-- Business — Starter £997/mo, Growth £1,997/mo, Scale £2,997/mo
-- Enterprise — £9,997/mo+
-Exact scope and quote are set by your Catalyst Diagnostic.
+## The Catalyst diagnostic
+This isn't a form. It's a scan. Sage, our diagnostic intelligence, checks your missed calls, follow-up speed, search and AI visibility, retention and operations drag — then shows where you're leaking revenue, what to fix first, and what recovery looks like in numbers. About 15 minutes, no payment to begin.
 
-## Ownership & data
-Every system and agent is owned by you — no templates, no lock-in. Encrypted, GDPR-compliant, consent-first. We never sell your data or use it to train external AI.
+## Pricing (public, monthly)
+- Starter — £597/mo. One core service installed, monthly ROI report, founder-led onboarding.
+- Pro — £1,497/mo (most popular). 2–3 services, full Catalyst diagnostic, monthly ROI proof report, quarterly strategy review, priority support.
+- Max — £4,997/mo. Full service stack, dedicated capacity, custom AI builds, weekly proof reporting, executive strategy partnership.
+All tiers include the Catalyst diagnostic, the compliance guarantee, and the 90-day ROI proof commitment. The diagnostic decides which leak we close first.
+
+## How we prove it
+Every system has a number against it. Baseline measured at install, improvement tracked weekly, ROI proof report every 90 days. No fake stats — claims carry confidence tags, and founding-stage results publish from Q3 2026.
 
 ## Industries
-Commercial MEP / data-center buildout (showcase), Deeptech / Space / Robotics, Local trades, Real estate, Restaurants, B2B SaaS, Healthcare, Government & Defense.
+We've mapped leak patterns across 18 SME industries: plumbers, electricians, gas engineers, tree surgeons, builders, estate agents, property management, salons, pet services, auto repair, clinics, hospitality, accountants, solicitors, recruitment, e-commerce, fitness/gyms, cleaning.
+
+## Data & ownership
+GDPR-compliant by design. Systems are built into your business, not bolted on. Cancellation is self-serve. We never sell your data or use it to train external AI.

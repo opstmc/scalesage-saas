@@ -1,23 +1,58 @@
-const STEPS = [
-  { n: "01", title: "Diagnose", body: "Before any call, our agents have already studied your site, your reviews and your competitor stack — and built a working demo of the highest-leverage fixes." },
-  { n: "02", title: "Build", body: "Custom AI systems and agents, built for your business and owned by you. No templates, no lock-in — the real thing, working." },
-  { n: "03", title: "Prove", body: "Measurable KPIs and monthly dashboards. You see exactly what changed and what it earned. Numbers don’t lie." },
+function DiagnoseIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="var(--accent-primary)" strokeWidth="1.5" aria-hidden="true">
+      <circle cx="11" cy="11" r="7" />
+      <line x1="4" y1="11" x2="18" y2="11" />
+      <line x1="16.5" y1="16.5" x2="22" y2="22" strokeWidth="2" />
+    </svg>
+  );
+}
+function BuildIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="var(--accent-primary)" strokeWidth="1.5" aria-hidden="true">
+      <rect x="3" y="3" width="8" height="8" rx="1.5" />
+      <rect x="15" y="3" width="8" height="8" rx="1.5" />
+      <rect x="9" y="15" width="8" height="8" rx="1.5" />
+      <line x1="11" y1="7" x2="15" y2="7" />
+      <line x1="13" y1="11" x2="13" y2="15" />
+    </svg>
+  );
+}
+function ProveIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="var(--accent-primary)" strokeWidth="1.5" aria-hidden="true">
+      <rect x="3" y="15" width="5" height="8" rx="1" />
+      <rect x="10.5" y="9" width="5" height="14" rx="1" />
+      <rect x="18" y="4" width="5" height="19" rx="1" />
+    </svg>
+  );
+}
+
+const CARDS = [
+  { n: "01", title: "Diagnose", Icon: DiagnoseIcon, body: "We don't sell tools. We diagnose the leak. The Catalyst diagnostic scans your missed calls, your follow-up speed, your visibility on Google and AI search, your retention curve and your operations drag — and shows you exactly where revenue is leaving the building." },
+  { n: "02", title: "Build", Icon: BuildIcon, body: "We install the operating system that fixes what we found. Voice AI for missed calls. Sequenced follow-up for cold quotes. Review systems. Reactivation campaigns. AEO visibility. Whatever the leak demands — built into your business, not bolted on." },
+  { n: "03", title: "Prove", Icon: ProveIcon, body: "Every system has a number against it. Baseline measured at install. Improvement tracked weekly. ROI proof report every 90 days. If we can't prove it moved your numbers, we didn't earn the retainer." },
 ];
 
 export default function Framework() {
   return (
-    <section id="framework" className="inner">
+    <section id="how" className="inner">
       <div className="section-head" data-reveal="">
-        <div className="eyebrow">How it works</div>
+        <div className="eyebrow">The method</div>
         <h2 className="h2">Diagnose. Build. Prove.</h2>
-        <p className="lead">We don’t pitch. We diagnose like a doctor, build what the diagnosis demands, and prove it with numbers.</p>
+        <p className="lead">An actual process, not vibes. Three phases, every one accountable to a number.</p>
       </div>
       <div className="grid-3">
-        {STEPS.map((s) => (
-          <div key={s.n} data-reveal="" className="card card-lift" style={{ padding: 32 }}>
-            <div className="mono" style={{ fontSize: 13, color: "var(--accent)", marginBottom: 20 }}>{s.n}</div>
-            <h3 className="font-display" style={{ fontWeight: 600, fontSize: 22, letterSpacing: "-.01em", margin: "0 0 12px" }}>{s.title}</h3>
-            <p style={{ fontSize: 15.5, color: "var(--ink-soft)", margin: 0 }}>{s.body}</p>
+        {CARDS.map(({ n, title, Icon, body }) => (
+          <div key={n} data-reveal="" className="glass glass-hover" style={{ padding: 32 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 22 }}>
+              <span style={{ width: 48, height: 48, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", background: "color-mix(in srgb,var(--accent-primary) 10%,transparent)", border: "1px solid var(--border-subtle)" }}>
+                <Icon />
+              </span>
+              <span className="eyebrow" style={{ margin: 0, color: "var(--text-faint)" }}>{n}</span>
+            </div>
+            <h3 className="h3 teal-underline" style={{ marginBottom: 12 }}>{title}</h3>
+            <p style={{ fontSize: 15.5, color: "var(--text-muted)", margin: 0, lineHeight: 1.6 }}>{body}</p>
           </div>
         ))}
       </div>

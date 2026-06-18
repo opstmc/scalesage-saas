@@ -1,38 +1,44 @@
 # ScaleSage
 
-The ScaleSage marketing site — a frontier-quality, specialist-grade SaaS site built as **"Customer Zero"**: the site is the demo, proving on ourselves what we sell to clients. AI & Automation Specialists who diagnose, build custom AI systems you own, and prove the results.
+The ScaleSage marketing site — the front door of the brand, built to the locked **Website Design Brief**: the business doctor for growing SMEs. *Your business is leaking. We find it. Fix it. Prove it.*
 
-Recreated in **Next.js / React** from the confirmed Claude Design prototype (`ScaleSage.dc.html`), matching the visual design pixel-for-pixel while moving to a production stack.
+Next.js / React, deployed on Vercel.
+
+## Visual signature (locked)
+
+- **Dark navy field** (`#0A1628` → `#0E1B2D`) with flowing **teal/cyan data streams** — the river/current metaphor: we find the leak in the flow, redirect it, and prove it improved.
+- **Teal accent** (`#3DD9D0` / glow `#5EEFE6`), silver/off-white text (`#F4F6F9`). No bright primaries, no rainbow gradients.
+- **Frosted glass cards** with teal-edged glow on hover, consistent radius (16px cards / 12px buttons / 8px inputs / 24px hero blocks).
+- Sans-serif throughout (**Inter**, 3 weights), big confident headlines with italic-teal accent words.
+- Motion principle: alive but controlled. One signature element moves (the data stream); everything else is calm, with smooth scroll-reveals and subtle teal-glow hover.
+
+Tokens live as CSS variables in `app/globals.css` — defined once, used everywhere.
 
 ## Stack
 
 - **Next.js 16** (App Router) + **React 19** + **TypeScript**
-- **Tailwind CSS v4** + a hand-authored design-token stylesheet (`app/globals.css`)
-- Typography: **General Sans** (display, via Fontshare) + **Inter** (body, via Google Fonts)
-- No heavy animation libraries — one restrained hero canvas, native scroll, `IntersectionObserver` reveals
-- Deploys on **Vercel** (fully static — every route prerenders)
+- **Tailwind CSS v4** + a hand-authored design-token stylesheet
+- **Inter** via Google Fonts; fully static (every route prerenders) for sub-3s loads
+- Deploys on **Vercel** — no config needed
 
-## What's in it
+## Homepage (10 sections)
 
-All 10 sections from the brief, in one page:
+1. **Hero** — leak tagline + the flowing data-stream canvas + frosted signature cards
+2. **Diagnose. Build. Prove.** — the method
+3. **What's leaking?** — six leak cards, stat-on-hover (confidence-tagged)
+4. **The Catalyst diagnostic** — "This isn't a form. It's a scan." + animated Sage interface preview
+5. **What ScaleSage fixes** — five outcome-framed service groups
+6. **Industries** — 18 SME sectors, hover reveals the 3 biggest leaks
+7. **Pricing** — Starter £597 / Pro £1,497 (anchored) / Max £4,997
+8. **Proof** — honest founding-stage programme, placeholder case studies
+9. **Why ScaleSage isn't a normal AI agency** — typography-only differentiation
+10. **FAQ + final CTA** — "Find your leak."
 
-1. **Hero** — dark band with a lightweight generated **Higgs-field canvas** (single 2D `requestAnimationFrame` loop, DPR-capped, pauses offscreen/hidden, static fallback for `prefers-reduced-motion`)
-2. **Diagnose. Build. Prove.** — the framework
-3. **What's leaking?** — revenue-leak inventory
-4. **Catalyst Diagnostic** entry — into the interactive journey
-5. **What ScaleSage fixes** — seven service cards
-6. **Industries** — MEP-first showcase
-7. **Pricing** — public tiers, scope gated by the diagnostic
-8. **Proof** — founding-stage, Customer Zero
-9. **Why ScaleSage isn't a normal agency** — the dark contrast band
-10. **FAQ + Sage + final CTA**
+**The Catalyst Journey** is the interactive centrepiece: a full-screen Sage scan (branching questions → live capture → leak map → Starter/Pro/Max tier match). It's scripted/deterministic here; the live backend (Sonnet → Opus → GPT-5.5 routing) is a drop-in replacement for `lib/journey.ts`. Plus a sentinel-driven sticky nav with a persistent "Start the Catalyst" CTA (sticky on mobile), GDPR cookie banner, and AEO baked in (JSON-LD, `llms.txt`, `robots`, `sitemap`).
 
-Two interactive moments:
+## Proof discipline
 
-- **The Catalyst Journey** — a full-screen Sage takeover: 7 branching questions (tap / type / slide), a live "what we just learned about you" capture, a computed snapshot, and smart tier routing (Local £150 / Business £750 / Enterprise → human). Scripted and fully deterministic — no live model calls — built as drop-in scaffolding so a live LLM can replace `lib/journey.ts`'s `sageReply` later without a rebuild.
-- **The Sage FAQ widget** — a compact scoped chat with the same scripted brain and suggestion chips.
-
-Plus: a transparent→solid sticky nav (sentinel-driven), a GDPR cookie banner, and AEO baked in (JSON-LD `Organization` / `Service` / `FAQPage`, `llms.txt`, `robots.txt`, `sitemap.xml`, semantic HTML).
+No fabricated stats. Category statistics carry a `[D]` confidence tag; client results stay in founding-stage language until real 90-day cycles complete (Q3 2026).
 
 ## Develop
 
@@ -41,33 +47,21 @@ npm install
 npm run dev      # http://localhost:3000
 npm run build    # production build
 npm run start    # serve the production build
-npm run lint     # eslint
 ```
 
 ## Project structure
 
 ```
-app/
-  layout.tsx        root layout, metadata, JSON-LD, fonts, providers
-  page.tsx          section composition
-  globals.css       design tokens, fonts, base + component classes
-  sitemap.ts
-components/          one file per section + the interactive client pieces
-  Hero.tsx, HeroField.tsx (canvas), Nav.tsx, CatalystJourney.tsx,
-  SageWidget.tsx, CookieBanner.tsx, JourneyProvider.tsx, ScrollReveal.tsx, …
-lib/
-  journey.ts        Sage logic: steps, tier routing, snapshot, scripted replies
-public/
-  llms.txt, robots.txt
+app/        layout (metadata, JSON-LD, fonts), page (section composition), globals.css, sitemap
+components/ one file per section + DataStreamField (canvas), Nav, CatalystJourney, CookieBanner, JourneyProvider, ScrollReveal
+lib/        journey.ts — Sage logic: steps, leak map, tier routing, scripted replies
+public/     llms.txt, robots.txt
 ```
 
 ## Deploy to Vercel
 
-1. Import this repository in Vercel (it auto-detects Next.js — no config needed).
-2. Set the production domain, then update `SITE_URL` in `app/layout.tsx`, `public/robots.txt`, and `app/sitemap.ts` to match.
+Import the repo (auto-detects Next.js). After setting the production domain, update `SITE_URL` in `app/layout.tsx`, `public/robots.txt`, and `app/sitemap.ts`.
 
-## Notes / next steps
+## Not yet built (next per the brief)
 
-- Service and legal links are stubs (`#`) — wire detail pages and the Privacy/Cookies/Terms content before collecting any data.
-- Sage is deterministic by design; swap in a live model (Claude primary) behind a rate-limited server route when ready.
-- Light mode only for v1; a polished dark mode can follow.
+Dedicated routes — `/catalyst`, `/pricing`, `/how-it-works`, `/industries` (+ trades pages), `/about`, `/partners`, `/privacy`, `/terms` — and the live Sage backend. v1 ships the strongest homepage + diagnostic first.

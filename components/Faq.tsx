@@ -1,24 +1,24 @@
 import JourneyButton from "./JourneyButton";
-import SageWidget from "./SageWidget";
 
 const FAQS = [
-  { q: "What exactly is the Catalyst Diagnostic?", a: "A paid, structured diagnosis of your business. Before any call, our agents study your site, reviews and competitor stack and build a working demo of the highest-leverage fixes. You leave with a clear report — whether or not you go further." },
-  { q: "What do I actually get?", a: "A diagnosis of where revenue is leaking, a working demo of the top fixes, a prioritised plan, and a clear scope & quote. The report is yours to keep." },
-  { q: "How does the credit work?", a: "The diagnostic fee (£150 or £750) is credited in full against your first retainer if you sign within 60 days. If you don’t, you still keep the report." },
-  { q: "Do I own what you build?", a: "Yes. Every system and agent is owned by you — no templates, no lock-in. If we part ways, you keep what we built." },
-  { q: "How fast do things move?", a: "The diagnostic turns around in days, not weeks — you often see a working demo before we’ve even met. Build timelines are set in your scope." },
-  { q: "What’s different about you?", a: "We diagnose before we pitch, prove with working demos, build systems you own, and verify outputs across multiple models. We’re specialists — not a templated agency." },
-  { q: "How do you handle data & security?", a: "Encrypted, GDPR-compliant, consent-first. We never sell your data or use it to train external AI. You stay in control throughout." },
+  { q: "How is this different from buying a £99 AI receptionist tool?", a: "A tool is a part. We diagnose which leak is costing you the most, install the system that closes it, monitor it, and prove it moved your numbers. You buy the outcome, not the part." },
+  { q: "We're a small business — is this overkill for us?", a: "Starter exists for exactly this: one acute leak, plugged, with a monthly ROI report. The Catalyst diagnostic shows what your biggest leak is worth before you commit to anything." },
+  { q: "What happens if it doesn't work?", a: "Every system has a number against it, with a baseline measured at install. If we can't prove it moved your numbers, we didn't earn the retainer." },
+  { q: "How quickly can you have us live?", a: "The diagnostic turns around in minutes; most first systems are live within days, not months. Exact timelines are set in your scope." },
+  { q: "Do you require long contracts?", a: "No long lock-in, and cancellation is self-serve — never “email us”. Systems are built into your business, so what we install stays yours." },
+  { q: "Is our data safe?", a: "GDPR-compliant by design, UK and EU. We disclose exactly what the site loads, you own your data, and we never sell it or use it to train external AI." },
 ];
 
 export default function Faq() {
   return (
     <section id="faq" className="section">
       <div className="inner">
-        <div className="faq-grid">
+        <div className="grid-2" style={{ gap: 48, alignItems: "start" }}>
           <div data-reveal="">
             <div className="eyebrow">FAQ</div>
-            <h2 className="font-display" style={{ fontWeight: 600, fontSize: "clamp(26px,3vw,36px)", lineHeight: 1.1, letterSpacing: "-.025em", margin: "0 0 28px" }}>Straight answers.</h2>
+            <h2 className="h2">Straight answers to the real questions.</h2>
+          </div>
+          <div data-reveal="">
             <div className="faq-list">
               {FAQS.map((f) => (
                 <details key={f.q} className="faq-item">
@@ -31,18 +31,19 @@ export default function Faq() {
               ))}
             </div>
           </div>
-
-          <SageWidget />
         </div>
 
-        <div data-reveal="" style={{ marginTop: 64, background: "var(--ink)", color: "#fff", borderRadius: 22, padding: "clamp(40px,6vw,72px)", textAlign: "center" }}>
-          <h2 className="font-display" style={{ fontWeight: 600, fontSize: "clamp(30px,4.4vw,52px)", lineHeight: 1.05, letterSpacing: "-.03em", margin: "0 0 18px", textWrap: "balance" }}>
-            Stop guessing where the revenue goes.
+        <div data-reveal="" className="glass" style={{ marginTop: 64, borderRadius: "var(--r-hero)", padding: "clamp(40px,6vw,72px)", textAlign: "center", position: "relative", overflow: "hidden" }}>
+          <h2 className="h1" style={{ marginBottom: 16 }}>
+            Find your <span className="accent-em">leak</span>.
           </h2>
-          <p style={{ fontSize: 19, color: "rgba(255,255,255,.72)", maxWidth: "34em", margin: "0 auto 32px" }}>
-            Book your Catalyst Diagnostic. We’ll show you what’s leaking — and exactly how we’d recover it.
+          <p className="lead" style={{ maxWidth: "36em", margin: "0 auto 32px" }}>
+            15 minutes with the Catalyst diagnostic shows you what&rsquo;s costing you, what to fix first, and what the recovery looks like in numbers.
           </p>
-          <JourneyButton className="btn btn-light btn-lg">Book Your Catalyst Diagnostic</JourneyButton>
+          <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+            <JourneyButton className="btn btn-primary btn-lg">Start the Catalyst diagnostic</JourneyButton>
+            <a href="#contact" className="btn btn-ghost btn-lg">Talk to us first</a>
+          </div>
         </div>
       </div>
     </section>

@@ -1,37 +1,44 @@
 import JourneyButton from "./JourneyButton";
 
-function Row({ label, price, last }: { label: string; price: string; last?: boolean }) {
-  return (
-    <div className={`price-row${last ? "" : " div"}`}>
-      <span style={{ fontSize: 15, color: "var(--ink-soft)" }}>{label}</span>
-      <span className="font-display" style={{ fontWeight: 600, fontSize: 20 }}>
-        {price}
-        <span style={{ fontSize: 13, color: "var(--ink-faint)", fontWeight: 400 }}>/mo</span>
-      </span>
-    </div>
-  );
+interface Tier {
+  name: string;
+  price: string;
+  best: string;
+  includes: string[];
+  sub: string;
+  badge?: string;
+  featured?: boolean;
 }
 
-function LockNote({ accent }: { accent?: boolean }) {
-  const color = accent ? "var(--accent)" : "var(--ink-faint)";
+const TIERS: Tier[] = [
+  {
+    name: "Starter",
+    price: "£597",
+    best: "Best for: one acute leak to fix",
+    includes: ["One core service installed", "Monthly ROI report", "Founder-led onboarding"],
+    sub: "For businesses ready to plug their biggest leak.",
+  },
+  {
+    name: "Pro",
+    price: "£1,497",
+    best: "Best for: a multi-service operating system",
+    includes: ["2–3 services installed", "Full Catalyst diagnostic", "Monthly ROI proof report", "Quarterly strategy review", "Priority support"],
+    sub: "For businesses ready to operate at a different level.",
+    badge: "Most popular",
+    featured: true,
+  },
+  {
+    name: "Max",
+    price: "£4,997",
+    best: "Best for: full operational transformation",
+    includes: ["Full service stack", "Dedicated EA hours", "Custom AI builds", "Weekly proof reporting", "Executive strategy partnership"],
+    sub: "For businesses ready to compound.",
+  },
+];
+
+function Check() {
   return (
-    <div
-      style={{
-        marginTop: accent ? 22 : 22,
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        fontSize: 13,
-        color,
-        background: accent ? "color-mix(in srgb,var(--accent) 6%,transparent)" : "color-mix(in srgb,var(--ink) 3%,transparent)",
-        border: accent ? "1px solid color-mix(in srgb,var(--accent) 28%,transparent)" : "1px solid var(--hairline)",
-        borderRadius: 9,
-        padding: "11px 13px",
-      }}
-    >
-      <span style={{ display: "inline-block", width: 11, height: 9, border: `1.5px solid ${color}`, borderBottom: "none", borderRadius: "3px 3px 0 0", position: "relative", top: 2 }} />
-      Scope &amp; inclusions unlock with your diagnostic
-    </div>
+    <span style={{ color: "var(--accent-primary)", flex: "none", marginTop: 1, fontWeight: 700 }} aria-hidden="true">✓</span>
   );
 }
 
@@ -39,61 +46,48 @@ export default function Pricing() {
   return (
     <section id="pricing" className="section">
       <div className="inner">
-        <div className="section-head" data-reveal="" style={{ marginBottom: 14 }}>
+        <div className="section-head" data-reveal="">
           <div className="eyebrow">Pricing</div>
-          <h2 className="h2">Public tiers. Exact scope set by your diagnostic.</h2>
-          <p className="lead">Confident transparency: here’s the structure. Your precise build — and your quote — is unlocked by the Catalyst Diagnostic.</p>
+          <h2 className="h2">Three tiers. Every one accountable to a number.</h2>
+          <p className="lead">Public, monthly, no surprises. Not sure which? The diagnostic decides — it shows what your leak is worth and what to fix first.</p>
         </div>
 
-        <div className="grid-3-tight" style={{ marginTop: 36 }}>
-          {/* Local */}
-          <div data-reveal="" className="price-card">
-            <div className="font-display" style={{ fontWeight: 600, fontSize: 20, marginBottom: 4 }}>Local</div>
-            <p style={{ fontSize: 14, color: "var(--ink-faint)", margin: "0 0 22px" }}>For local &amp; trades businesses.</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <Row label="Starter" price="£297" />
-              <Row label="Growth" price="£597" />
-              <Row label="Scale" price="£997" last />
+        <div className="grid-3" style={{ alignItems: "stretch" }}>
+          {TIERS.map((t) => (
+            <div key={t.name} data-reveal="" className={`glass glass-hover price-card${t.featured ? " featured" : ""}`}>
+              {t.badge && (
+                <span style={{ position: "absolute", top: -12, left: 28, background: "var(--accent-primary)", color: "var(--on-accent)", fontSize: 11, fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase", borderRadius: 20, padding: "5px 12px" }}>{t.badge}</span>
+              )}
+              <div style={{ fontWeight: 600, fontSize: 22, color: "var(--text-headline)" }}>{t.name}</div>
+              <div className="small" style={{ margin: "4px 0 18px", color: "var(--text-faint)" }}>{t.best}</div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 20 }}>
+                <span className="price-amount">{t.price}</span>
+                <span style={{ fontSize: 15, color: "var(--text-muted)" }}>/mo</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 11, marginBottom: 24, flex: 1 }}>
+                {t.includes.map((inc) => (
+                  <div key={inc} style={{ display: "flex", gap: 10, fontSize: 14.5, color: "var(--text-primary)", lineHeight: 1.4 }}>
+                    <Check />
+                    {inc}
+                  </div>
+                ))}
+              </div>
+              <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 20px", lineHeight: 1.5 }}>{t.sub}</p>
+              <JourneyButton className={`btn btn-${t.featured ? "primary" : "secondary"} btn-md`}>
+                Run the Catalyst diagnostic
+              </JourneyButton>
             </div>
-            <LockNote />
-          </div>
-
-          {/* Business (featured) */}
-          <div data-reveal="" className="price-card featured">
-            <span style={{ position: "absolute", top: -11, left: 32, background: "var(--accent)", color: "#fff", fontFamily: "var(--mono)", fontSize: 11, letterSpacing: ".08em", textTransform: "uppercase", borderRadius: 20, padding: "4px 11px" }}>Most common</span>
-            <div className="font-display" style={{ fontWeight: 600, fontSize: 20, marginBottom: 4 }}>Business</div>
-            <p style={{ fontSize: 14, color: "var(--ink-faint)", margin: "0 0 22px" }}>For growing SMBs scaling ops.</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <Row label="Starter" price="£997" />
-              <Row label="Growth" price="£1,997" />
-              <Row label="Scale" price="£2,997" last />
-            </div>
-            <LockNote accent />
-          </div>
-
-          {/* Enterprise */}
-          <div data-reveal="" className="price-card">
-            <div className="font-display" style={{ fontWeight: 600, fontSize: 20, marginBottom: 4 }}>Enterprise</div>
-            <p style={{ fontSize: 14, color: "var(--ink-faint)", margin: "0 0 22px" }}>For complex, multi-system orgs.</p>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 8 }}>
-              <span className="font-display" style={{ fontWeight: 600, fontSize: 32, letterSpacing: "-.02em" }}>£9,997</span>
-              <span style={{ fontSize: 14, color: "var(--ink-faint)" }}>/mo+</span>
-            </div>
-            <p style={{ fontSize: 14.5, color: "var(--ink-soft)", margin: "0 0 22px", lineHeight: 1.5 }}>Custom systems, governance and a dedicated specialist track. Scope set with you directly.</p>
-            <div style={{ marginTop: 8 }}>
-              <LockNote />
-            </div>
-          </div>
+          ))}
         </div>
 
-        <div data-reveal="" style={{ marginTop: 18, background: "var(--ink)", color: "#fff", borderRadius: 16, padding: "28px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, flexWrap: "wrap" }}>
-          <div>
-            <div className="font-display" style={{ fontWeight: 600, fontSize: 19, marginBottom: 6 }}>Catalyst Diagnostic — the way in</div>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,.72)", margin: 0 }}>
-              Local Health Check <span style={{ color: "#fff", fontWeight: 600 }}>£150</span> · ScaleSage Diagnostic <span style={{ color: "#fff", fontWeight: 600 }}>£750</span> — credited in full against your first retainer if you sign within 60 days. You keep the report either way.
-            </p>
+        <div data-reveal="" className="glass" style={{ marginTop: 20, padding: "26px 30px" }}>
+          <p style={{ margin: 0, fontSize: 15, color: "var(--text-muted)", lineHeight: 1.6 }}>
+            All tiers include the Catalyst diagnostic, the compliance guarantee, and the 90-day ROI proof commitment. Bespoke builds and short-timeline custom work are quoted separately — book a diagnostic to scope.
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", marginTop: 18 }}>
+            <span style={{ fontSize: 15, color: "var(--text-headline)", fontWeight: 500 }}>Not sure which tier?</span>
+            <JourneyButton className="btn btn-ghost btn-md">Run the Catalyst diagnostic →</JourneyButton>
           </div>
-          <JourneyButton className="btn btn-light btn-md">Unlock your quote →</JourneyButton>
         </div>
       </div>
     </section>

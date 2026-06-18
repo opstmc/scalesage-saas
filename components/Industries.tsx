@@ -1,11 +1,24 @@
-const SECTORS = [
-  "Deeptech / Space / Robotics",
-  "Local trades",
-  "Real estate",
-  "Restaurants",
-  "B2B SaaS",
-  "Healthcare",
-  "Government & Defense",
+import JourneyButton from "./JourneyButton";
+
+const INDUSTRIES: { name: string; leaks: [string, string, string] }[] = [
+  { name: "Plumbers", leaks: ["Missed emergency calls", "Quotes never chased", "No review engine"] },
+  { name: "Electricians", leaks: ["After-hours calls lost", "Slow quote follow-up", "Invisible in local AI search"] },
+  { name: "Gas engineers", leaks: ["Missed booking calls", "No service reminders", "Lapsed annual customers"] },
+  { name: "Tree surgeons", leaks: ["Seasonal calls missed", "Quotes go cold", "Few reviews captured"] },
+  { name: "Builders", leaks: ["Slow to quote", "No follow-up sequence", "Word-of-mouth not captured"] },
+  { name: "Estate agents", leaks: ["Portal leads called too late", "Cold vendors not nurtured", "Reviews under-asked"] },
+  { name: "Property mgmt", leaks: ["Tenant calls missed", "Maintenance admin drag", "Manual renewal reminders"] },
+  { name: "Salons", leaks: ["No-shows & gaps", "No rebooking prompts", "Lapsed clients ignored"] },
+  { name: "Pet services", leaks: ["Booking calls missed", "No repeat reminders", "Reviews not requested"] },
+  { name: "Auto repair", leaks: ["Service calls missed", "Manual MOT reminders", "Quotes not followed up"] },
+  { name: "Clinics", leaks: ["Reception overwhelmed", "Manual recall reminders", "Invisible in health search"] },
+  { name: "Hospitality", leaks: ["Booking enquiries missed", "No win-back for regulars", "Reviews not prompted"] },
+  { name: "Accountants", leaks: ["Enquiries slow to answer", "Deadlines chased manually", "Referrals not captured"] },
+  { name: "Solicitors", leaks: ["Intake calls missed", "Slow enquiry follow-up", "Invisible in AI search"] },
+  { name: "Recruitment", leaks: ["Candidate replies slow", "Pipeline admin drag", "Lapsed clients dormant"] },
+  { name: "E-commerce", leaks: ["Abandoned carts", "No post-purchase flow", "Support tickets pile up"] },
+  { name: "Fitness & gyms", leaks: ["Trial leads not called", "No win-back for cancels", "Reviews under-asked"] },
+  { name: "Cleaning", leaks: ["Quote calls missed", "No recurring reminders", "Manual follow-up"] },
 ];
 
 export default function Industries() {
@@ -14,43 +27,27 @@ export default function Industries() {
       <div className="inner">
         <div className="section-head" data-reveal="">
           <div className="eyebrow">Industries</div>
-          <h2 className="h2">Depth where it counts.</h2>
-          <p className="lead">We go deep on commercial MEP first — then bring that rigour everywhere else.</p>
+          <h2 className="h2">We&rsquo;ve mapped the leak patterns across 18 SME industries.</h2>
+          <p className="lead">Find yours — hover to see the three biggest leaks we see in your sector.</p>
         </div>
-
-        <div data-reveal="" className="mep">
-          <div>
-            <div className="mono" style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 11.5, letterSpacing: ".1em", textTransform: "uppercase", color: "color-mix(in srgb,var(--accent) 60%,#fff)", border: "1px solid rgba(255,255,255,.18)", borderRadius: 20, padding: "5px 12px", marginBottom: 22 }}>
-              Showcase · MEP
+        <div className="ind-grid">
+          {INDUSTRIES.map((ind) => (
+            <div key={ind.name} data-reveal="" className="glass glass-hover ind-card">
+              <div className="ind-name">{ind.name}</div>
+              <div className="ind-leaks">
+                {ind.leaks.map((l) => (
+                  <span key={l} className="ind-leak">
+                    <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--accent-primary)", flex: "none", marginTop: 6 }} />
+                    {l}
+                  </span>
+                ))}
+              </div>
             </div>
-            <h3 className="font-display" style={{ fontWeight: 600, fontSize: "clamp(24px,3vw,32px)", lineHeight: 1.1, letterSpacing: "-.02em", margin: "0 0 14px" }}>
-              Commercial MEP contractors &amp; data-center buildout
-            </h3>
-            <p style={{ fontSize: 16.5, color: "rgba(255,255,255,.72)", margin: "0 0 24px", lineHeight: 1.55 }}>
-              The work is world-class; the leak is everything around it — response speed, quoting throughput, and being invisible when a GC asks an AI engine for a partner. We fix all three.
-            </p>
-            <a href="#" className="mep-link">Read the MEP mini case →</a>
-          </div>
-          <div className="mep-aside">
-            <div>
-              <div className="font-display" style={{ fontWeight: 600, fontSize: 30, letterSpacing: "-.02em" }}>#1</div>
-              <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.6)" }}>our AI-search rank for core MEP buyer queries</div>
-            </div>
-            <div>
-              <div className="font-display" style={{ fontWeight: 600, fontSize: 30, letterSpacing: "-.02em" }}>3 engines</div>
-              <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.6)" }}>verified across GPT, Claude &amp; Gemini</div>
-            </div>
-            <div style={{ fontSize: 11.5, color: "rgba(255,255,255,.4)", fontStyle: "italic" }}>Illustrative founding-stage figures.</div>
-          </div>
-        </div>
-
-        <div className="grid-4">
-          {SECTORS.map((s) => (
-            <div key={s} data-reveal="" className="ind-cell">{s}</div>
           ))}
-          <div data-reveal="" className="ind-cell" style={{ background: "color-mix(in srgb,var(--accent) 6%,var(--surface))", border: "1px dashed color-mix(in srgb,var(--accent) 34%,var(--hairline))", color: "var(--accent)" }}>
-            Your sector? Ask Sage →
-          </div>
+          <JourneyButton className="glass glass-hover ind-card card-link">
+            <span className="ind-name" style={{ color: "var(--accent-primary)" }}>Don&rsquo;t see yours?</span>
+            <span className="small" style={{ marginTop: 8, color: "var(--text-muted)" }}>Run the scan — Sage knows it too →</span>
+          </JourneyButton>
         </div>
       </div>
     </section>

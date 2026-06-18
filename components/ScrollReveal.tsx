@@ -20,6 +20,7 @@ export default function ScrollReveal() {
       els.forEach((el) => {
         el.style.opacity = "1";
         el.style.transform = "none";
+        el.classList.add("is-in");
       });
       return;
     }
@@ -31,6 +32,7 @@ export default function ScrollReveal() {
             const t = e.target as HTMLElement;
             t.style.opacity = "1";
             t.style.transform = "none";
+            t.classList.add("is-in");
             io.unobserve(t);
           }
         });
