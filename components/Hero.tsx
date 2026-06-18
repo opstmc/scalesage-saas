@@ -24,10 +24,10 @@ function SigCard({
   );
 }
 
-export default function Hero() {
+export default function Hero({ background }: { background?: React.ReactNode }) {
   return (
     <section className="hero">
-      <DataStreamField />
+      {background ?? <DataStreamField />}
       <div className="hero-vignette" />
       <div className="hero-fade" />
       <div className="hero-content">
