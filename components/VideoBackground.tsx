@@ -3,13 +3,20 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Optimized looping background video for the /video variant of the hero.
- * Muted/looping/inline autoplay, pauses when scrolled offscreen (battery +
- * processor friendly), and falls back to the poster frame for
- * prefers-reduced-motion. A navy/teal tint keeps headline text legible and
- * the clip on-brand. Source is a 720p H.264 MP4 (~0.75 MB).
+ * Optimized looping background video for the video-hero variants (/video,
+ * /mesh, /fiber). Muted/looping/inline autoplay, pauses when scrolled
+ * offscreen (battery + processor friendly), and falls back to the poster
+ * frame for prefers-reduced-motion. A navy/teal tint keeps headline text
+ * legible and the clip on-brand. Sources are 720p H.264 MP4s (~0.2–1.5 MB).
+ * `src`/`poster` default to the original hero clip so /video is unchanged.
  */
-export default function VideoBackground() {
+export default function VideoBackground({
+  src = "/hero/hero-bg.mp4",
+  poster = "/hero/hero-poster.jpg",
+}: {
+  src?: string;
+  poster?: string;
+}) {
   const ref = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
@@ -58,10 +65,10 @@ export default function VideoBackground() {
         muted
         playsInline
         preload="metadata"
-        poster="/hero/hero-poster.jpg"
+        poster={poster}
         aria-hidden="true"
       >
-        <source src="/hero/hero-bg.mp4" type="video/mp4" />
+        <source src={src} type="video/mp4" />
       </video>
       <div className="hero-video-tint" aria-hidden="true" />
     </>

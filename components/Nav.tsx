@@ -13,7 +13,15 @@ const LINKS = [
 function Logo() {
   return (
     <a href="#top" className="nav-logo" aria-label="ScaleSage home">
-      <span className="diamond" style={{ width: 13, height: 13, borderRadius: 3, background: "var(--accent-primary)", boxShadow: "0 0 14px color-mix(in srgb,var(--accent-primary) 80%,transparent)" }} />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        className="nav-mark"
+        src="/brand/scalesage-mark.png"
+        alt=""
+        aria-hidden="true"
+        width={30}
+        height={30}
+      />
       <span style={{ fontWeight: 600, fontSize: 20, letterSpacing: "-.02em" }}>ScaleSage</span>
     </a>
   );
