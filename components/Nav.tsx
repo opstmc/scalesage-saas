@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useJourney } from "./JourneyProvider";
 
 const LINKS = [
@@ -31,6 +31,8 @@ export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { openJourney } = useJourney();
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const toggleRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled((window.scrollY || 0) > 24);
@@ -39,48 +41,72 @@ export default function Nav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // dismiss the dropdown on outside click or Escape
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onPointer = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (menuRef.current?.contains(t) || toggleRef.current?.contains(t)) return;
+      setMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen]);
+
+  const startCatalyst = () => {
+    setMenuOpen(false);
+    openJourney();
+  };
+
   return (
     <>
       <nav className={`nav${scrolled ? " scrolled" : ""}`} aria-label="Primary">
         <div className="nav-row">
           <Logo />
-          <div className="nav-links">
-            <button type="button" className="nav-link is-primary" onClick={openJourney} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, font: "inherit" }}>
-              Diagnostic
-            </button>
-            {LINKS.map((l) => (
-              <a key={l.href} href={l.href} className="nav-link">{l.label}</a>
-            ))}
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div className="nav-actions">
             <button type="button" className="btn btn-primary btn-sm nav-cta-desktop" onClick={openJourney}>
               Start the Catalyst
             </button>
             <button
+              ref={toggleRef}
               type="button"
-              className="nav-toggle"
-              aria-label="Menu"
+              className={`nav-toggle${menuOpen ? " is-open" : ""}`}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
               aria-expanded={menuOpen}
+              aria-controls="nav-menu"
               onClick={() => setMenuOpen((v) => !v)}
             >
-              <span style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                <span style={{ width: 18, height: 2, background: "currentColor", borderRadius: 2 }} />
-                <span style={{ width: 18, height: 2, background: "currentColor", borderRadius: 2 }} />
-                <span style={{ width: 18, height: 2, background: "currentColor", borderRadius: 2 }} />
+              <span className="nav-toggle-bars" aria-hidden="true">
+                <span />
+                <span />
+                <span />
               </span>
             </button>
           </div>
+
+          {menuOpen && (
+            <div className="nav-menu" id="nav-menu" ref={menuRef}>
+              <button type="button" className="nav-menu-link is-primary" onClick={startCatalyst}>
+                Diagnostic
+              </button>
+              {LINKS.map((l) => (
+                <a key={l.href} href={l.href} className="nav-menu-link" onClick={() => setMenuOpen(false)}>
+                  {l.label}
+                </a>
+              ))}
+              <button type="button" className="btn btn-primary btn-md nav-menu-cta" onClick={startCatalyst}>
+                Start the Catalyst
+              </button>
+            </div>
+          )}
         </div>
-        {menuOpen && (
-          <div className="mobile-menu">
-            <button type="button" onClick={() => { setMenuOpen(false); openJourney(); }} style={{ textAlign: "left", background: "none", border: "none", borderBottom: "1px solid var(--border-hair)", color: "var(--accent-primary)", font: "inherit", fontWeight: 600, padding: "14px 8px", cursor: "pointer" }}>
-              Diagnostic
-            </button>
-            {LINKS.map((l) => (
-              <a key={l.href} href={l.href} onClick={() => setMenuOpen(false)}>{l.label}</a>
-            ))}
-          </div>
-        )}
       </nav>
 
       {/* mobile sticky CTA — always one tap away */}
