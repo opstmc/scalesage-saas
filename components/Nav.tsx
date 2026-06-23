@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useJourney } from "./JourneyProvider";
 
@@ -13,14 +14,14 @@ const LINKS = [
 function Logo() {
   return (
     <a href="#top" className="nav-logo" aria-label="ScaleSage home">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         className="nav-mark"
         src="/brand/scalesage-mark.png"
         alt=""
         aria-hidden="true"
         width={30}
         height={30}
+        priority
       />
       <span style={{ fontWeight: 600, fontSize: 20, letterSpacing: "-.02em" }}>ScaleSage</span>
     </a>
@@ -41,16 +42,21 @@ export default function Nav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // dismiss the dropdown on outside click or Escape
+  // dismiss the dropdown on outside click or Escape; manage focus for keyboard users
   useEffect(() => {
     if (!menuOpen) return;
+    // move focus into the menu so it's keyboard-reachable
+    menuRef.current?.querySelector<HTMLElement>("a, button")?.focus();
     const onPointer = (e: PointerEvent) => {
       const t = e.target as Node;
       if (menuRef.current?.contains(t) || toggleRef.current?.contains(t)) return;
       setMenuOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
+      if (e.key === "Escape") {
+        setMenuOpen(false);
+        toggleRef.current?.focus(); // return focus to the trigger
+      }
     };
     document.addEventListener("pointerdown", onPointer);
     document.addEventListener("keydown", onKey);

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -61,8 +62,7 @@ export default function VariantsIndex() {
           aria-label="ScaleSage home"
           style={{ display: "inline-flex", marginBottom: 40 }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             className="nav-mark"
             src="/brand/scalesage-mark.png"
             alt=""
@@ -90,6 +90,7 @@ export default function VariantsIndex() {
             <Link key={v.href} href={v.href} className="glass glass-hover card-link" style={{ overflow: "hidden" }}>
               <div
                 style={{
+                  position: "relative",
                   aspectRatio: "16 / 9",
                   background: v.thumb ?? "var(--bg-elevated)",
                   backgroundSize: "cover",
@@ -98,12 +99,13 @@ export default function VariantsIndex() {
                 }}
               >
                 {v.poster && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={v.poster}
                     alt=""
                     aria-hidden="true"
-                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    fill
+                    sizes="(max-width: 680px) 100vw, 360px"
+                    style={{ objectFit: "cover" }}
                   />
                 )}
               </div>

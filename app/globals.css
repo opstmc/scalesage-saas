@@ -35,7 +35,7 @@
 html{scroll-behavior:smooth;scroll-padding-top:88px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
 body{
   margin:0;background:var(--bg-primary);color:var(--text-primary);
-  font-family:"Inter",system-ui,sans-serif;font-size:18px;line-height:1.6;
+  font-family:var(--font-inter),"Inter",system-ui,sans-serif;font-size:18px;line-height:1.6;
   overflow-x:hidden;
 }
 ::selection{background:color-mix(in srgb,var(--accent-primary) 28%,transparent);color:#fff;}
@@ -127,6 +127,9 @@ body{
 
 /* ---------- hero ---------- */
 .hero{position:relative;overflow:hidden;min-height:clamp(620px,92vh,900px);display:flex;align-items:center;background:radial-gradient(120% 90% at 78% 8%,color-mix(in srgb,var(--accent-primary) 10%,transparent),transparent 55%),var(--bg-primary);}
+/* hero headline: locked five-line break, sized so the widest line never wraps */
+.hero-headline{font-size:clamp(36px,5vw,60px);line-height:1.06;text-wrap:initial;}
+.hero-headline>span{display:block;white-space:nowrap;}
 .hero-field{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;}
 .hero-vignette{position:absolute;inset:0;pointer-events:none;z-index:1;background:radial-gradient(110% 110% at 20% 40%,transparent 30%,rgba(10,22,40,.7) 100%);}
 .hero-fade{position:absolute;left:0;right:0;bottom:0;height:160px;pointer-events:none;z-index:1;background:linear-gradient(180deg,transparent,var(--bg-primary));}

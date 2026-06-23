@@ -33,8 +33,12 @@ export default function Hero({ background }: { background?: React.ReactNode }) {
       <div className="hero-content">
         <div data-reveal="">
           <div className="eyebrow">Diagnose. Build. Prove.</div>
-          <h1 className="display">
-            Your business is <span className="accent-em">leaking</span>. We find it. Fix it. Prove it.
+          <h1 className="display hero-headline">
+            <span>Your business</span>
+            <span>is <span className="accent-em">leaking</span>.</span>
+            <span>We find it.</span>
+            <span>Fix it.</span>
+            <span>Prove it.</span>
           </h1>
           <p className="lead" style={{ marginTop: 22, maxWidth: "34em", fontSize: 19 }}>
             Missed calls, cold quotes, forgotten reviews, invisible search results — every leak has a number, and we close it.

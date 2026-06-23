@@ -1,28 +1,40 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
+
+const KEY = "ss-cookie";
+const subscribe = () => () => {}; // consent only changes via our own button, never externally
+
+// Read consent without a setState-in-effect: SSR snapshot hides the banner,
+// the client snapshot reveals it once if no choice has been stored yet.
+function useConsentUnset() {
+  return useSyncExternalStore(
+    subscribe,
+    () => {
+      try {
+        return localStorage.getItem(KEY) == null;
+      } catch {
+        return false;
+      }
+    },
+    () => false
+  );
+}
 
 export default function CookieBanner() {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    try {
-      setVisible(localStorage.getItem("ss-cookie") == null);
-    } catch {
-      /* ignore */
-    }
-  }, []);
+  const unset = useConsentUnset();
+  const [dismissed, setDismissed] = useState(false);
 
   const set = (val: string) => {
     try {
-      localStorage.setItem("ss-cookie", val);
+      localStorage.setItem(KEY, val);
     } catch {
       /* ignore */
     }
-    setVisible(false);
+    setDismissed(true);
   };
 
-  if (!visible) return null;
+  if (dismissed || !unset) return null;
 
   return (
     <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 70, display: "flex", justifyContent: "center", padding: 16 }}>
