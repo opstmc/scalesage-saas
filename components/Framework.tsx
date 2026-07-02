@@ -40,7 +40,7 @@ export default function Framework() {
       <div className="section-head" data-reveal="">
         <div className="eyebrow">The method</div>
         <h2 className="h2">Diagnose. Build. Prove.</h2>
-        <p className="lead">An actual process, not vibes. Three phases, every one accountable to a number.</p>
+        <p className="lead">An actual process, not guesswork. Three phases, every one accountable to a number.</p>
       </div>
       <div className="grid-3">
         {CARDS.map(({ n, title, Icon, body }) => (

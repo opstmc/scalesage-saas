@@ -14,7 +14,7 @@ export default function Leaking() {
         <div className="section-head" data-reveal="">
           <div className="eyebrow">What&rsquo;s leaking?</div>
           <h2 className="h2">Six places revenue slips out — quietly.</h2>
-          <p className="lead">This is where most growing businesses see themselves. Every leak has a number; we find it, then we close it.</p>
+          <p className="lead">This is where most growing businesses see themselves — the places execution bandwidth runs out first. Every leak has a number; we find it, then we close it.</p>
         </div>
         <div className="leak-grid">
           {LEAKS.map((l) => (

@@ -145,6 +145,11 @@ export function fmtMoney(v: number): string {
   return "£" + v;
 }
 
+/** Full-precision money for the snapshot maths, e.g. 72000 → "£72,000". */
+export function fmtMoneyFull(v: number): string {
+  return "£" + Math.round(v).toLocaleString("en-GB");
+}
+
 export function scaleLabel(v: number): string {
   return v >= 300 ? "300+ people" : v === 1 ? "Solo / 1" : v + " people";
 }
@@ -185,8 +190,18 @@ export interface SnapshotLine {
   text: string;
 }
 
+export interface SnapshotMaths {
+  monthly: string; // formatted est. monthly leak, e.g. "£6,000"
+  annual: string; // monthly × 12, e.g. "£72,000"
+  recoverable: string; // conservative annual recovery, e.g. "£21,600"
+  pct: number; // recovery assumption used, e.g. 30
+}
+
 export interface Snapshot {
   title: string;
+  goalLine: string | null; // the user's typed 90-day goal, echoed back
+  maths: SnapshotMaths | null; // quantified leak; null when no figure was given
+  mathsNote: string; // illustrative caption (or qualitative fallback at £0)
   lines: SnapshotLine[];
   tierLabel: string;
   track: string;
@@ -194,6 +209,12 @@ export interface Snapshot {
   ctaLabel: string;
   note: string;
 }
+
+/**
+ * Conservative share of the stated monthly leak we assume is recoverable.
+ * Deliberately modest and clearly labelled — honest, defensible, not a promise.
+ */
+export const RECOVER_PCT = 30;
 
 export function buildSnapshot(a: Answers): Snapshot {
   const ind = INDUSTRY[a.industry as string] || "business";
@@ -245,8 +266,32 @@ export function buildSnapshot(a: Answers): Snapshot {
     },
   }[tier];
   const indLabel = (STEPS[0].options!.find((o) => o.value === a.industry) || ({} as ChooseOption)).label || "business";
+
+  // --- Quantify the leak from the "value" slider (£/month) and echo the goal ---
+  const monthlyLeak = Number(a.value) || 0;
+  const hasValue = monthlyLeak > 0;
+  const annualLeak = monthlyLeak * 12;
+  const recoverable = Math.round((annualLeak * RECOVER_PCT) / 100);
+  const maths: SnapshotMaths | null = hasValue
+    ? {
+        monthly: fmtMoneyFull(monthlyLeak),
+        annual: fmtMoneyFull(annualLeak),
+        recoverable: fmtMoneyFull(recoverable),
+        pct: RECOVER_PCT,
+      }
+    : null;
+  const mathsNote = hasValue
+    ? "Illustrative — projected from the " + fmtMoneyFull(monthlyLeak) + "/mo you flagged, at a deliberately conservative " + RECOVER_PCT + "% recovery. The full diagnostic swaps this estimate for your real numbers."
+    : "You didn't put a figure on the leak — no problem. The full diagnostic measures it precisely, in your numbers, and shows what recovery is worth before you commit a penny.";
+
+  const goalRaw = typeof a.goal === "string" ? a.goal.trim() : "";
+  const goalLine = goalRaw && goalRaw !== "—" ? goalRaw : null;
+
   return {
     title: "Here's where you're leaking in your " + (a.industry === "other" ? "business" : indLabel.toLowerCase()) + ".",
+    goalLine,
+    maths,
+    mathsNote,
     lines,
     ...route,
   };
@@ -267,7 +312,7 @@ export const SAGE_GREETING =
 export function sageReply(q: string): string {
   const t = (q || "").toLowerCase();
   if (/diagnostic|catalyst|scan|audit|journey|form/.test(t))
-    return "This isn't a form — it's a scan. The Catalyst diagnostic checks your missed calls, follow-up speed, search and AI visibility, retention and operations drag, then shows you exactly where revenue is leaving the building, what to fix first, and what recovery looks like in numbers. About 15 minutes.";
+    return "This isn't a form — it's a scan. The Catalyst diagnostic checks your missed calls, follow-up speed, search and AI visibility, retention and operations drag, then shows you exactly where revenue is leaving the building, what to fix first, and what recovery looks like in numbers. About 60 seconds.";
   if (/price|pricing|cost|how much|fee|£|expensive|budget|tier/.test(t))
     return "Three tiers, monthly: Starter £597 (one acute leak plugged), Pro £1,497 (a 2–3 system operating system — most popular), and Max £4,997 (full transformation, dedicated capacity). Not sure which? Run the Catalyst diagnostic — it shows what your leak is worth and what to fix first.";
   if (/work|prove|proof|result|roi|guarantee|number|baseline/.test(t))

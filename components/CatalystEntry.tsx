@@ -74,7 +74,7 @@ export default function CatalystEntry() {
             </p>
             <JourneyButton className="btn btn-primary btn-lg">Start the Catalyst diagnostic</JourneyButton>
             <p className="small" style={{ marginTop: 18, color: "var(--text-faint)" }}>
-              No payment to begin · about 15 minutes · you keep the leak report either way.
+              No payment to begin · about 60 seconds · you keep the leak report either way.
             </p>
           </div>
           <div data-reveal="">

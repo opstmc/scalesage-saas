@@ -3,7 +3,7 @@ const GROUPS = [
   { title: "Convert every quote", body: "Sequenced follow-up, objection handling, win-back, WhatsApp escalation.", closes: "Closes: cold quotes" },
   { title: "Bring back every customer", body: "Database reactivation, retention systems, service reminders.", closes: "Closes: lapsed customers" },
   { title: "Be findable everywhere", body: "AEO/GEO visibility for ChatGPT, Claude, Perplexity and Google, review systems, Google Business optimisation.", closes: "Closes: invisible online" },
-  { title: "Run without you", body: "Operations automation, scheduling, invoicing, reporting.", closes: "Closes: admin drag" },
+  { title: "Run without you", body: "Operations automation, scheduling, invoicing, reporting — execution bandwidth handed back to your team.", closes: "Closes: admin drag" },
 ];
 
 export default function Fixes() {

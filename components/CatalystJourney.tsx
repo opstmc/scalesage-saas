@@ -238,6 +238,42 @@ export default function CatalystJourney() {
                   <h2 style={{ fontWeight: 600, fontSize: "clamp(24px,3.6vw,34px)", lineHeight: 1.12, letterSpacing: "-.02em", margin: 0, color: "var(--text-headline)", textWrap: "balance" }}>{snapshot.title}</h2>
                 </div>
               </div>
+
+              {/* The 90-day win — so the goal they typed is heard */}
+              {snapshot.goalLine && (
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 18, padding: "13px 18px", borderRadius: 12, background: "color-mix(in srgb,var(--accent-primary) 9%,var(--bg-elevated))", border: "1px solid var(--border-subtle)" }}>
+                  <span style={{ ...eyebrowSm, color: "var(--accent-primary)", flex: "none" }}>Your 90-day win</span>
+                  <span style={{ fontSize: 15.5, fontWeight: 500, lineHeight: 1.4, color: "var(--text-headline)" }}>{snapshot.goalLine}</span>
+                </div>
+              )}
+
+              {/* The maths — quantify the leak from their £/month figure */}
+              {snapshot.maths ? (
+                <div style={{ background: "linear-gradient(180deg,color-mix(in srgb,var(--accent-primary) 8%,var(--bg-elevated)),var(--bg-elevated))", border: "1px solid var(--border-subtle)", borderRadius: 16, padding: "22px 24px", marginBottom: 26 }}>
+                  <div style={{ ...eyebrowSm, color: "var(--text-faint)", marginBottom: 18 }}>The maths — on the number you gave us</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "18px 20px" }}>
+                    <div style={{ flex: "1 1 130px" }}>
+                      <div style={{ fontSize: 12, color: "var(--text-faint)", marginBottom: 7 }}>Leaking now</div>
+                      <div style={{ fontWeight: 600, fontSize: "clamp(22px,3vw,28px)", letterSpacing: "-.02em", color: "var(--text-headline)" }}>{snapshot.maths.monthly}<span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-faint)" }}>/mo</span></div>
+                    </div>
+                    <div style={{ flex: "1 1 130px" }}>
+                      <div style={{ fontSize: 12, color: "var(--text-faint)", marginBottom: 7 }}>Over a year</div>
+                      <div style={{ fontWeight: 600, fontSize: "clamp(22px,3vw,28px)", letterSpacing: "-.02em", color: "var(--text-headline)" }}>{snapshot.maths.annual}<span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-faint)" }}>/yr</span></div>
+                    </div>
+                    <div style={{ flex: "1 1 130px" }}>
+                      <div style={{ fontSize: 12, color: "var(--accent-primary)", marginBottom: 7 }}>Recoverable · {snapshot.maths.pct}% conservative</div>
+                      <div style={{ fontWeight: 600, fontSize: "clamp(22px,3vw,28px)", letterSpacing: "-.02em", color: "var(--accent-primary)" }}>{snapshot.maths.recoverable}<span style={{ fontSize: 14, fontWeight: 500, opacity: 0.7 }}>/yr</span></div>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: 12.5, color: "var(--text-faint)", margin: "18px 0 0", lineHeight: 1.5 }}>{snapshot.mathsNote}</p>
+                </div>
+              ) : (
+                <div style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-hair)", borderRadius: 16, padding: "20px 24px", marginBottom: 26 }}>
+                  <div style={{ ...eyebrowSm, color: "var(--text-faint)", marginBottom: 10 }}>The maths</div>
+                  <p style={{ fontSize: 15, color: "var(--text-muted)", margin: 0, lineHeight: 1.55 }}>{snapshot.mathsNote}</p>
+                </div>
+              )}
+
               <div style={{ background: "var(--bg-elevated)", border: "1px solid var(--border-hair)", borderRadius: 16, padding: "8px 24px", marginBottom: 26 }}>
                 {snapshot.lines.map((line) => (
                   <div key={line.tag} style={{ display: "flex", gap: 14, padding: "18px 0", borderBottom: "1px solid var(--border-hair)" }}>

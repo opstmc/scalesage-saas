@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     template: "%s · ScaleSage",
   },
   description:
-    "Your business is leaking. We find it, fix it, and prove it. ScaleSage is the business doctor for growing SMEs — we diagnose the leak, install the systems that close it, and prove the result in numbers.",
+    "Your business is leaking. We find it, fix it, and prove it. ScaleSage is the business doctor for growing SMEs — we diagnose the leak, install the systems that restore your execution bandwidth, and prove the result in numbers.",
   applicationName: "ScaleSage",
   keywords: [
     "business doctor",
