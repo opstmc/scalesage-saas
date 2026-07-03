@@ -6,8 +6,8 @@ export default function Home() {
     <SiteHome
       heroBackground={
         <VideoBackground
-          src="/backgrounds/fiber.mp4"
-          poster="/backgrounds/fiber-poster.jpg"
+          src="/backgrounds/particles.mp4"
+          poster="/backgrounds/particles-poster.jpg"
         />
       }
     />
