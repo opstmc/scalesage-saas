@@ -14,8 +14,8 @@ import ScrollReveal from "@/components/ScrollReveal";
 
 /**
  * Shared homepage composition. `heroBackground` swaps the hero's visual
- * signature — default is the animated data-stream canvas; the /video route
- * passes the looping background video instead.
+ * signature — the homepage passes the looping particles video; if omitted,
+ * the hero falls back to the animated data-stream canvas.
  */
 export default function SiteHome({ heroBackground }: { heroBackground?: React.ReactNode }) {
   return (

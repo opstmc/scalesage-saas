@@ -3,16 +3,15 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Optimized looping background video for the video-hero variants (/video,
- * /mesh, /fiber). Muted/looping/inline autoplay, pauses when scrolled
- * offscreen (battery + processor friendly), and falls back to the poster
- * frame for prefers-reduced-motion. A navy/teal tint keeps headline text
- * legible and the clip on-brand. Sources are 720p H.264 MP4s (~0.2–1.5 MB).
- * `src`/`poster` default to the original hero clip so /video is unchanged.
+ * Optimized looping hero background video. Muted/looping/inline autoplay,
+ * pauses when scrolled offscreen (battery + processor friendly), and falls
+ * back to the poster frame for prefers-reduced-motion. A navy/teal tint keeps
+ * headline text legible and the clip on-brand. `src`/`poster` default to the
+ * homepage particles clip (1080p H.264 MP4, ~3.9 MB, faststart).
  */
 export default function VideoBackground({
-  src = "/hero/hero-bg.mp4",
-  poster = "/hero/hero-poster.jpg",
+  src = "/backgrounds/particles.mp4",
+  poster = "/backgrounds/particles-poster.jpg",
 }: {
   src?: string;
   poster?: string;
