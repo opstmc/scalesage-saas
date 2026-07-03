@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useJourney } from "./JourneyProvider";
 import {
+  INDUSTRY,
   STEPS,
   type Answers,
   buildSnapshot,
@@ -10,8 +11,9 @@ import {
   learnedChips,
   scaleLabel,
 } from "@/lib/journey";
+import { startSession, type StartSessionResult } from "@/lib/sage";
 
-type Phase = "intro" | "question" | "snapshot";
+type Phase = "intro" | "question" | "snapshot" | "capture" | "done";
 
 const SageIcon = ({ size = 34 }: { size?: number }) => (
   <span style={{ width: size, height: size, borderRadius: 9, background: "var(--accent-primary)", flex: "none", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 16px color-mix(in srgb,var(--accent-primary) 60%,transparent)" }}>
@@ -41,6 +43,16 @@ function LearnedChip({ label, value, tinted }: { label: string; value: string; t
 
 const eyebrowSm: React.CSSProperties = { fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", fontWeight: 600 };
 const accentBtn: React.CSSProperties = { fontFamily: "inherit", fontWeight: 600, fontSize: 16, color: "var(--on-accent)", background: "var(--accent-primary)", border: "none", borderRadius: 12, padding: "14px 26px", cursor: "pointer" };
+const leadInput: React.CSSProperties = { fontFamily: "inherit", fontSize: 15.5, color: "var(--text-headline)", background: "var(--bg-elevated)", border: "1px solid var(--border-hair)", borderRadius: 10, padding: "12px 14px", width: "100%", outline: "none" };
+
+function LeadField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label style={{ display: "block" }}>
+      <span style={{ display: "block", fontSize: 12.5, color: "var(--text-faint)", marginBottom: 7, fontWeight: 500 }}>{label}</span>
+      {children}
+    </label>
+  );
+}
 
 export default function CatalystJourney() {
   const { closeJourney } = useJourney();
@@ -49,6 +61,13 @@ export default function CatalystJourney() {
   const [answers, setAnswers] = useState<Answers>({});
   const [sliderValue, setSliderValue] = useState(8);
   const [textValue, setTextValue] = useState("");
+  const [leadName, setLeadName] = useState("");
+  const [leadCompany, setLeadCompany] = useState("");
+  const [leadEmail, setLeadEmail] = useState("");
+  const [leadLocation, setLeadLocation] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [result, setResult] = useState<StartSessionResult | null>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -72,6 +91,12 @@ export default function CatalystJourney() {
   const restart = () => {
     setAnswers({});
     setTextValue("");
+    setLeadName("");
+    setLeadCompany("");
+    setLeadEmail("");
+    setLeadLocation("");
+    setSubmitError(null);
+    setResult(null);
     setPhase("question");
     goTo(0, {});
   };
@@ -94,12 +119,42 @@ export default function CatalystJourney() {
     else if (step.inputType === "type") recordAndAdvance(textValue.trim() || "—");
   };
 
+  // Convert the scan into a real, attributed backend session. The journey knows
+  // the sector (from `industry`) but not who the visitor is, so we capture
+  // name/company/email/location here, then POST to /sage/session/start. The ref
+  // captured from ?ref (ss_ref cookie) is attached inside startSession().
+  const submitLead = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitError(null);
+    const name = leadName.trim();
+    const company = leadCompany.trim();
+    const email = leadEmail.trim();
+    const location = leadLocation.trim();
+    if (!name || !company || !email || !location) {
+      setSubmitError("Please fill in every field so we can send your diagnostic.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const sector = INDUSTRY[String(answers.industry)] || "business";
+      const res = await startSession({ name, company, sector, location, email });
+      setResult(res);
+      setPhase("done");
+    } catch {
+      setSubmitError("We couldn't start your session just now — please try again in a moment.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const step = STEPS[idx] || STEPS[0];
   const selectedVal = answers[step.id];
   const learned = learnedChips(answers);
   const sliderLabel = step.money ? fmtMoney(sliderValue) : scaleLabel(sliderValue);
-  const progressPct = Math.round(((idx + (phase === "snapshot" ? 1 : 0)) / STEPS.length) * 100);
+  const atEnd = phase === "snapshot" || phase === "capture" || phase === "done";
+  const progressPct = atEnd ? 100 : Math.round((idx / STEPS.length) * 100);
   const snapshot = phase === "snapshot" ? buildSnapshot(answers) : null;
+  const firstName = leadName.trim().split(/\s+/)[0] || "";
 
   return (
     <div className="journey" role="dialog" aria-modal="true" aria-label="Catalyst diagnostic">
@@ -293,7 +348,7 @@ export default function CatalystJourney() {
                 </div>
                 <p style={{ fontSize: 15, color: "var(--text-muted)", margin: "0 0 22px", lineHeight: 1.55 }}>{snapshot.note}</p>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-                  <button type="button" onClick={closeJourney} style={{ ...accentBtn, boxShadow: "var(--shadow-glow)" }}>{snapshot.ctaLabel}</button>
+                  <button type="button" onClick={() => { setSubmitError(null); setPhase("capture"); }} style={{ ...accentBtn, boxShadow: "var(--shadow-glow)" }}>{snapshot.ctaLabel}</button>
                   <button type="button" onClick={restart} style={{ fontFamily: "inherit", fontWeight: 600, fontSize: 16, color: "var(--text-primary)", background: "transparent", border: "1px solid var(--border-hair)", borderRadius: 12, padding: "14px 22px", cursor: "pointer" }}>Start over</button>
                 </div>
               </div>
@@ -304,6 +359,76 @@ export default function CatalystJourney() {
                     <LearnedChip key={item.label} label={item.label} value={item.value} tinted={false} />
                   ))}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* CAPTURE — turns the scan into a real, attributed backend Sage session so partner referrals convert end-to-end */}
+          {phase === "capture" && (
+            <div style={{ animation: "ssFade .45s ease" }}>
+              <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 26 }}>
+                <SageIcon />
+                <div>
+                  <div style={{ ...eyebrowSm, color: "var(--accent-primary)", marginBottom: 8 }}>Last step</div>
+                  <h2 style={{ fontWeight: 600, fontSize: "clamp(24px,3.6vw,34px)", lineHeight: 1.12, letterSpacing: "-.02em", margin: "0 0 10px", color: "var(--text-headline)", textWrap: "balance" }}>Where do we send your full leak map?</h2>
+                  <p style={{ fontSize: 16, color: "var(--text-muted)", margin: 0, lineHeight: 1.55 }}>We&rsquo;ll open your Catalyst session with everything you just told Sage, and the team follows up with your recovery numbers. No payment to begin.</p>
+                </div>
+              </div>
+
+              <form onSubmit={submitLead} style={{ display: "grid", gap: 16, maxWidth: 560 }}>
+                <LeadField label="Your name">
+                  <input style={leadInput} value={leadName} onChange={(e) => setLeadName(e.target.value)} placeholder="Alex Rivera" autoComplete="name" />
+                </LeadField>
+                <LeadField label="Company">
+                  <input style={leadInput} value={leadCompany} onChange={(e) => setLeadCompany(e.target.value)} placeholder="Rivera Plumbing Ltd" autoComplete="organization" />
+                </LeadField>
+                <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}>
+                  <LeadField label="Email">
+                    <input style={leadInput} type="email" value={leadEmail} onChange={(e) => setLeadEmail(e.target.value)} placeholder="alex@riveraplumbing.co.uk" autoComplete="email" />
+                  </LeadField>
+                  <LeadField label="Town / city">
+                    <input style={leadInput} value={leadLocation} onChange={(e) => setLeadLocation(e.target.value)} placeholder="Manchester" autoComplete="address-level2" />
+                  </LeadField>
+                </div>
+
+                {submitError && (
+                  <div role="alert" style={{ fontSize: 14, color: "var(--text-primary)", background: "color-mix(in srgb,#e5484d 12%,var(--bg-elevated))", border: "1px solid color-mix(in srgb,#e5484d 40%,transparent)", borderRadius: 10, padding: "12px 14px", lineHeight: 1.5 }}>{submitError}</div>
+                )}
+
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center", marginTop: 4 }}>
+                  <button type="submit" disabled={submitting} style={{ ...accentBtn, boxShadow: "var(--shadow-glow)", opacity: submitting ? 0.7 : 1, cursor: submitting ? "default" : "pointer" }}>{submitting ? "Starting your session…" : "Get my full diagnostic →"}</button>
+                  <button type="button" onClick={() => { setSubmitError(null); setPhase("snapshot"); }} style={{ background: "transparent", border: "none", color: "var(--text-faint)", fontSize: 14.5, cursor: "pointer", fontFamily: "inherit" }}>← Back to leak map</button>
+                </div>
+                <p style={{ fontSize: 12.5, color: "var(--text-faint)", margin: "2px 0 0", lineHeight: 1.5 }}>GDPR-safe &amp; encrypted · we never sell your data or use it to train external AI.</p>
+              </form>
+            </div>
+          )}
+
+          {/* DONE — session created and (if a ref was present) attributed on the backend */}
+          {phase === "done" && (
+            <div style={{ animation: "ssFade .45s ease" }}>
+              <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 22 }}>
+                <span style={{ width: 34, height: 34, borderRadius: 9, background: "var(--accent-primary)", flex: "none", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--on-accent)", fontSize: 18, fontWeight: 700, boxShadow: "0 0 16px color-mix(in srgb,var(--accent-primary) 60%,transparent)" }}>✓</span>
+                <div>
+                  <div style={{ ...eyebrowSm, color: "var(--accent-primary)", marginBottom: 8 }}>Session live</div>
+                  <h2 style={{ fontWeight: 600, fontSize: "clamp(24px,3.6vw,34px)", lineHeight: 1.12, letterSpacing: "-.02em", margin: "0 0 10px", color: "var(--text-headline)", textWrap: "balance" }}>You&rsquo;re in{firstName ? ", " + firstName : ""}. Your Catalyst diagnostic is live.</h2>
+                  <p style={{ fontSize: 16, color: "var(--text-muted)", margin: 0, lineHeight: 1.55 }}>We&rsquo;ve captured your leak map and opened your session. The team will follow up{leadEmail.trim() ? " at " + leadEmail.trim() : ""} with your recovery numbers — usually within one working day.</p>
+                </div>
+              </div>
+
+              {result?.first_question && (
+                <div style={{ background: "linear-gradient(180deg,color-mix(in srgb,var(--accent-primary) 8%,var(--bg-elevated)),var(--bg-elevated))", border: "1px solid var(--border-subtle)", borderRadius: 16, padding: "22px 24px", marginBottom: 24 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                    <SageIcon size={26} />
+                    <span style={{ ...eyebrowSm, color: "var(--text-faint)" }}>Where Sage picks up</span>
+                  </div>
+                  <p style={{ fontSize: 16.5, lineHeight: 1.5, color: "var(--text-primary)", margin: 0 }}>{result.first_question}</p>
+                </div>
+              )}
+
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+                <button type="button" onClick={closeJourney} style={{ ...accentBtn, boxShadow: "var(--shadow-glow)" }}>Back to the site</button>
+                <button type="button" onClick={() => { closeJourney(); if (typeof window !== "undefined") window.location.hash = "#contact"; }} style={{ fontFamily: "inherit", fontWeight: 600, fontSize: 16, color: "var(--text-primary)", background: "transparent", border: "1px solid var(--border-hair)", borderRadius: 12, padding: "14px 22px", cursor: "pointer" }}>Book a call instead</button>
               </div>
             </div>
           )}
