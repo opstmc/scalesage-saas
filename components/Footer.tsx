@@ -1,3 +1,9 @@
+// Where partners log in to grab their referral link + see earnings. Set
+// NEXT_PUBLIC_PORTAL_URL (e.g. https://dash.scalesage.ai) to point at the portal.
+const PARTNER_PORTAL = process.env.NEXT_PUBLIC_PORTAL_URL
+  ? `${process.env.NEXT_PUBLIC_PORTAL_URL.replace(/\/+$/, "")}/portal/login`
+  : "#contact";
+
 const COLS = [
   {
     title: "Explore",
@@ -12,7 +18,7 @@ const COLS = [
     title: "Company",
     links: [
       { href: "#why", label: "About" },
-      { href: "#", label: "Partners" },
+      { href: PARTNER_PORTAL, label: "Partners" },
       { href: "#contact", label: "Contact" },
     ],
   },
