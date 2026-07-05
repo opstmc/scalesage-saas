@@ -1,12 +1,19 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 /**
  * Mirrors the prototype's setupReveal(): hide [data-reveal] elements in JS
  * (so no-JS users still see content), then fade+rise them in on scroll.
+ *
+ * Lives in the root layout, so it must re-scan after every client-side route
+ * change — hence the `pathname` dependency: each navigation re-hides the new
+ * page's [data-reveal] elements and re-observes them.
  */
 export default function ScrollReveal() {
+  const pathname = usePathname();
+
   useEffect(() => {
     const els = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal]"));
     els.forEach((el) => {
@@ -41,7 +48,7 @@ export default function ScrollReveal() {
     );
     els.forEach((el) => io.observe(el));
     return () => io.disconnect();
-  }, []);
+  }, [pathname]);
 
   return null;
 }

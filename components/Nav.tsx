@@ -1,19 +1,21 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useJourney } from "./JourneyProvider";
 
 const LINKS = [
-  { href: "#how", label: "How it works" },
-  { href: "#pricing", label: "Pricing" },
-  { href: "#industries", label: "Industries" },
-  { href: "#why", label: "About" },
+  { href: "/how-it-works", label: "How it works" },
+  { href: "/industries", label: "Industries" },
+  { href: "/pricing", label: "Pricing" },
+  { href: "/about", label: "About" },
 ];
 
 function Logo() {
   return (
-    <a href="#top" className="nav-logo" aria-label="ScaleSage home">
+    <Link href="/" className="nav-logo" aria-label="ScaleSage home">
       <Image
         className="nav-mark"
         src="/brand/scalesage-mark.png"
@@ -24,7 +26,7 @@ function Logo() {
         priority
       />
       <span style={{ fontWeight: 600, fontSize: 20, letterSpacing: "-.02em" }}>ScaleSage</span>
-    </a>
+    </Link>
   );
 }
 
@@ -32,6 +34,7 @@ export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { openJourney } = useJourney();
+  const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const toggleRef = useRef<HTMLButtonElement | null>(null);
 
@@ -102,11 +105,20 @@ export default function Nav() {
               <button type="button" className="nav-menu-link is-primary" onClick={startCatalyst}>
                 Diagnostic
               </button>
-              {LINKS.map((l) => (
-                <a key={l.href} href={l.href} className="nav-menu-link" onClick={() => setMenuOpen(false)}>
-                  {l.label}
-                </a>
-              ))}
+              {LINKS.map((l) => {
+                const active = pathname === l.href;
+                return (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    className={`nav-menu-link${active ? " is-active" : ""}`}
+                    aria-current={active ? "page" : undefined}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {l.label}
+                  </Link>
+                );
+              })}
               <button type="button" className="btn btn-primary btn-md nav-menu-cta" onClick={startCatalyst}>
                 Start the Catalyst
               </button>

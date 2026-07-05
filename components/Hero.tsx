@@ -1,3 +1,4 @@
+import Link from "next/link";
 import DataStreamField from "./DataStreamField";
 import HeroSignals from "./HeroSignals";
 import JourneyButton from "./JourneyButton";
@@ -23,7 +24,7 @@ export default function Hero({ background }: { background?: React.ReactNode }) {
           </p>
           <div className="hero-cta">
             <JourneyButton className="btn btn-primary btn-lg">Run the Catalyst diagnostic</JourneyButton>
-            <a href="#how" className="btn btn-ghost btn-lg">See how it works</a>
+            <Link href="/how-it-works" className="btn btn-ghost btn-lg">See how it works</Link>
           </div>
           <div className="hero-trust">
             <div className="small" style={{ color: "var(--text-muted)", marginBottom: 14 }}>

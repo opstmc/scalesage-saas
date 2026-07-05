@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import JourneyProvider from "@/components/JourneyProvider";
+import Nav from "@/components/Nav";
+import Footer from "@/components/Footer";
+import ScrollReveal from "@/components/ScrollReveal";
 
 // Self-hosted at build by next/font — no runtime request to Google (faster
 // first paint + no visitor-IP leak before consent, keeping the GDPR promise).
@@ -70,45 +73,9 @@ const jsonLd = {
       provider: { "@id": `${SITE_URL}/#organization` },
       areaServed: ["GB", "EU"],
     },
-    {
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "How is this different from buying a £99 AI receptionist tool?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "A tool is a part. We diagnose which leak is costing you the most, install the system that closes it, monitor it, and prove it moved your numbers. You buy the outcome, not the part.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "We're a small business — is this overkill for us?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Starter exists for exactly this: one acute leak, plugged, with a monthly ROI report. The Catalyst diagnostic shows you what your biggest leak is worth before you commit to anything.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "What happens if it doesn't work?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Every system has a number against it, with a baseline measured at install. If we can't prove it moved your numbers, we didn't earn the retainer. Cancellation is self-serve.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Is our data safe?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "GDPR-compliant by design, UK and EU. We disclose exactly what the site loads, you own your data, and nothing is sold or used to train external AI.",
-          },
-        },
-      ],
-    },
   ],
 };
+// FAQPage structured data now lives on /pricing (where the FAQ renders).
 
 export default function RootLayout({
   children,
@@ -124,7 +91,12 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <JourneyProvider>{children}</JourneyProvider>
+        <JourneyProvider>
+          <Nav />
+          {children}
+          <Footer />
+          <ScrollReveal />
+        </JourneyProvider>
       </body>
     </html>
   );

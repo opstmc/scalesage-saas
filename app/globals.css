@@ -122,7 +122,13 @@ body{
 .nav-menu-link:hover{background:rgba(244,246,249,.05);color:var(--text-headline);}
 .nav-menu-link.is-primary{color:var(--accent-primary);font-weight:600;}
 .nav-menu-link.is-primary:hover{color:var(--accent-glow);}
+.nav-menu-link.is-active{color:var(--text-headline);background:rgba(244,246,249,.05);}
+.nav-menu-link.is-active.is-primary{color:var(--accent-glow);}
 .nav-menu-cta{display:none;margin-top:8px;width:100%;}
+
+/* sub-pages have no hero, so the first section must clear the fixed nav */
+.subpage{padding-top:clamp(52px,7vh,84px);}
+.subpage>section:first-child{border-top:none;}
 .sticky-cta{display:none;}
 
 /* ---------- hero ---------- */

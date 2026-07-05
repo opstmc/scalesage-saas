@@ -1,5 +1,3 @@
-import JourneyButton from "./JourneyButton";
-
 const FAQS = [
   { q: "How is this different from buying a £99 AI receptionist tool?", a: "A tool is a part. We diagnose which leak is costing you the most, install the system that closes it, monitor it, and prove it moved your numbers. You buy the outcome, not the part." },
   { q: "We're a small business — is this overkill for us?", a: "Starter exists for exactly this: one acute leak, plugged, with a monthly ROI report. The Catalyst diagnostic shows what your biggest leak is worth before you commit to anything." },
@@ -30,19 +28,6 @@ export default function Faq() {
                 </details>
               ))}
             </div>
-          </div>
-        </div>
-
-        <div data-reveal="" className="glass" style={{ marginTop: 64, borderRadius: "var(--r-hero)", padding: "clamp(40px,6vw,72px)", textAlign: "left", position: "relative", overflow: "hidden" }}>
-          <h2 className="h1" style={{ marginBottom: 16 }}>
-            Find your <span className="accent-em">leak</span>.
-          </h2>
-          <p className="lead" style={{ maxWidth: "36em", margin: "0 0 32px" }}>
-            60 seconds with the Catalyst diagnostic shows you what&rsquo;s costing you, what to fix first, and what the recovery looks like in numbers.
-          </p>
-          <div style={{ display: "flex", gap: 14, justifyContent: "flex-start", flexWrap: "wrap" }}>
-            <JourneyButton className="btn btn-primary btn-lg">Start the Catalyst diagnostic</JourneyButton>
-            <a href="#contact" className="btn btn-ghost btn-lg">Talk to us first</a>
           </div>
         </div>
       </div>

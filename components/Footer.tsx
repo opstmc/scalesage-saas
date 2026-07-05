@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 // Where partners log in to grab their referral link + see earnings. Set
 // NEXT_PUBLIC_PORTAL_URL (e.g. https://dash.scalesage.ai) to point at the portal.
 const PARTNER_PORTAL = process.env.NEXT_PUBLIC_PORTAL_URL
@@ -8,16 +10,16 @@ const COLS = [
   {
     title: "Explore",
     links: [
-      { href: "#how", label: "How it works" },
-      { href: "#pricing", label: "Pricing" },
-      { href: "#industries", label: "Industries" },
-      { href: "#catalyst", label: "Catalyst diagnostic" },
+      { href: "/how-it-works", label: "How it works" },
+      { href: "/pricing", label: "Pricing" },
+      { href: "/industries", label: "Industries" },
+      { href: "/how-it-works#catalyst", label: "Catalyst diagnostic" },
     ],
   },
   {
     title: "Company",
     links: [
-      { href: "#why", label: "About" },
+      { href: "/about", label: "About" },
       { href: PARTNER_PORTAL, label: "Partners" },
       { href: "#contact", label: "Contact" },
     ],
@@ -50,9 +52,13 @@ export default function Footer() {
             <div key={c.title}>
               <div className="eyebrow" style={{ color: "var(--text-faint)", marginBottom: 16 }}>{c.title}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-                {c.links.map((l) => (
-                  <a key={l.label} href={l.href} className="footer-link">{l.label}</a>
-                ))}
+                {c.links.map((l) =>
+                  l.href.startsWith("/") ? (
+                    <Link key={l.label} href={l.href} className="footer-link">{l.label}</Link>
+                  ) : (
+                    <a key={l.label} href={l.href} className="footer-link">{l.label}</a>
+                  )
+                )}
               </div>
             </div>
           ))}
