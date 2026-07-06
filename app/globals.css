@@ -29,6 +29,10 @@
   --r-card:16px;
   --r-btn:12px;
   --r-input:8px;
+
+  /* motion — standardised "Jarvis flow" ease-out curve (brief §1 + §6).
+     Nothing linear, nothing bounces. Reuse --ease-out everywhere. */
+  --ease-out:cubic-bezier(0.22,1,0.36,1);
 }
 
 *{box-sizing:border-box;}
@@ -45,6 +49,8 @@ body{
 @keyframes ssFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 @keyframes ssScan{0%{transform:translateY(-100%)}100%{transform:translateY(220%)}}
 @keyframes ssMenuIn{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
+/* per-navigation fade-through — replayed by app/template.tsx on every route change */
+@keyframes ssRouteIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
 /* ---------- typography ---------- */
 .eyebrow{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent-primary);font-weight:600;margin-bottom:18px;}
@@ -108,23 +114,69 @@ body{
 .nav-toggle:hover{border-color:color-mix(in srgb,var(--accent-primary) 60%,transparent);color:var(--text-headline);}
 .nav-toggle.is-open{border-color:var(--accent-primary);color:var(--text-headline);}
 .nav-toggle-bars{position:relative;width:18px;height:14px;}
-.nav-toggle-bars span{position:absolute;left:0;width:18px;height:2px;border-radius:2px;background:currentColor;transition:transform .25s cubic-bezier(.2,.7,.2,1),opacity .15s ease;}
+/* icon MORPHS, never swaps (brief §6): top→centre +45°, bottom→centre −45°,
+   middle fades. Smooth non-elastic ease, 260ms; middle fades a touch faster so
+   the X reads cleanly. transform-origin centred so lines pivot in place. */
+.nav-toggle-bars span{position:absolute;left:0;width:18px;height:2px;border-radius:2px;background:currentColor;transform-origin:center;transition:transform .26s var(--ease-out),opacity .2s var(--ease-out);}
 .nav-toggle-bars span:nth-child(1){top:0;}
-.nav-toggle-bars span:nth-child(2){top:6px;}
+.nav-toggle-bars span:nth-child(2){top:6px;transition:opacity .16s var(--ease-out);}
 .nav-toggle-bars span:nth-child(3){top:12px;}
 .nav-toggle.is-open .nav-toggle-bars span:nth-child(1){transform:translateY(6px) rotate(45deg);}
 .nav-toggle.is-open .nav-toggle-bars span:nth-child(2){opacity:0;}
 .nav-toggle.is-open .nav-toggle-bars span:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
+.nav-toggle:active{transform:scale(.94);}
+.nav-toggle:focus-visible{outline:none;border-color:var(--accent-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-primary) 26%,transparent);}
 
-/* dropdown menu panel */
-.nav-menu{position:absolute;top:calc(100% - 4px);right:24px;z-index:60;display:flex;flex-direction:column;gap:2px;min-width:248px;max-width:calc(100vw - 32px);padding:10px;border-radius:var(--r-card);background:color-mix(in srgb,var(--bg-elevated) 94%,transparent);border:1px solid var(--border-subtle);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);box-shadow:var(--shadow-depth);transform-origin:top right;animation:ssMenuIn .18s cubic-bezier(.2,.7,.2,1);}
-.nav-menu-link{display:block;width:100%;text-align:left;background:none;border:none;font:inherit;cursor:pointer;text-decoration:none;color:var(--text-muted);font-size:15px;font-weight:500;padding:11px 14px;border-radius:var(--r-input);transition:background .15s,color .15s;}
+/* dropdown menu panel — deep-navy overlay, backdrop blur. It stays mounted so
+   toggling .is-open animates open AND close (close reverses the exact motion).
+   Reveal = clip-path circle wipe originating at the icon area (top-right), with
+   opacity + scale .98→1 as the fallback where clip-path is unsupported. */
+.nav-menu{
+  position:absolute;top:calc(100% - 4px);right:24px;z-index:60;
+  display:flex;flex-direction:column;gap:2px;
+  min-width:248px;max-width:calc(100vw - 32px);padding:10px;
+  border-radius:var(--r-card);
+  background:color-mix(in srgb,var(--bg-elevated) 94%,transparent);
+  border:1px solid var(--border-subtle);
+  backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
+  box-shadow:var(--shadow-depth);
+  transform-origin:top right;
+  opacity:0;transform:scale(.98);
+  clip-path:circle(0% at calc(100% - 21px) 6px);
+  visibility:hidden;pointer-events:none;
+  transition:opacity .2s var(--ease-out),transform .24s var(--ease-out),clip-path .28s var(--ease-out),visibility 0s linear .28s;
+}
+.nav-menu.is-open{
+  opacity:1;transform:none;
+  clip-path:circle(150% at calc(100% - 21px) 6px);
+  visibility:visible;pointer-events:auto;
+  transition:opacity .22s var(--ease-out),transform .26s var(--ease-out),clip-path .3s var(--ease-out),visibility 0s;
+}
+/* items stagger in on open; on close they fade out with the panel wipe */
+@keyframes ssStagger{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+/* `backwards` (not `both`): hides each item during its delay, then releases
+   control so :hover/:active/:focus transforms still work once revealed. */
+.nav-menu.is-open .nav-menu-link,
+.nav-menu.is-open .nav-menu-sep,
+.nav-menu.is-open .nav-menu-cta{animation:ssStagger .26s var(--ease-out) backwards;}
+.nav-menu.is-open>*:nth-child(1){animation-delay:.04s;}
+.nav-menu.is-open>*:nth-child(2){animation-delay:.075s;}
+.nav-menu.is-open>*:nth-child(3){animation-delay:.11s;}
+.nav-menu.is-open>*:nth-child(4){animation-delay:.145s;}
+.nav-menu.is-open>*:nth-child(5){animation-delay:.18s;}
+.nav-menu.is-open>*:nth-child(6){animation-delay:.215s;}
+.nav-menu.is-open>*:nth-child(7){animation-delay:.25s;}
+.nav-menu-link{display:block;width:100%;text-align:left;background:none;border:none;font:inherit;cursor:pointer;text-decoration:none;color:var(--text-muted);font-size:15px;font-weight:500;padding:11px 14px;border-radius:var(--r-input);transition:background .15s var(--ease-out),color .15s var(--ease-out),transform .12s var(--ease-out);}
 .nav-menu-link:hover{background:rgba(244,246,249,.05);color:var(--text-headline);}
+.nav-menu-link:active{transform:scale(.985);}
+.nav-menu-link:focus-visible{outline:none;background:rgba(244,246,249,.05);color:var(--text-headline);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent-primary) 40%,transparent);}
 .nav-menu-link.is-primary{color:var(--accent-primary);font-weight:600;}
 .nav-menu-link.is-primary:hover{color:var(--accent-glow);}
 .nav-menu-link.is-active{color:var(--text-headline);background:rgba(244,246,249,.05);}
 .nav-menu-link.is-active.is-primary{color:var(--accent-glow);}
-.nav-menu-cta{display:none;margin-top:8px;width:100%;}
+/* divider before the in-panel CTA — mobile only (desktop keeps the persistent pill) */
+.nav-menu-sep{display:none;height:1px;margin:8px 6px 6px;background:var(--border-hair);}
+.nav-menu-cta{display:none;margin-top:2px;width:100%;}
 
 /* sub-pages have no hero, so the first section must clear the fixed nav */
 .subpage{padding-top:clamp(52px,7vh,84px);}
@@ -228,6 +280,7 @@ body{
   body{font-size:16px;}
   .nav .nav-cta-desktop{display:none;}
   .nav-menu{left:16px;right:16px;min-width:0;max-width:none;}
+  .nav-menu-sep{display:block;}
   .nav-menu-cta{display:inline-flex;}
   .sticky-cta{display:flex;position:fixed;right:16px;bottom:16px;z-index:55;}
   .grid-3,.leak-grid,.ind-grid,.footer-grid{grid-template-columns:1fr;}
@@ -258,4 +311,56 @@ body{
   .ind-modal-head{padding:20px 20px 16px;}
   .ind-modal-body{padding:20px;gap:20px;}
   .ind-modal-foot{padding:16px 20px 20px;}
+}
+
+/* ============================================================
+   JARVIS MOTION LAYER — global polish (appended; nothing above removed)
+   Standard curve: var(--ease-out). Nothing linear, nothing bounces,
+   nothing loops. Every interactive element gets hover + press + focus.
+   ============================================================ */
+
+/* per-navigation fade-through wrapper (app/template.tsx). A fresh DOM node
+   each route change auto-replays this — flowing route transitions, header
+   stays put in the persistent layout. */
+.route-fade{animation:ssRouteIn .18s var(--ease-out) both;}
+
+/* buttons — add press + focus-visible on top of the existing hover (150–300ms) */
+.btn:active{transform:scale(.98);}
+.btn:focus-visible{outline:none;box-shadow:var(--shadow-glow),0 0 0 3px color-mix(in srgb,var(--accent-primary) 30%,transparent);}
+.btn-secondary:focus-visible,.btn-ghost:focus-visible{box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-primary) 30%,transparent);}
+
+/* glass cards — hover already lifts 4px; add a subtle press + keyboard focus ring */
+.glass-hover{transition:transform .3s var(--ease-out),border-color .3s var(--ease-out),box-shadow .3s var(--ease-out);}
+.glass-hover:active{transform:translateY(-2px);}
+.card-link:focus-visible{outline:none;}
+.card-link:focus-visible>.glass{border-color:color-mix(in srgb,var(--accent-primary) 60%,transparent);box-shadow:var(--shadow-glow),0 0 0 3px color-mix(in srgb,var(--accent-primary) 22%,transparent);}
+
+/* chips + icon buttons — press + focus for parity */
+.chip:active,.icon-btn:active{transform:scale(.96);}
+.chip:focus-visible,.icon-btn:focus-visible{outline:none;border-color:var(--accent-primary);color:var(--accent-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-primary) 22%,transparent);}
+
+/* generic keyboard-focus safety net for any interactive element not styled above */
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid color-mix(in srgb,var(--accent-primary) 70%,transparent);outline-offset:2px;}
+.nav-logo:focus-visible{outline:none;border-radius:8px;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-primary) 26%,transparent);}
+
+/* ============================================================
+   REDUCED MOTION — respect prefers-reduced-motion (brief §1 + §6).
+   Neutralise non-essential animation/transition site-wide; nothing pops
+   because state changes still apply, just without the movement.
+   ============================================================ */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms !important;
+    animation-delay:0ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    transition-delay:0ms !important;
+    scroll-behavior:auto !important;
+  }
+  html{scroll-behavior:auto !important;}
+  /* looping / decorative motion off entirely */
+  .scanline,.hero-field{animation:none !important;}
+  .route-fade{animation:none !important;}
+  /* keep the menu instantly usable without the wipe */
+  .nav-menu{clip-path:none !important;transform:none !important;}
 }

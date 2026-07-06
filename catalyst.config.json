@@ -1,0 +1,323 @@
+{
+  "configVersion": "5.0.0",
+  "currency": "GBP",
+  "approvals": {
+    "note": "All insight lines, the directional tag and band notes are copy awaiting sign-off.",
+    "insightLines": "JW-approval-pending",
+    "directionalTag": "JW-approval-pending",
+    "bandNotes": "JW-approval-pending"
+  },
+  "leaks": [
+    "Missed calls",
+    "Cold quotes",
+    "Forgotten reviews",
+    "Lapsed customers",
+    "Invisible online",
+    "Admin drag"
+  ],
+  "systems": [
+    "Capture every enquiry",
+    "Convert every quote",
+    "Bring back every customer",
+    "Be findable everywhere",
+    "Run without you"
+  ],
+  "leakToSystem": {
+    "Missed calls": "Capture every enquiry",
+    "Cold quotes": "Convert every quote",
+    "Forgotten reviews": "Be findable everywhere",
+    "Lapsed customers": "Bring back every customer",
+    "Invisible online": "Be findable everywhere",
+    "Admin drag": "Run without you"
+  },
+  "chipThresholds": {
+    "clear": 0,
+    "needsFullScan": 1,
+    "likely": 2,
+    "detected": 3
+  },
+  "tier": {
+    "proWeeklyEnquiries": 30,
+    "proLikelyLeakCount": 3,
+    "likelyThreshold": 2
+  },
+  "directionalTag": "Directional read from 10 questions. The full scan confirms it in your numbers.",
+  "sectorGroups": {
+    "A": {
+      "label": "Quote-led",
+      "sectors": ["plumbers", "electricians", "gas-engineers", "tree-surgeons", "builders", "cleaning", "accountants", "solicitors", "recruitment"]
+    },
+    "B": {
+      "label": "Booking-led",
+      "sectors": ["estate-agents", "property-mgmt", "salons", "pet-services", "auto-repair", "clinics", "hospitality", "fitness"]
+    },
+    "C": {
+      "label": "Order-led",
+      "sectors": ["ecommerce"]
+    }
+  },
+  "sectorPattern": {
+    "plumbers": ["Missed calls", "Cold quotes", "Forgotten reviews"],
+    "electricians": ["Missed calls", "Cold quotes", "Invisible online"],
+    "gas-engineers": ["Missed calls", "Lapsed customers", "Forgotten reviews"],
+    "tree-surgeons": ["Missed calls", "Cold quotes", "Forgotten reviews"],
+    "builders": ["Cold quotes", "Forgotten reviews", "Admin drag"],
+    "estate-agents": ["Missed calls", "Lapsed customers", "Forgotten reviews"],
+    "property-mgmt": ["Admin drag", "Missed calls", "Lapsed customers"],
+    "salons": ["Lapsed customers", "Admin drag", "Forgotten reviews"],
+    "pet-services": ["Missed calls", "Lapsed customers", "Forgotten reviews"],
+    "auto-repair": ["Missed calls", "Lapsed customers", "Cold quotes"],
+    "clinics": ["Missed calls", "Lapsed customers", "Invisible online"],
+    "hospitality": ["Missed calls", "Lapsed customers", "Forgotten reviews"],
+    "accountants": ["Missed calls", "Admin drag", "Forgotten reviews"],
+    "solicitors": ["Missed calls", "Cold quotes", "Invisible online"],
+    "recruitment": ["Missed calls", "Admin drag", "Lapsed customers"],
+    "ecommerce": ["Cold quotes", "Lapsed customers", "Admin drag"],
+    "fitness": ["Missed calls", "Lapsed customers", "Forgotten reviews"],
+    "cleaning": ["Missed calls", "Lapsed customers", "Cold quotes"],
+    "other": ["Missed calls", "Cold quotes", "Lapsed customers"]
+  },
+  "groupStems": {
+    "capture": {
+      "A": "When a quote request lands and you cannot get to it, what tends to happen?",
+      "B": "When a booking enquiry lands and you cannot get to it, what tends to happen?",
+      "C": "When an order or enquiry lands and you cannot get to it, what tends to happen?"
+    },
+    "convert": {
+      "A": "After you send a quote, how does the follow-up happen?",
+      "B": "After someone enquires about a booking, how does the follow-up happen?",
+      "C": "After someone abandons an order or enquiry, how does the follow-up happen?"
+    },
+    "return": {
+      "A": "How do past customers come back for repeat work?",
+      "B": "How do past customers come back to rebook?",
+      "C": "How do past customers come back for a repeat order?"
+    }
+  },
+  "steps": [
+    {
+      "id": "sector",
+      "kicker": "01 · Your world",
+      "stem": "What kind of business are we scanning?",
+      "inputType": "choose",
+      "helper": "Pick the closest. Sage already knows the leak patterns for your world.",
+      "insight": "Every sector leaks in its own pattern. Sage already knows yours.",
+      "insightApproval": "JW-approval-pending",
+      "options": [
+        { "value": "plumbers", "label": "Plumbers", "group": "A" },
+        { "value": "electricians", "label": "Electricians", "group": "A" },
+        { "value": "gas-engineers", "label": "Gas engineers", "group": "A" },
+        { "value": "tree-surgeons", "label": "Tree surgeons", "group": "A" },
+        { "value": "builders", "label": "Builders", "group": "A" },
+        { "value": "cleaning", "label": "Cleaning", "group": "A" },
+        { "value": "accountants", "label": "Accountants", "group": "A" },
+        { "value": "solicitors", "label": "Solicitors", "group": "A" },
+        { "value": "recruitment", "label": "Recruitment", "group": "A" },
+        { "value": "estate-agents", "label": "Estate agents", "group": "B" },
+        { "value": "property-mgmt", "label": "Property management", "group": "B" },
+        { "value": "salons", "label": "Salons & personal care", "group": "B" },
+        { "value": "pet-services", "label": "Pet services", "group": "B" },
+        { "value": "auto-repair", "label": "Auto repair", "group": "B" },
+        { "value": "clinics", "label": "Clinics & healthcare", "group": "B" },
+        { "value": "hospitality", "label": "Hospitality", "group": "B" },
+        { "value": "fitness", "label": "Fitness & gyms", "group": "B" },
+        { "value": "ecommerce", "label": "E-commerce & retail", "group": "C" },
+        { "value": "other", "label": "Something else", "group": "A", "typeIn": true }
+      ]
+    },
+    {
+      "id": "volume",
+      "kicker": "02 · Scale of demand",
+      "stem": "Roughly how many new enquiries reach you in a typical week?",
+      "inputType": "choose",
+      "helper": "Calls, forms, messages, walk-ins. A rough count is fine.",
+      "insight": "The more enquiries you handle, the more a small capture gap quietly costs.",
+      "insightApproval": "JW-approval-pending",
+      "options": [
+        { "value": "0-5", "label": "Under 5 a week", "band": "low", "weeklyMid": 3 },
+        { "value": "6-15", "label": "5 to 15 a week", "band": "steady", "weeklyMid": 10 },
+        { "value": "16-30", "label": "15 to 30 a week", "band": "busy", "weeklyMid": 22 },
+        { "value": "30+", "label": "30 or more a week", "band": "high", "weeklyMid": 40 }
+      ]
+    },
+    {
+      "id": "channels",
+      "kicker": "03 · Ways in",
+      "stem": "Which of these describe how enquiries reach you today?",
+      "inputType": "multi",
+      "helper": "Select every one that sounds familiar.",
+      "insight": "If the phone is the only reliable door in, every missed ring is a customer walking to the next name on the list. That usually points to a capture problem, not a marketing problem.",
+      "insightApproval": "JW-approval-pending",
+      "options": [
+        { "value": "phone-only", "label": "The phone is our main line and we cannot always answer", "deltas": { "Missed calls": 3 } },
+        { "value": "voicemail-afterhours", "label": "After hours, calls go to voicemail", "deltas": { "Missed calls": 2 } },
+        { "value": "missed-dms", "label": "WhatsApp, texts and DMs sometimes get missed", "deltas": { "Missed calls": 1 } },
+        { "value": "form-slow", "label": "Web enquiries come in but replies can be slow", "deltas": { "Cold quotes": 1 } },
+        { "value": "no-online-booking", "label": "There is no easy way to book or order online", "deltas": { "Missed calls": 1, "Invisible online": 1 } },
+        { "value": "covered", "label": "Every enquiry gets answered quickly, one way or another", "deltas": {} }
+      ]
+    },
+    {
+      "id": "capture",
+      "kicker": "04 · Missed enquiries",
+      "stem": "When an enquiry lands and you cannot get to it, what tends to happen?",
+      "stemGroupKey": "capture",
+      "inputType": "multi",
+      "helper": "Be honest. This is where most leaks start.",
+      "insight": "A missed enquiry rarely calls back. It just becomes someone else's booked job.",
+      "insightApproval": "JW-approval-pending",
+      "options": [
+        { "value": "goes-to-voicemail", "label": "It goes to voicemail and often we never hear back", "deltas": { "Missed calls": 3 } },
+        { "value": "lost-in-day", "label": "Some just get lost in the day", "deltas": { "Missed calls": 2 } },
+        { "value": "call-back-later", "label": "We call back when we get a chance, sometimes next day", "deltas": { "Missed calls": 1, "Cold quotes": 1 } },
+        { "value": "no-record", "label": "Nothing logs it, so we cannot chase what we did not catch", "deltas": { "Missed calls": 1, "Admin drag": 1 } },
+        { "value": "auto-holds", "label": "An automatic reply holds them until we can respond", "deltas": {} }
+      ]
+    },
+    {
+      "id": "convert",
+      "kicker": "05 · Follow-up",
+      "stem": "After you send a quote, how does the follow-up happen?",
+      "stemGroupKey": "convert",
+      "inputType": "choose",
+      "helper": "The gap between sent and won is where quotes go cold.",
+      "insight": "Most quotes do not die from a no. They die from silence. Sequenced follow-up is usually the fastest money on the table.",
+      "insightApproval": "JW-approval-pending",
+      "options": [
+        { "value": "one-and-done", "label": "We send it once and wait to hear back", "deltas": { "Cold quotes": 3 } },
+        { "value": "chase-if-remember", "label": "We chase if we remember, when things are quiet", "deltas": { "Cold quotes": 2 } },
+        { "value": "manual-chase", "label": "Someone chases manually, one at a time", "deltas": { "Cold quotes": 1, "Admin drag": 1 } },
+        { "value": "sequenced", "label": "Every one enters a set follow-up sequence", "deltas": {} }
+      ]
+    },
+    {
+      "id": "reviews",
+      "kicker": "06 · Proof",
+      "stem": "After a job goes well, how do you collect a review?",
+      "inputType": "choose",
+      "helper": "The proof that wins the next customer.",
+      "insight": "Every happy customer is a five-star review you did not ask for. Most businesses ask for none.",
+      "insightApproval": "JW-approval-pending",
+      "options": [
+        { "value": "never-ask", "label": "We do not really ask", "deltas": { "Forgotten reviews": 3 } },
+        { "value": "sometimes", "label": "Sometimes, when we remember", "deltas": { "Forgotten reviews": 2 } },
+        { "value": "manual-ask", "label": "We ask by hand, one message at a time", "deltas": { "Forgotten reviews": 1, "Admin drag": 1 } },
+        { "value": "automated", "label": "Every finished job triggers a review request", "deltas": {} }
+      ]
+    },
+    {
+      "id": "return",
+      "kicker": "07 · Coming back",
+      "stem": "How do past customers come back for repeat work?",
+      "stemGroupKey": "return",
+      "inputType": "multi",
+      "helper": "Select every one that is true today.",
+      "insight": "Past customers are worth more than every cold lead combined. Most are sitting in your database, waiting to be asked.",
+      "insightApproval": "JW-approval-pending",
+      "options": [
+        { "value": "on-their-own", "label": "They come back on their own, or they do not", "deltas": { "Lapsed customers": 3 } },
+        { "value": "no-winback", "label": "We have no reminder or win-back going out", "deltas": { "Lapsed customers": 2 } },
+        { "value": "manual-list", "label": "We chase from a manual list when we think of it", "deltas": { "Lapsed customers": 1, "Admin drag": 1 } },
+        { "value": "one-off-only", "label": "We treat repeat work as one-off jobs", "deltas": { "Lapsed customers": 1 } },
+        { "value": "automated-return", "label": "Automated reminders and win-backs run in the background", "deltas": {} }
+      ]
+    },
+    {
+      "id": "findable",
+      "kicker": "08 · Findability",
+      "stem": "If someone asked ChatGPT, Google or Perplexity for a business like yours nearby, would you show up?",
+      "inputType": "choose",
+      "helper": "AI search is where the next recommendation happens.",
+      "insight": "Your buyers are already asking AI who to call. If you are not in the answer, you are invisible right where the decision gets made.",
+      "insightApproval": "JW-approval-pending",
+      "options": [
+        { "value": "no-idea", "label": "No idea, probably not", "deltas": { "Invisible online": 3 } },
+        { "value": "maybe-google", "label": "Maybe on Google, nowhere in AI search", "deltas": { "Invisible online": 2 } },
+        { "value": "thin-listing", "label": "We are listed but it is thin and out of date", "deltas": { "Invisible online": 1, "Forgotten reviews": 1 } },
+        { "value": "visible", "label": "We show up well across Google and AI answers", "deltas": {} }
+      ]
+    },
+    {
+      "id": "memory",
+      "kicker": "09 · Run by memory",
+      "stem": "Which of these still run on someone's memory or manual work?",
+      "inputType": "multi",
+      "helper": "Select every one that is done by hand today.",
+      "insight": "Anything that lives in a person's head leaks the day they are busy, off, or gone. Systems do not forget.",
+      "insightApproval": "JW-approval-pending",
+      "options": [
+        { "value": "quoting", "label": "Quoting and pricing", "deltas": { "Admin drag": 1, "Cold quotes": 1 } },
+        { "value": "booking", "label": "Booking and reminders", "deltas": { "Admin drag": 1 } },
+        { "value": "invoicing", "label": "Invoicing and chasing payment", "deltas": { "Admin drag": 2 } },
+        { "value": "repeat-questions", "label": "Answering the same questions over and over", "deltas": { "Admin drag": 1 } },
+        { "value": "reporting", "label": "Reporting and admin paperwork", "deltas": { "Admin drag": 1 } },
+        { "value": "none-manual", "label": "Most of this is already automated", "deltas": {} }
+      ]
+    },
+    {
+      "id": "relief",
+      "kicker": "10 · First relief",
+      "stem": "If Sage could take one thing off your plate first, what would it be?",
+      "inputType": "choose",
+      "helper": "This tells us where to start.",
+      "insight": "We fix the leak that is costing you most first, then build out from there.",
+      "insightApproval": "JW-approval-pending",
+      "options": [
+        { "value": "stop-missing", "label": "Stop missing calls and enquiries", "relief": "Missed calls", "urgency": "high", "deltas": {} },
+        { "value": "win-quotes", "label": "Win more of the quotes I send", "relief": "Cold quotes", "urgency": "high", "deltas": {} },
+        { "value": "get-reviews", "label": "Get the reviews I have earned", "relief": "Forgotten reviews", "urgency": "medium", "deltas": {} },
+        { "value": "bring-back", "label": "Bring back past customers", "relief": "Lapsed customers", "urgency": "medium", "deltas": {} },
+        { "value": "get-found", "label": "Get found in search and AI", "relief": "Invisible online", "urgency": "medium", "deltas": {} },
+        { "value": "free-time", "label": "Win back my time from admin", "relief": "Admin drag", "urgency": "high", "deltas": {} },
+        { "value": "other", "label": "Something else", "urgency": "medium", "typeIn": true, "deltas": {} }
+      ]
+    }
+  ],
+  "benchmarks": {
+    "bandsEnabled": true,
+    "jobValueBySector": {
+      "plumbers": { "verified": true, "enabled": true, "low": 150, "high": 250, "emergencyCallout": 110, "note": "Typical job £150–250, emergency callout around £110." },
+      "electricians": { "verified": true, "enabled": true, "low": 150, "high": 300, "note": "Typical job £150–300." },
+      "gas-engineers": { "verified": false, "enabled": false, "low": 0, "high": 0, "note": "Placeholder. No verified figure. Do not show." },
+      "tree-surgeons": { "verified": false, "enabled": false, "low": 0, "high": 0, "note": "Placeholder. No verified figure. Do not show." },
+      "builders": { "verified": false, "enabled": false, "low": 0, "high": 0, "note": "Placeholder. No verified figure. Do not show." },
+      "cleaning": { "verified": false, "enabled": false, "low": 0, "high": 0, "note": "Placeholder. No verified figure. Do not show." },
+      "accountants": { "verified": false, "enabled": false, "low": 0, "high": 0, "note": "Placeholder. No verified figure. Do not show." },
+      "solicitors": { "verified": false, "enabled": false, "low": 0, "high": 0, "note": "Placeholder. No verified figure. Do not show." },
+      "recruitment": { "verified": false, "enabled": false, "low": 0, "high": 0, "note": "Placeholder. No verified figure. Do not show." },
+      "estate-agents": { "verified": false, "enabled": false, "low": 0, "high": 0, "note": "Placeholder. No verified figure. Do not show." },
+      "property-mgmt": { "verified": false, "enabled": false, "low": 0, "high": 0, "note": "Placeholder. No verified figure. Do not show." },
+      "salons": { "verified": false, "enabled": false, "low": 0, "high": 0, "note": "Placeholder. No verified figure. Do not show." },
+      "pet-services": { "verified": false, "enabled": false, "low": 0, "high": 0, "note": "Placeholder. No verified figure. Do not show." },
+      "auto-repair": { "verified": false, "enabled": false, "low": 0, "high": 0, "note": "Placeholder. No verified figure. Do not show." },
+      "clinics": { "verified": false, "enabled": false, "low": 0, "high": 0, "note": "Placeholder. No verified figure. Do not show." },
+      "hospitality": { "verified": false, "enabled": false, "low": 0, "high": 0, "note": "Placeholder. No verified figure. Do not show." },
+      "fitness": { "verified": false, "enabled": false, "low": 0, "high": 0, "note": "Placeholder. No verified figure. Do not show." },
+      "ecommerce": { "verified": false, "enabled": false, "low": 0, "high": 0, "note": "Placeholder. No verified figure. Do not show." },
+      "other": { "verified": false, "enabled": false, "low": 0, "high": 0, "note": "Placeholder. No verified figure. Do not show." }
+    },
+    "captureLossRate": {
+      "note": "Directional share of weekly enquiries assumed missed, by capture severity. Not a promise.",
+      "bySeverity": { "0": 0.02, "1": 0.05, "2": 0.1, "3": 0.15 }
+    },
+    "taskTimes": {
+      "confidence": "Likely",
+      "note": "Likely time estimates, not measured. The full scan measures the real numbers.",
+      "tasks": {
+        "chaseQuote": { "label": "Chasing a quote", "minutesLow": 8, "minutesHigh": 12, "perWeekLow": 5, "perWeekHigh": 15 },
+        "repeatQuestion": { "label": "Answering a repeat question", "minutesLow": 3, "minutesHigh": 5, "perWeekLow": 10, "perWeekHigh": 30 },
+        "bookingReminder": { "label": "Booking or reminder", "minutesLow": 4, "minutesHigh": 6, "perWeekLow": 5, "perWeekHigh": 20 },
+        "reviewRequest": { "label": "Review request", "minutesLow": 3, "minutesHigh": 3, "perWeekLow": 5, "perWeekHigh": 15 },
+        "chasePayment": { "label": "Chasing a payment", "minutesLow": 6, "minutesHigh": 10, "perWeekLow": 3, "perWeekHigh": 10 },
+        "invoicing": { "label": "Invoicing", "minutesLow": 10, "minutesHigh": 15, "perJob": true }
+      },
+      "taskByMemoryOption": {
+        "quoting": ["chaseQuote"],
+        "booking": ["bookingReminder"],
+        "invoicing": ["invoicing", "chasePayment"],
+        "repeat-questions": ["repeatQuestion"],
+        "reporting": ["repeatQuestion"]
+      }
+    }
+  }
+}

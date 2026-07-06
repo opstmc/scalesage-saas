@@ -20,9 +20,8 @@ export default function Fixes() {
             <div key={g.title} data-reveal="" className="glass glass-hover" style={{ padding: 28, display: "flex", flexDirection: "column" }}>
               <h3 className="h3 teal-underline" style={{ fontSize: 20, marginBottom: 10 }}>{g.title}</h3>
               <p style={{ fontSize: 14.5, color: "var(--text-muted)", margin: "0 0 18px", lineHeight: 1.55, flex: 1 }}>{g.body}</p>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <span style={{ fontSize: 12, color: "var(--accent-primary)", border: "1px solid var(--border-subtle)", borderRadius: 16, padding: "4px 11px" }}>{g.closes}</span>
-                <a href="#" style={{ fontSize: 13.5, color: "var(--text-muted)", textDecoration: "none", whiteSpace: "nowrap" }}>Learn more →</a>
               </div>
             </div>
           ))}

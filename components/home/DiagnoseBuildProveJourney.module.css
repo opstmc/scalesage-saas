@@ -1,0 +1,197 @@
+/* Diagnose -> Build -> Prove -> Improve scroll journey (brief §2 / item 4).
+   As the section scrolls into view, the "old model" chaos chips (scattered,
+   faint, cold) settle into alignment while the calm four-beat loop rises in
+   sequence. Motion is driven by two classes on the root: `armed` (added by JS
+   on mount, so no-JS users keep the readable final state) hides the pieces,
+   and `active` (added by the IntersectionObserver on scroll) resolves them.
+   CSS handles the choreography with per-item stagger delays. Reduced motion
+   never arms, and transitions are stripped, so the calm state simply renders. */
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1.15fr;
+  gap: clamp(20px, 4vw, 44px);
+  align-items: center;
+}
+
+.colLabel {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+
+.beforeLabel { color: var(--text-faint); }
+.afterLabel { color: var(--accent-primary); }
+
+/* ---- Before: the chaos column ---- */
+.beforeCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 15px;
+  border-radius: var(--r-card);
+  border: 1px solid var(--border-hair);
+  background: color-mix(in srgb, var(--bg-elevated) 55%, transparent);
+  color: var(--text-muted);
+  font-size: 14.5px;
+  line-height: 1.35;
+  /* Default (no-JS / resolved) state: aligned and legible. */
+  transform: none;
+  opacity: 0.9;
+  transition:
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+
+.armed .chip {
+  transform: translate(var(--tx, 0), var(--ty, 0)) rotate(var(--rot, 0deg));
+  opacity: 0.38;
+}
+
+.armed.active .chip {
+  transform: none;
+  opacity: 0.9;
+}
+
+.chipDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--text-faint);
+}
+
+/* ---- The connector between chaos and calm ---- */
+.arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary);
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: 0.32s;
+}
+
+.armed .arrow {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.armed.active .arrow {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---- After: the calm four-beat loop ---- */
+.afterCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.beat {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+  padding: 16px 18px;
+  border-radius: var(--r-card);
+  /* Default (no-JS / resolved) state: shown. */
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--i, 0) * 130ms);
+}
+
+.armed .beat {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+.armed.active .beat {
+  opacity: 1;
+  transform: none;
+}
+
+.beatNum {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  border: 1px solid var(--border-subtle);
+}
+
+.beatTitle {
+  font-weight: 600;
+  font-size: 16.5px;
+  color: var(--text-headline);
+  margin: 2px 0 0;
+  letter-spacing: -0.01em;
+}
+
+.beatLine {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 5px 0 0;
+  line-height: 1.5;
+}
+
+.loopNote {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 6px 0 0 4px;
+  font-size: 12.5px;
+  color: var(--text-faint);
+}
+
+.loopDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px var(--accent-primary);
+  flex: none;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  /* Stack the arrow flat and keep it visible; skip its slide animation. */
+  .arrow,
+  .armed .arrow,
+  .armed.active .arrow {
+    opacity: 1;
+    transform: rotate(90deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip,
+  .beat,
+  .arrow {
+    transition: none;
+  }
+}

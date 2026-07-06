@@ -4,240 +4,188 @@ import { useCallback, useRef, useState } from "react";
 import JourneyButton from "./JourneyButton";
 import IndustryModal, { type Industry } from "./IndustryModal";
 
+// CANDIDATE COPY — emotion-layer leak maps (CATALYST v5, brief section 4).
+// All 18 sectors carry the five parts. Drafted for JW/Cy approval.
 const INDUSTRIES: Industry[] = [
   {
     name: "Plumbers",
-    leaks: ["Missed emergency calls", "Quotes never chased", "No review engine"],
-    pattern:
-      "The work is never the problem — the phone is. Emergency calls hit while you're under a sink, quotes sent from the van go cold, and the five-star jobs never get asked for a review.",
-    installs: [
-      { system: "Capture every enquiry", closes: "Voice AI answers every emergency call and books it — mid-job or after hours." },
-      { system: "Convert every quote", closes: "Every quote enters a sequenced chase until it's won or closed." },
-      { system: "Be findable everywhere", closes: "Automated review requests turn finished jobs into proof that wins the next call." },
-    ],
-    fixFirst:
-      "Start with the missed calls. A plumbing emergency goes to whoever answers first, so every unanswered ring is a booked job handed to a competitor.",
+    feelsLike:
+      "You're under a sink when the emergency call comes in. By the time you ring back, they've already phoned someone else.",
+    leaks: ["Missed calls", "Cold quotes", "Forgotten reviews"],
+    sageAsks: "How many jobs last month went to whoever picked up first, not whoever was best?",
+    installs: ["Capture every enquiry", "Convert every quote", "Be findable everywhere"],
+    ownerGets:
+      "Every ring answered and booked, every quote chased to a yes, and finished jobs turned into the reviews that win the next call.",
   },
   {
     name: "Electricians",
-    leaks: ["After-hours calls lost", "Slow quote follow-up", "Invisible in local AI search"],
-    pattern:
-      "Demand doesn't keep office hours. After-hours calls go to voicemail, quotes sit while you're on the tools, and when someone asks ChatGPT for a local electrician, you're not in the answer.",
-    installs: [
-      { system: "Capture every enquiry", closes: "After-hours voice AI captures and books the calls that used to hit voicemail." },
-      { system: "Convert every quote", closes: "Follow-up sequences chase every quote so none goes cold on the job." },
-      { system: "Be findable everywhere", closes: "AEO/GEO visibility puts you in the answer when buyers ask AI for a local electrician." },
-    ],
-    fixFirst:
-      "Plug the after-hours calls first — that's where the emergency-premium work is, and it's leaking straight to voicemail every night.",
+    feelsLike:
+      "The after-hours call rings out to voicemail, and the emergency-premium job goes to whoever answered their phone.",
+    leaks: ["Missed calls", "Cold quotes", "Invisible online"],
+    sageAsks: "When someone asks AI for a local electrician tonight, does your name come up or a rival's?",
+    installs: ["Capture every enquiry", "Convert every quote", "Be findable everywhere"],
+    ownerGets:
+      "After-hours calls captured and booked, quotes chased instead of forgotten, and a name that shows up when buyers ask AI for an electrician.",
   },
   {
     name: "Gas engineers",
-    leaks: ["Missed booking calls", "No service reminders", "Lapsed annual customers"],
-    pattern:
-      "Boiler work is repeat business you're treating as one-off. Booking calls slip, annual services never get a reminder, and last year's customers quietly book with someone else.",
-    installs: [
-      { system: "Capture every enquiry", closes: "Voice AI answers and slots every service and booking call." },
-      { system: "Bring back every customer", closes: "Automated annual-service reminders keep every boiler on the calendar." },
-      { system: "Bring back every customer", closes: "Database reactivation wins back last year's customers before they switch." },
-    ],
-    fixFirst:
-      "Turn on service reminders first. A gas customer who lapses one year rarely comes back, so protecting the annual repeat is the fastest money.",
+    feelsLike:
+      "Last year's boiler customer just booked their annual service with someone else, because nobody reminded them it was due.",
+    leaks: ["Missed calls", "Lapsed customers", "Admin drag"],
+    sageAsks: "Of the boilers you serviced last year, how many are already booked back in for this one?",
+    installs: ["Capture every enquiry", "Bring back every customer", "Run without you"],
+    ownerGets:
+      "Every booking call answered, annual services reminded and rebooked automatically, and last year's customers back on your calendar instead of a rival's.",
   },
   {
     name: "Tree surgeons",
-    leaks: ["Seasonal calls missed", "Quotes go cold", "Few reviews captured"],
-    pattern:
-      "Your year comes in waves — and when the storm-season calls land all at once, most go unanswered. The quotes you do send cool off, and dramatic before-and-after jobs never turn into reviews.",
-    installs: [
-      { system: "Capture every enquiry", closes: "Voice AI absorbs the seasonal call spikes so no enquiry is lost to a busy week." },
-      { system: "Convert every quote", closes: "Sequenced follow-up keeps every quote warm until the job is booked." },
-      { system: "Be findable everywhere", closes: "Automated review requests capture the proof from every big job." },
-    ],
-    fixFirst:
-      "Fix seasonal call capture first — in a trade this spiky, the busiest weeks are exactly when the most calls go unanswered.",
+    feelsLike:
+      "The storm hits and every call lands in the same hour, most of them ringing out while you're forty feet up a tree.",
+    leaks: ["Missed calls", "Cold quotes", "Forgotten reviews"],
+    sageAsks: "When the season spikes and the calls all land at once, who answers the ones you can't?",
+    installs: ["Capture every enquiry", "Convert every quote", "Be findable everywhere"],
+    ownerGets:
+      "The seasonal surge captured instead of lost, every quote kept warm to a yes, and dramatic before-and-afters turned into reviews.",
   },
   {
     name: "Builders",
-    leaks: ["Slow to quote", "No follow-up sequence", "Word-of-mouth not captured"],
-    pattern:
-      "The pipeline is real but leaky. Quotes take days while the client's ready now, nothing chases them, and the referrals that should compound are never captured as reviews.",
-    installs: [
-      { system: "Run without you", closes: "Automated quoting workflows get proposals out same-day, not next week." },
-      { system: "Convert every quote", closes: "Every proposal enters a sequenced chase until it's won or closed." },
-      { system: "Be findable everywhere", closes: "Review systems turn happy clients into the proof that wins the next build." },
-    ],
-    fixFirst:
-      "Speed up the quote first. On a big build the client is comparing three firms, and the fastest credible quote usually wins the job.",
+    feelsLike:
+      "The client is ready to sign now, but your quote is still three days out, and by then they've gone with the firm that replied today.",
+    leaks: ["Cold quotes", "Admin drag", "Forgotten reviews"],
+    sageAsks: "How many builds did you lose last year to a faster quote, not a better one?",
+    installs: ["Run without you", "Convert every quote", "Be findable everywhere"],
+    ownerGets:
+      "Same-day quotes out the door, every proposal chased to a decision, and referrals captured as the proof that wins the next build.",
   },
   {
     name: "Estate agents",
-    leaks: ["Portal leads called too late", "Cold vendors not nurtured", "Reviews under-asked"],
-    pattern:
-      "Portal leads are gold that spoils in minutes. They're called too late, not-ready vendors get no nurture, and the reviews that build local trust go unasked.",
-    installs: [
-      { system: "Capture every enquiry", closes: "Instant response calls and books every portal lead in the first minute, not the next day." },
-      { system: "Bring back every customer", closes: "Long-cycle nurture keeps not-yet-ready vendors warm until they list." },
-      { system: "Be findable everywhere", closes: "Automated review requests build the local reputation that wins instructions." },
-    ],
-    fixFirst:
-      "Fix lead speed first — portal enquiries convert far better answered in minutes, and right now they're going cold before anyone calls.",
+    feelsLike:
+      "A portal lead is gold for about five minutes. Yours sat in the inbox until lunch, and by then they'd booked a viewing elsewhere.",
+    leaks: ["Missed calls", "Lapsed customers", "Forgotten reviews"],
+    sageAsks: "Honestly, how fast does a portal enquiry get a call back right now, minutes or hours?",
+    installs: ["Capture every enquiry", "Bring back every customer", "Be findable everywhere"],
+    ownerGets:
+      "Every portal lead called in the first minute, not-yet-ready vendors nurtured until they list, and reviews that win the next instruction.",
   },
   {
     name: "Property mgmt",
-    leaks: ["Tenant calls missed", "Maintenance admin drag", "Manual renewal reminders"],
-    pattern:
-      "The work is relentless and mostly admin. Tenant calls pile up faster than you can answer, maintenance coordination eats the day, and renewals are chased by memory instead of a system.",
-    installs: [
-      { system: "Capture every enquiry", closes: "Voice AI handles routine tenant calls and logs maintenance requests automatically." },
-      { system: "Run without you", closes: "Automated coordination and scheduling take the maintenance chase off your desk." },
-      { system: "Bring back every customer", closes: "Renewal reminders fire automatically so no tenancy lapses by oversight." },
-    ],
-    fixFirst:
-      "Take the maintenance admin off your team first — it's the biggest time drain, and the hours it frees go straight back into filling and keeping units.",
+    feelsLike:
+      "Tenant calls stack up faster than you can answer, maintenance eats the whole day, and a renewal just lapsed because it lived on a sticky note.",
+    leaks: ["Missed calls", "Admin drag", "Lapsed customers"],
+    sageAsks: "How many hours a week does your team lose to maintenance chasing instead of filling and keeping units?",
+    installs: ["Capture every enquiry", "Run without you", "Bring back every customer"],
+    ownerGets:
+      "Routine tenant calls handled, maintenance coordination off your desk, and renewals that fire on time instead of by memory.",
   },
   {
     name: "Salons",
-    leaks: ["No-shows & gaps", "No rebooking prompts", "Lapsed clients ignored"],
-    pattern:
-      "Empty chairs are pure lost revenue. No-shows leave gaps you can't refill, clients walk out without rebooking, and the ones who drift away are never invited back.",
-    installs: [
-      { system: "Run without you", closes: "Automated confirmations and waitlist fill cut no-shows and plug the gaps." },
-      { system: "Bring back every customer", closes: "Every visit ends with an automated rebooking prompt before they leave your chair." },
-      { system: "Bring back every customer", closes: "Reactivation campaigns win back clients who've quietly drifted to another salon." },
-    ],
-    fixFirst:
-      "Kill the no-shows first. A gap you learn about at 10am can't be refilled, so automated confirmations and waitlists protect the most revenue fastest.",
+    feelsLike:
+      "A chair sits empty at 2pm because one client no-showed and another walked out without rebooking, both revenue you can't get back.",
+    leaks: ["Admin drag", "Lapsed customers", "Missed calls"],
+    sageAsks: "How many chairs sat empty last week that a confirmation or a waitlist could have filled?",
+    installs: ["Run without you", "Bring back every customer", "Capture every enquiry"],
+    ownerGets:
+      "No-shows cut and gaps refilled automatically, every visit ending in a rebooking, and drifted clients invited back before they settle elsewhere.",
   },
   {
     name: "Pet services",
-    leaks: ["Booking calls missed", "No repeat reminders", "Reviews not requested"],
-    pattern:
-      "It's a routine, repeat business run on memory. Booking calls slip while you're with an animal, the regular grooming cycle never gets a nudge, and delighted owners are never asked to review.",
-    installs: [
-      { system: "Capture every enquiry", closes: "Voice AI books every appointment call while your hands are full." },
-      { system: "Bring back every customer", closes: "Automated repeat reminders keep every grooming and care cycle on schedule." },
-      { system: "Be findable everywhere", closes: "Review requests turn happy owners into the proof local pet-owners trust." },
-    ],
-    fixFirst:
-      "Set up the repeat reminders first. Pet care is a predictable cycle, and a gentle automated nudge turns one-off visits into a booked-out calendar.",
+    feelsLike:
+      "You're mid-groom with both hands full, the phone rings with a booking, and the regular whose cycle is due never gets a nudge.",
+    leaks: ["Missed calls", "Lapsed customers", "Forgotten reviews"],
+    sageAsks: "Of the pets you groomed last quarter, how many are booked in for their next cycle?",
+    installs: ["Capture every enquiry", "Bring back every customer", "Be findable everywhere"],
+    ownerGets:
+      "Every booking call answered hands-free, every grooming cycle nudged back onto the calendar, and happy owners turned into local reviews.",
   },
   {
     name: "Auto repair",
-    leaks: ["Service calls missed", "Manual MOT reminders", "Quotes not followed up"],
-    pattern:
-      "It's a diary business leaking at the edges. Service calls miss while you're under a car, MOT reminders depend on you remembering, and quotes for bigger work go unanswered.",
-    installs: [
-      { system: "Capture every enquiry", closes: "Voice AI answers and books every service call from the workshop floor." },
-      { system: "Bring back every customer", closes: "Automated MOT and service reminders bring every car back on time." },
-      { system: "Convert every quote", closes: "Follow-up sequences chase every repair quote until it's approved." },
-    ],
-    fixFirst:
-      "Automate the MOT reminders first — it's guaranteed annual repeat work that's leaking purely because no one has time to chase it.",
+    feelsLike:
+      "You're under a car when the service call comes in, and next year's MOT reminder depends on you remembering, so half never go out.",
+    leaks: ["Missed calls", "Lapsed customers", "Cold quotes"],
+    sageAsks: "How many MOTs due this month has anyone actually reminded the customer about?",
+    installs: ["Capture every enquiry", "Bring back every customer", "Convert every quote"],
+    ownerGets:
+      "Service calls booked from the workshop floor, every MOT reminded and rebooked on time, and repair quotes chased to approval.",
   },
   {
     name: "Clinics",
-    leaks: ["Reception overwhelmed", "Manual recall reminders", "Invisible in health search"],
-    pattern:
-      "The front desk is the bottleneck. Reception can't answer everything, recalls depend on manual lists, and when patients search AI for local care, your clinic doesn't surface.",
-    installs: [
-      { system: "Capture every enquiry", closes: "Voice AI absorbs routine reception calls and books appointments 24/7." },
-      { system: "Bring back every customer", closes: "Automated recall reminders bring patients back for check-ups and follow-ups." },
-      { system: "Be findable everywhere", closes: "AEO/GEO visibility puts your clinic in the answer for local health searches." },
-    ],
-    fixFirst:
-      "Relieve reception first. Every unanswered call is a booking lost and a patient who dials the next clinic — and it's the leak your team feels most.",
+    feelsLike:
+      "Reception is drowning, the phone rings out, and the patient who couldn't get through just dialled the clinic down the road.",
+    leaks: ["Missed calls", "Lapsed customers", "Invisible online"],
+    sageAsks: "How many patients are overdue a recall that's still sitting on a manual list nobody has time to work?",
+    installs: ["Capture every enquiry", "Bring back every customer", "Be findable everywhere"],
+    ownerGets:
+      "Reception relieved with calls answered around the clock, recalls that bring patients back automatically, and a clinic that surfaces when people search for local care.",
   },
   {
     name: "Hospitality",
-    leaks: ["Booking enquiries missed", "No win-back for regulars", "Reviews not prompted"],
-    pattern:
-      "Covers walk out the door before you notice. Booking calls miss during service, regulars drift without a reason to return, and great nights never turn into the reviews that fill tables.",
-    installs: [
-      { system: "Capture every enquiry", closes: "Voice AI takes every booking enquiry during the rush without pulling staff off the floor." },
-      { system: "Bring back every customer", closes: "Win-back campaigns bring lapsed regulars back with a reason to return." },
-      { system: "Be findable everywhere", closes: "Automated review prompts turn great nights into the ratings that fill tables." },
-    ],
-    fixFirst:
-      "Capture the booking calls first — enquiries land right when your team is slammed in service, so that's exactly when covers are being lost.",
+    feelsLike:
+      "The booking message lands mid-service, nobody sees it until the shift ends, and a regular you haven't seen in months has quietly stopped coming.",
+    leaks: ["Missed calls", "Lapsed customers", "Forgotten reviews"],
+    sageAsks: "How many booking enquiries came in during last Friday's service that nobody got to reply to?",
+    installs: ["Capture every enquiry", "Bring back every customer", "Be findable everywhere"],
+    ownerGets:
+      "Every enquiry answered mid-rush without pulling staff off the floor, regulars given a reason to return, and great nights turned into the reviews that fill tables.",
   },
   {
     name: "Accountants",
-    leaks: ["Enquiries slow to answer", "Deadlines chased manually", "Referrals not captured"],
-    pattern:
-      "Trust is won in the first reply — and yours is slow. New enquiries wait, client deadlines are chased by hand, and the referrals that should grow the firm are never asked for.",
-    installs: [
-      { system: "Capture every enquiry", closes: "Instant response engages every new enquiry before they call another firm." },
-      { system: "Run without you", closes: "Automated deadline and document chasing keeps clients on track without nagging." },
-      { system: "Be findable everywhere", closes: "Review and referral systems turn satisfied clients into a steady pipeline." },
-    ],
-    fixFirst:
-      "Speed up enquiry response first. Accounting clients shop on responsiveness, and a slow first reply loses the ones worth the most.",
+    feelsLike:
+      "A new enquiry lands, sits for a day, and by the time you reply they've already signed with the firm that answered first.",
+    leaks: ["Missed calls", "Admin drag", "Forgotten reviews"],
+    sageAsks: "When a prospect enquires today, how long before they hear back, and how many don't wait?",
+    installs: ["Capture every enquiry", "Run without you", "Be findable everywhere"],
+    ownerGets:
+      "Every enquiry engaged before they call another firm, deadlines and documents chased without nagging, and satisfied clients turned into a steady referral pipeline.",
   },
   {
     name: "Solicitors",
-    leaks: ["Intake calls missed", "Slow enquiry follow-up", "Invisible in AI search"],
-    pattern:
-      "Legal clients don't wait. Intake calls miss while you're in a matter, enquiries aren't followed up fast enough, and when someone asks AI for a local solicitor, you're not named.",
-    installs: [
-      { system: "Capture every enquiry", closes: "Voice AI handles intake calls and qualifies matters around the clock." },
-      { system: "Convert every quote", closes: "Sequenced follow-up converts more enquiries into instructed matters." },
-      { system: "Be findable everywhere", closes: "AEO/GEO visibility puts your firm in the answer when clients ask AI for legal help." },
-    ],
-    fixFirst:
-      "Fix intake capture first. A missed legal enquiry rarely calls back, and each instructed matter is worth far too much to leak to voicemail.",
+    feelsLike:
+      "An intake call comes in while you're deep in a matter, it goes to voicemail, and a case worth thousands never rings back.",
+    leaks: ["Missed calls", "Cold quotes", "Invisible online"],
+    sageAsks: "When someone needs a solicitor at 8pm and asks AI, is your firm in the answer?",
+    installs: ["Capture every enquiry", "Convert every quote", "Be findable everywhere"],
+    ownerGets:
+      "Intake calls answered and qualified around the clock, enquiries followed up to instructed matters, and a firm that shows up when clients ask AI for legal help.",
   },
   {
     name: "Recruitment",
-    leaks: ["Candidate replies slow", "Pipeline admin drag", "Lapsed clients dormant"],
-    pattern:
-      "Speed is the whole game and admin is stealing it. Good candidates go cold before you reply, the pipeline runs on manual chasing, and past clients sit dormant while you cold-prospect.",
-    installs: [
-      { system: "Capture every enquiry", closes: "Instant response keeps candidates engaged before a competitor places them." },
-      { system: "Run without you", closes: "Automated pipeline updates and scheduling free consultants to actually place." },
-      { system: "Bring back every customer", closes: "Reactivation campaigns wake dormant clients with roles ready to fill." },
-    ],
-    fixFirst:
-      "Speed up candidate replies first. Top candidates are placed within days, so a slow response is the difference between a fee and a wasted shortlist.",
+    feelsLike:
+      "The candidate was perfect on Monday. By the time you replied on Wednesday, a faster agency had already placed them.",
+    leaks: ["Missed calls", "Admin drag", "Lapsed customers"],
+    sageAsks: "How many placeable candidates went cold last month while your reply sat in a queue?",
+    installs: ["Capture every enquiry", "Run without you", "Bring back every customer"],
+    ownerGets:
+      "Candidates engaged before a competitor places them, pipeline admin off your consultants, and dormant clients woken up with roles ready to fill.",
   },
   {
     name: "E-commerce",
-    leaks: ["Abandoned carts", "No post-purchase flow", "Support tickets pile up"],
-    pattern:
-      "The traffic converts worse than it should. Carts get abandoned with no recovery, first-time buyers never get a second-order flow, and support piles up faster than you can clear it.",
-    installs: [
-      { system: "Convert every quote", closes: "Automated cart-recovery flows win back the checkouts that stall." },
-      { system: "Bring back every customer", closes: "Post-purchase sequences turn one-time buyers into repeat customers." },
-      { system: "Run without you", closes: "AI support handles routine tickets instantly so your team clears the queue." },
-    ],
-    fixFirst:
-      "Turn on cart recovery first — those are buyers who already wanted it, so recovered carts are the fastest revenue on the table.",
+    feelsLike:
+      "The cart's full, the buyer's one click from paying, then they're gone, with nothing to bring them back and a support queue you can't clear.",
+    leaks: ["Cold quotes", "Lapsed customers", "Admin drag"],
+    sageAsks: "Of the carts abandoned this week, how many got a single message trying to win them back?",
+    installs: ["Convert every quote", "Bring back every customer", "Run without you"],
+    ownerGets:
+      "Stalled checkouts recovered, one-time buyers turned into repeat orders, and routine tickets handled instantly so the queue stays clear.",
   },
   {
     name: "Fitness & gyms",
-    leaks: ["Trial leads not called", "No win-back for cancels", "Reviews under-asked"],
-    pattern:
-      "Members leak in at the top and out at the bottom. Trial leads aren't called while intent is hot, cancellations vanish with no win-back, and happy members are never asked to review.",
-    installs: [
-      { system: "Capture every enquiry", closes: "Instant response calls every trial lead while their motivation is still high." },
-      { system: "Bring back every customer", closes: "Win-back campaigns re-enrol cancelled members with the right nudge." },
-      { system: "Be findable everywhere", closes: "Automated review requests build the social proof that converts local sign-ups." },
-    ],
-    fixFirst:
-      "Call the trial leads first. Fitness intent is emotional and fades within hours, so a fast call turns a form-fill into a paying member.",
+    feelsLike:
+      "Someone fills in a trial form at 9pm, fired up to start. Nobody calls, the motivation fades by morning, and they never come in.",
+    leaks: ["Missed calls", "Lapsed customers", "Forgotten reviews"],
+    sageAsks: "How many trial leads from last week got a call while their motivation was still hot?",
+    installs: ["Capture every enquiry", "Bring back every customer", "Be findable everywhere"],
+    ownerGets:
+      "Every trial lead called while intent is high, cancelled members re-enrolled with the right nudge, and reviews that convert the next local sign-up.",
   },
   {
     name: "Cleaning",
-    leaks: ["Quote calls missed", "No recurring reminders", "Manual follow-up"],
-    pattern:
-      "A recurring-revenue business run one job at a time. Quote calls slip during jobs, recurring cleans aren't systematically rebooked, and follow-up depends on someone remembering.",
-    installs: [
-      { system: "Capture every enquiry", closes: "Voice AI answers and quotes every enquiry call while your team's on site." },
-      { system: "Bring back every customer", closes: "Automated reminders lock in recurring cleans instead of one-off bookings." },
-      { system: "Convert every quote", closes: "Sequenced follow-up chases every quote so none is forgotten." },
-    ],
-    fixFirst:
-      "Systematise recurring bookings first. Cleaning's real value is the repeat contract, so converting one-off jobs into recurring ones compounds fastest.",
+    feelsLike:
+      "A quote call comes in while your team's mid-job, it slips, and last month's one-off clean never became the recurring contract it should have.",
+    leaks: ["Missed calls", "Lapsed customers", "Cold quotes"],
+    sageAsks: "How many of last month's one-off cleans have you converted into recurring bookings?",
+    installs: ["Capture every enquiry", "Bring back every customer", "Convert every quote"],
+    ownerGets:
+      "Quote calls answered while you're on site, one-off jobs locked into recurring contracts, and every quote chased so none is forgotten.",
   },
 ];
 
@@ -264,8 +212,8 @@ export default function Industries() {
           <div className="eyebrow">Industries</div>
           <h2 className="h2">We&rsquo;ve mapped the leak patterns across 18 SME industries.</h2>
           <p className="lead">
-            Find yours and click to open its full leak map — the three biggest leaks, what&rsquo;s really
-            happening, what we install, and the one to fix first.
+            Find yours and open its leak map: what it feels like, where the money leaks, the question Sage
+            asks, what we install, and what you get back.
           </p>
         </div>
         <div className="ind-grid">
@@ -277,7 +225,7 @@ export default function Industries() {
               className="glass glass-hover ind-card"
               onClick={(e) => openModal(ind, e.currentTarget)}
               aria-haspopup="dialog"
-              aria-label={`${ind.name} — view the full leak map`}
+              aria-label={`${ind.name}: view the full leak map`}
             >
               <div>
                 <div className="ind-name">{ind.name}</div>
@@ -295,7 +243,7 @@ export default function Industries() {
           ))}
           <JourneyButton className="glass glass-hover ind-card card-link">
             <span className="ind-name" style={{ color: "var(--accent-primary)" }}>Don&rsquo;t see yours?</span>
-            <span className="small" style={{ marginTop: 8, color: "var(--text-muted)" }}>Run the scan — Sage knows it too →</span>
+            <span className="small" style={{ marginTop: 8, color: "var(--text-muted)" }}>Run the scan, Sage knows it too →</span>
           </JourneyButton>
         </div>
       </div>

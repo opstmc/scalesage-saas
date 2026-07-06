@@ -170,6 +170,9 @@ export default function HeroSignals() {
         <span className="eyebrow" style={{ margin: 0, fontSize: 11 }}>
           Live signal
         </span>
+        <span style={{ fontSize: 10.5, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--text-faint)", border: "1px solid var(--border-hair)", borderRadius: 6, padding: "2px 6px" }}>
+          Illustrative
+        </span>
       </div>
       {!reduced && (
         <span

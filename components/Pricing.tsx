@@ -81,8 +81,12 @@ export default function Pricing() {
         </div>
 
         <div data-reveal="" className="glass" style={{ marginTop: 20, padding: "26px 30px" }}>
+          {/* Ownership line (brief 8.6), verbatim */}
+          <p style={{ margin: "0 0 12px", fontSize: 16, color: "var(--text-headline)", fontWeight: 500, lineHeight: 1.5 }}>
+            Everything we build for you becomes yours on full payment.
+          </p>
           <p style={{ margin: 0, fontSize: 15, color: "var(--text-muted)", lineHeight: 1.6 }}>
-            All tiers include the Catalyst diagnostic, the compliance guarantee, and the 90-day ROI proof commitment. Bespoke builds and short-timeline custom work are quoted separately — book a diagnostic to scope.
+            All tiers include the Catalyst diagnostic, the compliance guarantee, and the 90-day ROI proof commitment. Bespoke builds and short-timeline custom work are quoted separately. Book a diagnostic to scope.
           </p>
           <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", marginTop: 18 }}>
             <span style={{ fontSize: 15, color: "var(--text-headline)", fontWeight: 500 }}>Not sure which tier?</span>

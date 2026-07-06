@@ -4,14 +4,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { useJourney } from "./JourneyProvider";
 
+// Primary nav order (brief §6): Home, How it works, Industries, Pricing, About.
 const LINKS = [
+  { href: "/", label: "Home" },
   { href: "/how-it-works", label: "How it works" },
   { href: "/industries", label: "Industries" },
   { href: "/pricing", label: "Pricing" },
   { href: "/about", label: "About" },
 ];
+
+// The scan now lives at its own route — every "Run the Catalyst" CTA links here.
+const CATALYST_HREF = "/catalyst";
 
 function Logo() {
   return (
@@ -33,7 +37,6 @@ function Logo() {
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const { openJourney } = useJourney();
   const pathname = usePathname();
   const menuRef = useRef<HTMLDivElement | null>(null);
   const toggleRef = useRef<HTMLButtonElement | null>(null);
@@ -45,34 +48,66 @@ export default function Nav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // dismiss the dropdown on outside click or Escape; manage focus for keyboard users
+  // While the panel is open: trap focus, lock scroll, close on Esc / outside click.
+  // The panel stays mounted at all times so open AND close both animate (close reverses).
   useEffect(() => {
     if (!menuOpen) return;
-    // move focus into the menu so it's keyboard-reachable
-    menuRef.current?.querySelector<HTMLElement>("a, button")?.focus();
-    const onPointer = (e: PointerEvent) => {
-      const t = e.target as Node;
-      if (menuRef.current?.contains(t) || toggleRef.current?.contains(t)) return;
-      setMenuOpen(false);
-    };
+    const menu = menuRef.current;
+    if (!menu) return;
+
+    const focusables = () =>
+      Array.from(menu.querySelectorAll<HTMLElement>('a[href],button:not([disabled])'))
+        // offsetParent is null for display:none items (e.g. the mobile-only pill on desktop)
+        .filter((el) => el.offsetParent !== null);
+
+    // move focus into the panel so it's keyboard-reachable
+    focusables()[0]?.focus();
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setMenuOpen(false);
         toggleRef.current?.focus(); // return focus to the trigger
+        return;
+      }
+      if (e.key === "Tab") {
+        const items = focusables();
+        if (items.length === 0) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        const active = document.activeElement as HTMLElement | null;
+        if (e.shiftKey) {
+          if (active === first || !menu.contains(active)) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else if (active === last || !menu.contains(active)) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
-    document.addEventListener("pointerdown", onPointer);
+
+    const onPointer = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (menu.contains(t) || toggleRef.current?.contains(t)) return;
+      setMenuOpen(false);
+    };
+
     document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onPointer);
+
+    // scroll lock
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     return () => {
-      document.removeEventListener("pointerdown", onPointer);
       document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onPointer);
+      document.body.style.overflow = prevOverflow;
     };
   }, [menuOpen]);
 
-  const startCatalyst = () => {
-    setMenuOpen(false);
-    openJourney();
-  };
+  const closeMenu = () => setMenuOpen(false);
 
   return (
     <>
@@ -80,9 +115,9 @@ export default function Nav() {
         <div className="nav-row">
           <Logo />
           <div className="nav-actions">
-            <button type="button" className="btn btn-primary btn-sm nav-cta-desktop" onClick={openJourney}>
-              Start the Catalyst
-            </button>
+            <Link href={CATALYST_HREF} className="btn btn-primary btn-sm nav-cta-desktop">
+              Run the Catalyst
+            </Link>
             <button
               ref={toggleRef}
               type="button"
@@ -100,38 +135,50 @@ export default function Nav() {
             </button>
           </div>
 
-          {menuOpen && (
-            <div className="nav-menu" id="nav-menu" ref={menuRef}>
-              <button type="button" className="nav-menu-link is-primary" onClick={startCatalyst}>
-                Diagnostic
-              </button>
-              {LINKS.map((l) => {
-                const active = pathname === l.href;
-                return (
-                  <Link
-                    key={l.href}
-                    href={l.href}
-                    className={`nav-menu-link${active ? " is-active" : ""}`}
-                    aria-current={active ? "page" : undefined}
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {l.label}
-                  </Link>
-                );
-              })}
-              <button type="button" className="btn btn-primary btn-md nav-menu-cta" onClick={startCatalyst}>
-                Start the Catalyst
-              </button>
-            </div>
-          )}
+          {/* Panel is always mounted; visibility is driven by .is-open so it reveals and hides symmetrically. */}
+          <div
+            className={`nav-menu${menuOpen ? " is-open" : ""}`}
+            id="nav-menu"
+            ref={menuRef}
+            aria-hidden={!menuOpen}
+          >
+            {LINKS.map((l) => {
+              const active = l.href === "/" ? pathname === "/" : pathname === l.href;
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className={`nav-menu-link${active ? " is-active" : ""}`}
+                  aria-current={active ? "page" : undefined}
+                  tabIndex={menuOpen ? undefined : -1}
+                  onClick={closeMenu}
+                >
+                  {l.label}
+                </Link>
+              );
+            })}
+            <div className="nav-menu-sep" role="separator" aria-hidden="true" />
+            <Link
+              href={CATALYST_HREF}
+              className="btn btn-primary btn-md nav-menu-cta"
+              tabIndex={menuOpen ? undefined : -1}
+              onClick={closeMenu}
+            >
+              Run the Catalyst
+            </Link>
+          </div>
         </div>
       </nav>
 
       {/* mobile sticky CTA — always one tap away */}
       <div className="sticky-cta">
-        <button type="button" className="btn btn-primary btn-md" onClick={openJourney} style={{ boxShadow: "var(--shadow-glow)" }}>
-          Start the Catalyst
-        </button>
+        <Link
+          href={CATALYST_HREF}
+          className="btn btn-primary btn-md"
+          style={{ boxShadow: "var(--shadow-glow)" }}
+        >
+          Run the Catalyst
+        </Link>
       </div>
     </>
   );

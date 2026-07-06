@@ -10,7 +10,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 // first paint + no visitor-IP leak before consent, keeping the GDPR promise).
 const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
 
-const SITE_URL = "https://scalesage.vercel.app";
+const SITE_URL = "https://scalesage.ai";
 
 export const viewport: Viewport = {
   themeColor: "#0A1628",

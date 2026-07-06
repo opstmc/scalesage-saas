@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Pricing from "@/components/Pricing";
+import PricingStandalone, { AfterYouPayTimeline } from "@/components/PricingStandalone";
 import Faq from "@/components/Faq";
 import FinalCta from "@/components/FinalCta";
 
@@ -36,7 +37,7 @@ const faqJsonLd = {
       name: "What happens if it doesn't work?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Every system has a number against it, with a baseline measured at install. If we can't prove it moved your numbers, we didn't earn the retainer. Cancellation is self-serve.",
+        text: "Every system has a number against it, with a baseline measured at install. We guarantee implementation. We target performance. We report both honestly.",
       },
     },
     {
@@ -57,7 +58,12 @@ export default function PricingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
+      {/* Anchoring order: tiers first (the bundle deal), then the
+          standalone table (proves subscribers save), then the
+          "after you pay" timeline. */}
       <Pricing />
+      <PricingStandalone />
+      <AfterYouPayTimeline />
       <Faq />
       <FinalCta />
     </main>

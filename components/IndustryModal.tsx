@@ -3,7 +3,16 @@
 import { useEffect, useId, useRef } from "react";
 import JourneyButton from "./JourneyButton";
 
-/** The five fix systems — every install maps to one of these. */
+/** The six locked leaks — every sector's leak maps to one of these. */
+export type Leak =
+  | "Missed calls"
+  | "Cold quotes"
+  | "Forgotten reviews"
+  | "Lapsed customers"
+  | "Invisible online"
+  | "Admin drag";
+
+/** The five locked systems — every install maps to one of these. */
 export type FixSystem =
   | "Capture every enquiry"
   | "Convert every quote"
@@ -11,21 +20,23 @@ export type FixSystem =
   | "Be findable everywhere"
   | "Run without you";
 
-export interface Install {
-  system: FixSystem;
-  /** What that system closes for this specific sector. */
-  closes: string;
-}
-
+/**
+ * The emotion-layer leak map for one sector (CATALYST v5, brief section 4).
+ * Five parts, answer-first so the modal doubles as AEO ammunition.
+ * NOTE: all copy is CANDIDATE, drafted for JW/Cy approval.
+ */
 export interface Industry {
   name: string;
-  leaks: [string, string, string];
-  /** The pattern behind the leaks — "what's really happening". */
-  pattern: string;
-  /** What we install, mapped leak-by-leak to the five fix systems. */
-  installs: Install[];
-  /** Which leak to close first, and why. */
-  fixFirst: string;
+  /** 1. What it feels like — a visceral, sector-specific one-liner. */
+  feelsLike: string;
+  /** 2. Where it leaks — which of the six locked leaks apply. */
+  leaks: Leak[];
+  /** 3. What Sage asks — a sharp diagnostic question in Sage's voice. */
+  sageAsks: string;
+  /** 4. What ScaleSage installs — which of the five locked systems. */
+  installs: FixSystem[];
+  /** 5. What the owner gets back — the relief / time / money returned. */
+  ownerGets: string;
 }
 
 const label: React.CSSProperties = {
@@ -122,20 +133,32 @@ export default function IndustryModal({
 
         {/* body */}
         <div className="ind-modal-body">
-          {/* the three leaks */}
+          {/* 1 — what it feels like */}
           <section>
-            <div style={label}>The three leaks we see</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+            <div style={label}>What it feels like</div>
+            <p style={{ margin: 0, fontSize: 16.5, lineHeight: 1.55, color: "var(--text-primary)" }}>
+              {industry.feelsLike}
+            </p>
+          </section>
+
+          {/* 2 — where it leaks (the six locked leaks) */}
+          <section>
+            <div style={label}>Where it leaks</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {industry.leaks.map((l) => (
                 <span
                   key={l}
                   style={{
-                    display: "flex",
-                    gap: 10,
-                    alignItems: "flex-start",
-                    fontSize: 15,
+                    display: "inline-flex",
+                    gap: 8,
+                    alignItems: "center",
+                    fontSize: 13,
                     color: "var(--text-primary)",
-                    lineHeight: 1.4,
+                    lineHeight: 1.2,
+                    padding: "7px 12px",
+                    borderRadius: 999,
+                    border: "1px solid var(--border-subtle)",
+                    background: "color-mix(in srgb,var(--accent-primary) 6%,transparent)",
                   }}
                 >
                   <span
@@ -145,7 +168,6 @@ export default function IndustryModal({
                       borderRadius: "50%",
                       background: "var(--accent-primary)",
                       flex: "none",
-                      marginTop: 7,
                       boxShadow: "0 0 8px color-mix(in srgb,var(--accent-primary) 70%,transparent)",
                     }}
                   />
@@ -155,20 +177,30 @@ export default function IndustryModal({
             </div>
           </section>
 
-          {/* what's really happening */}
+          {/* 3 — what Sage asks (diagnostic question, Sage's voice) */}
           <section>
-            <div style={label}>What&rsquo;s really happening</div>
-            <p style={{ margin: 0, fontSize: 15.5, lineHeight: 1.6, color: "var(--text-muted)" }}>
-              {industry.pattern}
-            </p>
+            <div style={label}>What Sage asks</div>
+            <blockquote
+              style={{
+                margin: 0,
+                paddingLeft: 16,
+                borderLeft: "2px solid var(--accent-primary)",
+                fontStyle: "italic",
+                fontSize: 15.5,
+                lineHeight: 1.55,
+                color: "var(--text-primary)",
+              }}
+            >
+              {industry.sageAsks}
+            </blockquote>
           </section>
 
-          {/* what we install */}
+          {/* 4 — what ScaleSage installs (the five locked systems) */}
           <section>
-            <div style={label}>What we install</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {industry.installs.map((ins, i) => (
-                <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+            <div style={label}>What ScaleSage installs</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {industry.installs.map((sys) => (
+                <div key={sys} style={{ display: "flex", gap: 12, alignItems: "center" }}>
                   <span
                     className="diamond"
                     style={{
@@ -177,23 +209,17 @@ export default function IndustryModal({
                       borderRadius: 2,
                       background: "var(--accent-primary)",
                       flex: "none",
-                      marginTop: 5,
                     }}
                   />
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: 14.5, color: "var(--text-headline)" }}>
-                      {ins.system}
-                    </div>
-                    <div style={{ fontSize: 13.5, color: "var(--text-muted)", lineHeight: 1.5, marginTop: 3 }}>
-                      {ins.closes}
-                    </div>
+                  <div style={{ fontWeight: 600, fontSize: 14.5, color: "var(--text-headline)" }}>
+                    {sys}
                   </div>
                 </div>
               ))}
             </div>
           </section>
 
-          {/* fix first */}
+          {/* 5 — what the owner gets back */}
           <div
             style={{
               background:
@@ -213,10 +239,10 @@ export default function IndustryModal({
                 marginBottom: 8,
               }}
             >
-              Fix this first
+              What you get back
             </div>
             <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.55, color: "var(--text-primary)" }}>
-              {industry.fixFirst}
+              {industry.ownerGets}
             </p>
           </div>
         </div>
@@ -226,7 +252,7 @@ export default function IndustryModal({
         <div className="ind-modal-foot">
           <span onClick={onClose} style={{ display: "contents" }}>
             <JourneyButton className="btn btn-primary btn-lg ind-modal-cta">
-              Map your full leak — run the scan →
+              Map your full leak, run the scan →
             </JourneyButton>
           </span>
           <p className="ind-modal-foot-note">

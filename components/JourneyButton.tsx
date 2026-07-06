@@ -1,7 +1,11 @@
-"use client";
+import Link from "next/link";
 
-import { useJourney } from "./JourneyProvider";
-
+/**
+ * Every "start the Catalyst / run the scan" CTA on the site. The scan now lives
+ * at its own route (/catalyst, brief §2.2 + §12.1: "every scan CTA routes here"),
+ * so this renders a Link rather than opening the old in-page modal. Kept as a
+ * single component so all scan CTAs stay consistent from one place.
+ */
 export default function JourneyButton({
   className,
   children,
@@ -9,10 +13,9 @@ export default function JourneyButton({
   className?: string;
   children: React.ReactNode;
 }) {
-  const { openJourney } = useJourney();
   return (
-    <button type="button" className={className} onClick={openJourney}>
+    <Link href="/catalyst" className={className}>
       {children}
-    </button>
+    </Link>
   );
 }

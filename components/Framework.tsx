@@ -31,7 +31,7 @@ function ProveIcon() {
 const CARDS = [
   { n: "01", title: "Diagnose", Icon: DiagnoseIcon, body: "We don't sell tools. We diagnose the leak. The Catalyst diagnostic scans your missed calls, your follow-up speed, your visibility on Google and AI search, your retention curve and your operations drag — and shows you exactly where revenue is leaving the building." },
   { n: "02", title: "Build", Icon: BuildIcon, body: "We install the operating system that fixes what we found. Voice AI for missed calls. Sequenced follow-up for cold quotes. Review systems. Reactivation campaigns. AEO visibility. Whatever the leak demands — built into your business, not bolted on." },
-  { n: "03", title: "Prove", Icon: ProveIcon, body: "Every system has a number against it. Baseline measured at install. Improvement tracked weekly. ROI proof report every 90 days. If we can't prove it moved your numbers, we didn't earn the retainer." },
+  { n: "03", title: "Prove", Icon: ProveIcon, body: "Every system has a number against it. Baseline measured at install. Improvement tracked weekly. ROI proof report every 90 days. We guarantee implementation. We target performance. We report both honestly." },
 ];
 
 export default function Framework() {

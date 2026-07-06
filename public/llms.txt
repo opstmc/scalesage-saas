@@ -1,38 +1,15 @@
 # ScaleSage
 
-> The business doctor for growing SMEs. Your business is leaking — we find it, fix it, and prove it. Diagnose. Build. Prove.
+> The business doctor for growing SMEs. We find where your business is leaking revenue, install the systems that close it, and prove the result in numbers. Diagnose. Build. Prove.
 
-ScaleSage is not an AI automation agency that sells tools. We diagnose the leak, install the operating system that closes it, monitor it, and prove it moved your numbers. Founding client programme, UK & EU, GDPR-compliant by design.
+This file is a routing aid for AI and search crawlers. It is a signpost to the pages that matter, not a ranking claim.
 
-## The leaks we close
-- Missed calls — unanswered inbound calls walk to the next business.
-- Cold quotes — quotes sent and never followed up.
-- Forgotten reviews — happy customers who were never asked.
-- Lapsed customers — past buyers sitting dormant in the database.
-- Invisible online — not showing up when buyers ask ChatGPT, Perplexity or Google.
-- Admin drag — quoting, invoicing and chasing done by hand.
-
-## What we install (five systems)
-- Capture every enquiry — Voice AI, missed-call recovery, instant SMS, after-hours coverage.
-- Convert every quote — sequenced follow-up, objection handling, win-back, WhatsApp escalation.
-- Bring back every customer — database reactivation, retention, service reminders.
-- Be findable everywhere — AEO/GEO visibility (ChatGPT, Claude, Perplexity, Google), reviews, Google Business.
-- Run without you — operations automation, scheduling, invoicing, reporting.
-
-## The Catalyst diagnostic
-This isn't a form. It's a scan. Sage, our diagnostic intelligence, checks your missed calls, follow-up speed, search and AI visibility, retention and operations drag — then shows where you're leaking revenue, what to fix first, and what recovery looks like in numbers. About 15 minutes, no payment to begin.
-
-## Pricing (public, monthly)
-- Starter — £597/mo. One core service installed, monthly ROI report, founder-led onboarding.
-- Pro — £1,497/mo (most popular). 2–3 services, full Catalyst diagnostic, monthly ROI proof report, quarterly strategy review, priority support.
-- Max — £4,997/mo. Full service stack, dedicated capacity, custom AI builds, weekly proof reporting, executive strategy partnership.
-All tiers include the Catalyst diagnostic, the compliance guarantee, and the 90-day ROI proof commitment. The diagnostic decides which leak we close first.
-
-## How we prove it
-Every system has a number against it. Baseline measured at install, improvement tracked weekly, ROI proof report every 90 days. No fake stats — claims carry confidence tags, and founding-stage results publish from Q3 2026.
-
-## Industries
-We've mapped leak patterns across 18 SME industries: plumbers, electricians, gas engineers, tree surgeons, builders, estate agents, property management, salons, pet services, auto repair, clinics, hospitality, accountants, solicitors, recruitment, e-commerce, fitness/gyms, cleaning.
-
-## Data & ownership
-GDPR-compliant by design. Systems are built into your business, not bolted on. Cancellation is self-serve. We never sell your data or use it to train external AI.
+## Key pages
+- [Home](https://scalesage.ai/): what ScaleSage is, and the Diagnose, Build, Prove method.
+- [How it works](https://scalesage.ai/how-it-works): the method in three phases, each accountable to a number.
+- [Industries](https://scalesage.ai/industries): leak maps across SME sectors.
+- [Pricing](https://scalesage.ai/pricing): public monthly pricing and straight-answer FAQs.
+- [About](https://scalesage.ai/about): why ScaleSage is not a normal AI agency.
+- [Frontier Visibility](https://scalesage.ai/frontier): the whole AI and search visibility layer.
+- [Stack Updates](https://scalesage.ai/stack-updates): dated public changelog of what shipped.
+- [Catalyst diagnostic](https://scalesage.ai/how-it-works#catalyst): our scan that finds where revenue is leaking, no payment to begin.

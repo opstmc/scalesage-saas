@@ -316,7 +316,7 @@ export function sageReply(q: string): string {
   if (/price|pricing|cost|how much|fee|£|expensive|budget|tier/.test(t))
     return "Three tiers, monthly: Starter £597 (one acute leak plugged), Pro £1,497 (a 2–3 system operating system — most popular), and Max £4,997 (full transformation, dedicated capacity). Not sure which? Run the Catalyst diagnostic — it shows what your leak is worth and what to fix first.";
   if (/work|prove|proof|result|roi|guarantee|number|baseline/.test(t))
-    return "Every system has a number against it. We measure a baseline at install, track improvement weekly, and ship a ROI proof report every 90 days. If we can't prove it moved your numbers, we didn't earn the retainer.";
+    return "Every system has a number against it. We measure a baseline at install, track improvement weekly, and ship a proof report every 90 days. We guarantee implementation. We target performance. We report both honestly.";
   if (/own|ownership|keep|lock.?in|template|contract|cancel/.test(t))
     return "The systems are built into your business, not bolted on — and cancellation is self-serve, never “email us”. No long lock-in. You stay in control.";
   if (/different|why|agency|better|compare|tool|chatbot|receptionist|99/.test(t))

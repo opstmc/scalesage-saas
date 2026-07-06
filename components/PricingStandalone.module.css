@@ -1,0 +1,293 @@
+/* ============================================================
+   PricingStandalone: dual-price table, Orbit reference,
+   and the "after you pay" timeline.
+   Tokens only, no hardcoded hex. Reduced-motion safe:
+   only transitions (neutralised globally), no keyframes.
+   ============================================================ */
+
+/* --- Framing line above the table --- */
+.framing {
+  margin: 0 0 28px;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  max-width: 46em;
+}
+.framing strong {
+  color: var(--text-headline);
+  font-weight: 600;
+}
+
+/* --- Dual-price table --- */
+.tableWrap {
+  overflow-x: auto;
+  border-radius: var(--r-card);
+  border: 1px solid var(--border-hair);
+  -webkit-overflow-scrolling: touch;
+}
+.table {
+  width: 100%;
+  min-width: 580px;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.table th,
+.table td {
+  text-align: left;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-hair);
+  white-space: nowrap;
+}
+.table thead th {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--bg-elevated-2) 60%, transparent);
+}
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+.num {
+  text-align: right;
+}
+.item {
+  color: var(--text-primary);
+  font-weight: 500;
+  white-space: normal;
+}
+.standalonePrice {
+  color: var(--text-muted);
+}
+.subPrice {
+  color: var(--text-headline);
+  font-weight: 600;
+}
+.saving {
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+
+/* Subscription-only row (Frontier Visibility) */
+.subOnlyRow td {
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  white-space: normal;
+}
+.subOnlyNote {
+  color: var(--text-primary);
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+.subOnlyNote .flag {
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.pending {
+  margin: 14px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-faint);
+}
+
+/* --- Orbit access tiers reference --- */
+.orbitGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 20px;
+}
+.orbitCard {
+  padding: 22px 24px;
+}
+.orbitName {
+  font-weight: 600;
+  font-size: 17px;
+  color: var(--text-headline);
+}
+.orbitPrice {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 4px 0 12px;
+}
+.orbitFree {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+.orbitFree .accent {
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+.orbitFlagship {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--accent-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  padding: 4px 10px;
+}
+
+/* --- Bespoke line --- */
+.bespoke {
+  margin-top: 24px;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.bespoke p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  max-width: 40em;
+}
+.bespoke p strong {
+  color: var(--text-headline);
+  font-weight: 500;
+}
+
+/* ============================================================
+   TIMELINE: "your first 14 days" (vertical stepped rail)
+   ============================================================ */
+.timeline {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+.step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 28px;
+  padding: 0 0 28px 0;
+}
+.step:last-child {
+  padding-bottom: 0;
+}
+/* connector rail runs down the node column */
+.rail {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 26px;
+}
+.rail::before {
+  content: "";
+  position: absolute;
+  top: 20px;
+  bottom: -8px;
+  right: 5px;
+  width: 1px;
+  background: var(--border-subtle);
+}
+.step:last-child .rail::before {
+  display: none;
+}
+.node {
+  position: absolute;
+  top: 8px;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  transform: rotate(45deg);
+  background: var(--accent-primary);
+}
+.tag {
+  text-align: right;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+  font-weight: 600;
+  padding-top: 3px;
+}
+.stepBody {
+  padding-bottom: 4px;
+}
+.stepTitle {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-headline);
+  margin: 0 0 6px;
+}
+.stepText {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Highlighted "Active Campaign Day 1" step */
+.step.highlight .stepBody {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-card);
+  padding: 18px 22px;
+  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
+  box-shadow: var(--shadow-glow);
+}
+.step.highlight .node {
+  width: 15px;
+  height: 15px;
+  top: 6px;
+  box-shadow: var(--shadow-glow);
+}
+.step.highlight .tag {
+  color: var(--accent-primary);
+}
+
+/* Closing guarantee card */
+.guarantee {
+  margin-top: 8px;
+  margin-left: 178px;
+  padding: 22px 26px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--r-card);
+  background: color-mix(in srgb, var(--accent-primary) 5%, transparent);
+}
+.guarantee .gt {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-headline);
+  margin: 0 0 6px;
+}
+.guarantee p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* --- Responsive --- */
+@media (max-width: 820px) {
+  .orbitGrid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .step {
+    grid-template-columns: 92px 1fr;
+    gap: 18px;
+  }
+  .rail {
+    padding-right: 18px;
+  }
+  .tag {
+    font-size: 12px;
+  }
+  .guarantee {
+    margin-left: 0;
+  }
+  .bespoke {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
