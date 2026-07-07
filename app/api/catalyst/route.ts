@@ -1,23 +1,22 @@
 import { NextResponse } from "next/server";
 
 /**
- * POST /api/catalyst — the handoff point for the Catalyst mini-scan.
+ * POST /api/catalyst — the SAME-ORIGIN FALLBACK capture point for the scan.
  *
- * This is the forwarding point to the Python service (brief §3). For now it
- * validates the payload, mints an id, and echoes { ok, id } so the UI's calm
- * confirmation / failure states work end-to-end. No secrets, no fabricated
- * backend, no fake payment.
+ * The browser client (lib/catalyst-api.ts) calls the backend contract endpoint
+ * `POST {NEXT_PUBLIC_SAGE_API_BASE}/catalyst/unlock` directly. This route is the
+ * redundant net beneath it: when the base is unset (preview) or that call fails,
+ * the client falls back here so the lead is still captured and the UI's calm
+ * confirmation still fires. It validates the payload, mints an id, and echoes
+ * { ok, id }. No secrets, no fabricated backend, no fake payment.
  *
- * TODO: forward to Python service (straight Python, no n8n).
- *   The Python service owns scoring persistence + report generation + the
- *   Stripe checkout link. When wired, forward `body` (already validated) to it
- *   and return the id the service assigns instead of the local one.
+ * TODO: forward to the Python service (straight Python, no n8n), which owns
+ *   persistence + the 24h report engine + the Stripe link, and return its id.
  *
- * NOTE on lib/sage.ts: it exposes startSession(), but that is a browser client
- * (reads the ss_ref cookie via document.cookie) with a rigid StartRequest shape
- * (extra="forbid", requires sector/location). The Catalyst payload does not
- * match that contract, so we do NOT call it from here — the visitor's `ref` is
- * forwarded on the body instead, ready for the Python service to attribute.
+ * NOTE on lib/sage.ts: its startSession() is a rigid StartRequest client
+ * (extra="forbid", requires sector/location) that the Catalyst payload does not
+ * match, so we do NOT call it here — the visitor's `ref` rides on the body
+ * instead, ready for the Python service to attribute.
  */
 
 export const runtime = "nodejs";

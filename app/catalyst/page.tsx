@@ -8,7 +8,7 @@ import CatalystExperience from "@/components/catalyst/CatalystExperience";
 export const metadata: Metadata = {
   title: "Catalyst scan",
   description:
-    "Sage is ready to scan your business. Ten sharp questions, mostly taps, and a directional leak map in minutes. No payment to begin — full roadmap within 24 hours.",
+    "Sage is ready to scan your business. A short tap-first scan and a directional leak map in minutes. No payment to begin, full roadmap within 24 hours.",
   alternates: { canonical: "/catalyst" },
   openGraph: {
     type: "website",

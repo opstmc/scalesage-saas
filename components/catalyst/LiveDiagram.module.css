@@ -1,0 +1,188 @@
+/* ============================================================
+   LiveDiagram — the Catalyst scan centrepiece (co-located styles)
+   The visitor watches THEIR OWN operating-system / leak map assemble,
+   one real piece per answer. Navy field, teal nodes + edges, teal glow
+   on detected leaks. HARD RULE: transform + opacity + stroke-dashoffset
+   ONLY — never layout props. Everything here is compositor-friendly and
+   runs one-shot off real state changes; nothing loops.
+   ============================================================ */
+
+.wrap {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* glows + the one-shot detection pulse can exceed the viewBox briefly */
+  overflow: visible;
+}
+.svg text {
+  font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+  user-select: none;
+}
+
+/* soft centre "heat" — intensifies a touch as more leaks light (real) */
+.field {
+  transition: opacity 0.6s var(--ease-out);
+}
+
+/* ---------- edges (a system connects because their systems connect) ---------- */
+.edge {
+  fill: none;
+  stroke: var(--accent-primary);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  /* draw-in from the core outward via stroke-dashoffset (allowed) */
+  transition: stroke-dashoffset 0.75s var(--ease-out), opacity 0.5s var(--ease-out);
+}
+
+/* ---------- progress ring around the core (fills because progress is real) ---------- */
+.ringTrack {
+  fill: none;
+  stroke: var(--border-hair);
+  stroke-width: 3;
+}
+.ring {
+  fill: none;
+  stroke: var(--accent-primary);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.6s var(--ease-out);
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--accent-primary) 55%, transparent));
+}
+
+/* ---------- centre core (their business) ---------- */
+.core {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(var(--s, 1));
+  transition: transform 0.5s var(--ease-out), opacity 0.5s var(--ease-out);
+}
+.coreDisc {
+  fill: url(#ssCoreFill);
+  stroke: var(--accent-primary);
+  stroke-width: 1.5;
+}
+.coreInner {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent-glow) 70%, transparent);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+.coreKicker {
+  fill: var(--accent-primary);
+  font-size: 7.5px;
+  letter-spacing: 0.18em;
+  font-weight: 600;
+  transition: opacity 0.4s var(--ease-out);
+}
+.coreLabel {
+  fill: var(--text-headline);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition: opacity 0.4s var(--ease-out);
+}
+
+/* ---------- leak nodes ---------- */
+.node {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(var(--s, 1));
+  transition: transform 0.5s var(--ease-out), opacity 0.45s var(--ease-out);
+}
+.glow {
+  transition: opacity 0.5s var(--ease-out);
+}
+.disc {
+  fill: color-mix(in srgb, var(--accent-primary) 14%, var(--bg-elevated));
+  stroke: var(--accent-primary);
+  stroke-width: 1.5;
+  transition: fill 0.45s var(--ease-out), stroke 0.45s var(--ease-out);
+}
+.discLit {
+  fill: color-mix(in srgb, var(--accent-primary) 32%, var(--bg-elevated));
+  stroke: var(--accent-glow);
+  stroke-width: 1.75;
+}
+/* dormant socket — a faint placeholder of a part not yet mapped */
+.discGhost {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent-primary) 42%, transparent);
+  stroke-width: 1.25;
+  stroke-dasharray: 2 3;
+}
+/* steady "Sage is reading here now" ring for the current question */
+.emph {
+  fill: none;
+  stroke: var(--accent-glow);
+  stroke-width: 1.25;
+  transition: opacity 0.4s var(--ease-out);
+}
+/* steady "fix this first" ring from the Q10 relief choice */
+.priorityRing {
+  fill: none;
+  stroke: var(--accent-primary);
+  stroke-width: 1.25;
+  stroke-dasharray: 3 4;
+  transition: opacity 0.4s var(--ease-out);
+}
+/* one-shot detection pulse — fires once when a leak crosses Likely/Detected */
+.pulseRing {
+  fill: none;
+  stroke: var(--accent-glow);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+}
+.pulsing {
+  animation: ssDiagPulse 0.82s var(--ease-out) 1 both;
+}
+@keyframes ssDiagPulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.3); opacity: 0; }
+}
+
+/* ---------- node labels (every leak visible + named) ---------- */
+.nodeName {
+  fill: var(--text-primary);
+  font-size: 12.5px;
+  font-weight: 500;
+  transition: opacity 0.4s var(--ease-out), fill 0.4s var(--ease-out);
+}
+.nodeNameLit {
+  fill: var(--accent-glow);
+}
+.nodeChip {
+  fill: var(--accent-primary);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: opacity 0.4s var(--ease-out);
+}
+
+/* ============================================================
+   REDUCED MOTION — assemble to the final state instantly, no motion.
+   Prop-driven (.reduced root) AND a media-query safety net. State still
+   applies (offsets/opacities are set to their final values in render);
+   we only strip the transitions/animations so nothing travels.
+   ============================================================ */
+.reduced *,
+.reduced *::before,
+.reduced *::after {
+  transition-duration: 0s !important;
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .svg *,
+  .svg *::before,
+  .svg *::after {
+    transition-duration: 0s !important;
+    animation: none !important;
+  }
+}

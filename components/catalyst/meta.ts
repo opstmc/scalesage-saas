@@ -8,12 +8,14 @@
  * Contract consumed (see brief §2):
  *   STEPS, ScanAnswers, LeakKey, SystemKey, ScanResult,
  *   scoreLeaks, chipFor, primaryLeak, secondaryLeak, fixFirstSystem,
- *   matchTier, revenueBand, timeBand, buildResult, buildPayload
+ *   matchTier, revenueBand, timeBand, buildResult, buildPayload, pipe
  *
  * The normalizers accept either a bare string key/state or a richer object
  * ({ key, label, ... }) so the components render correctly regardless of which
  * shape lib/catalyst.ts settles on.
  */
+
+import type { ChecksResult, LookupMatch } from "@/lib/catalyst-api";
 
 // ---- chip states (worst -> best severity is not implied; these are labels) ----
 export type ChipTone = "clear" | "scan" | "likely" | "detected";
@@ -237,4 +239,88 @@ export function visibilityFires(result: unknown): boolean {
   if (!result || typeof result !== "object") return false;
   const o = result as Record<string, unknown>;
   return Boolean(o.visibilityFires ?? o.visibility ?? o.frontier ?? o.visibility_fires);
+}
+
+// ---- evidence tiers (brief: ResultScreen §3) --------------------------------
+//
+// Every ScanNode carries a `tier` that says how solid its signal is:
+//   "lookup"   — pulled from the Q1 live business lookup (Companies House / Places)
+//   "checked"  — confirmed by the live background checks
+//   "reported" — inferred from what the visitor told us in Q5–Q13 (directional)
+//
+// "lookup" and "checked" facts are stated FLAT; "reported" findings are framed
+// "based on what you told me" and tagged Directional. When lib/catalyst does not
+// supply a tier (older shape), we treat the node as "reported" — the honest
+// default, since a self-reported answer is never presented as a verified fact.
+
+export type EvidenceTier = "lookup" | "checked" | "reported";
+
+export function resolveNodeTier(node: unknown): EvidenceTier {
+  if (node && typeof node === "object") {
+    const t = String((node as Record<string, unknown>).tier ?? "").toLowerCase();
+    if (t === "lookup" || t === "checked" || t === "reported") return t;
+  }
+  return "reported";
+}
+
+/** A live, verified fact — stated flat, never tagged Directional. */
+export interface LiveFact {
+  text: string;
+  /** "lookup" (Q1) or "checked" (background checks). */
+  source: EvidenceTier;
+}
+
+const secs = (ms: number): string => (ms >= 1000 ? `${(ms / 1000).toFixed(ms >= 10000 ? 0 : 1)}s` : `${ms}ms`);
+
+/**
+ * Flat, verifiable statements from the Q1 lookup + the background checks. All
+ * copy JW-approval-pending. Returns [] when nothing was verified, so the UI
+ * simply shows no "we checked" block rather than an empty shell. `ai_presence`
+ * is ALWAYS framed as a same-day snapshot, never a hard ranking (contract §2).
+ */
+export function liveFacts(checks: ChecksResult | null | undefined, lookup: LookupMatch | null | undefined): LiveFact[] {
+  const out: LiveFact[] = [];
+
+  // ---- Q1 lookup facts (stated flat) ----
+  if (lookup) {
+    if (typeof lookup.incorporated_year === "number") {
+      out.push({ text: `Companies House shows you trading since ${lookup.incorporated_year}.`, source: "lookup" });
+    }
+    if (typeof lookup.review_count === "number" && lookup.review_count > 0) {
+      const rating = typeof lookup.rating === "number" ? ` at ${lookup.rating.toFixed(1)}★` : "";
+      out.push({ text: `We found you on Google with ${lookup.review_count} reviews${rating}.`, source: "lookup" });
+    }
+  }
+
+  // ---- background-check facts (stated flat, deduped vs. lookup) ----
+  const gb = checks?.google_business;
+  if (gb?.exists) {
+    if (typeof gb.review_count === "number" && !out.some((f) => f.text.startsWith("We found you on Google"))) {
+      const rating = typeof gb.rating === "number" ? ` at ${gb.rating.toFixed(1)}★` : "";
+      out.push({ text: `We checked Google: ${gb.review_count} reviews${rating}.`, source: "checked" });
+    }
+    if (gb.ranks_page_one === false) {
+      out.push({ text: "We checked and you are not on page one for your core local search yet.", source: "checked" });
+    }
+  }
+
+  const web = checks?.website;
+  if (web) {
+    if (web.loads && typeof web.load_ms === "number" && web.load_ms > 3000) {
+      out.push({ text: `We loaded your site: about ${secs(web.load_ms)} to open, slow enough to lose taps.`, source: "checked" });
+    }
+    if (web.loads === false) {
+      out.push({ text: "We checked and your website did not load for us on the day.", source: "checked" });
+    } else if (web.click_to_call === false) {
+      out.push({ text: "We checked your site and found no tap-to-call for mobile visitors.", source: "checked" });
+    }
+  }
+
+  const ai = checks?.ai_presence;
+  if (ai && ai.appears === false) {
+    const note = ai.note ? ` (${ai.note})` : " (a snapshot on the day, it varies by prompt and model)";
+    out.push({ text: `On the day we checked, you did not come up when we asked AI for a business like yours${note}.`, source: "checked" });
+  }
+
+  return out;
 }
