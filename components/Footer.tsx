@@ -20,7 +20,8 @@ const COLS = [
     title: "Company",
     links: [
       { href: "/about", label: "About" },
-      { href: PARTNER_PORTAL, label: "Partners" },
+      { href: "/partners", label: "Partners" },
+      { href: PARTNER_PORTAL, label: "Partner login" },
       { href: "#contact", label: "Contact" },
     ],
   },
