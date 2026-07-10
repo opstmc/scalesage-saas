@@ -7,6 +7,7 @@ import api, { type LookupMatch, type LookupResult, type ChecksResult } from "@/l
 import type { OrbState } from "./SageOrb";
 import LiveDiagram from "./LiveDiagram";
 import { saveSession, type LookupState } from "./session";
+import { reactionFor, reactionForLookup } from "./reactions";
 import styles from "./catalyst.module.css";
 
 /* ---------------------------------------------------------------------------
@@ -19,6 +20,7 @@ const RAW = STEPS as unknown as Raw[];
 
 const OTHER = "__other__";
 const BEAT_MS = 520; // ~500ms (max 900ms) non-blocking reaction beat (brief)
+const REACT_MS = 1400; // Sage's per-answer reaction beat before advancing (skippable)
 const DEBOUNCE_MS = 340; // Q1 lookup debounce
 
 // Which step ids the Q1 lookup can satisfy (for auto-skip / auto-confirm).
@@ -72,10 +74,6 @@ function stepKicker(st: Raw): string | undefined {
 function stepHint(st: Raw): string | undefined {
   return str(st.helper) ?? str(st.hint);
 }
-function stepInsight(st: Raw): string | undefined {
-  return str(st.insight);
-}
-
 /* pipe(text, a) resolves answer-driven tokens in copy; stemForAnswers swaps the
  * group-specific stem. Both are pulled tolerantly so a missing export is a
  * no-op, never a crash. */
@@ -183,7 +181,7 @@ export default function ScanFlow({
 
   const [idx, setIdx] = useState(Math.min(Math.max(0, initialIdx), VALVE));
   const [answers, setAnswers] = useState<ScanAnswers>(initialAnswers ?? ({} as ScanAnswers));
-  const [leftInsight, setLeftInsight] = useState<string | undefined>(undefined);
+  const [reaction, setReaction] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
 
   // Q1 lookup + background-check state (mirrored into session for resume).
@@ -259,8 +257,6 @@ export default function ScanFlow({
       onComplete(answersRef.current, { lookup, checks });
       return;
     }
-    // insight from the step we are leaving, shown on the next card (non-blocking)
-    setLeftInsight(step ? stepInsight(step) : undefined);
     // advance, skipping any steps the lookup already answered
     let next = idx + 1;
     while (next < VALVE && skipIds.current.has(stepId(RAW[next]))) next += 1;
@@ -268,23 +264,50 @@ export default function ScanFlow({
     setTrailLen(trail.current.length);
     setIdx(next);
     pulse();
-  }, [idx, VALVE, onComplete, lookup, checks, step, pulse, setOrb]);
+  }, [idx, VALVE, onComplete, lookup, checks, pulse, setOrb]);
 
   const goBack = useCallback(() => {
     clearTimers();
-    setLeftInsight(undefined);
+    setReaction(null);
     const prev = trail.current.pop();
     setTrailLen(trail.current.length);
     setIdx((i) => (typeof prev === "number" ? prev : Math.max(0, i - 1)));
     setOrb("listening");
   }, [setOrb]);
 
+  /* ---- Sage reacts to the answer, then advances (skippable; instant when reduced) ---- */
+  const reactThenAdvance = useCallback(
+    (text: string | null) => {
+      clearTimers();
+      if (!text || reduced) {
+        goForward();
+        return;
+      }
+      setReaction(text);
+      setOrb("detection");
+      timers.current.push(window.setTimeout(() => setOrb("thinking"), 180));
+      timers.current.push(
+        window.setTimeout(() => {
+          setReaction(null);
+          goForward();
+        }, REACT_MS),
+      );
+    },
+    [goForward, reduced, setOrb],
+  );
+  const skipReaction = useCallback(() => {
+    clearTimers();
+    setReaction(null);
+    goForward();
+  }, [goForward]);
+
   /* ---- answer helpers ---- */
   const chooseSingle = (st: Raw, value: string) => {
     setAnswer(stepId(st), value);
     if (value === OTHER) return; // reveal the "Other" field, wait for Continue
-    // advance on the next tick so the committed answer reaches the diagram first
-    timers.current.push(window.setTimeout(goForward, reduced ? 0 : 40));
+    const react = reactionFor(stepId(st), value);
+    // let the committed answer reach the diagram first, then Sage reacts
+    timers.current.push(window.setTimeout(() => reactThenAdvance(react), reduced ? 0 : 40));
   };
   const toggleMulti = (st: Raw, value: string) => {
     const id = stepId(st);
@@ -320,9 +343,9 @@ export default function ScanFlow({
         onChecks?.(res);
       })();
 
-      goForward();
+      reactThenAdvance(reactionForLookup(manual));
     },
-    [A.sector, goForward, onChecks, onLookup],
+    [A.sector, reactThenAdvance, onChecks, onLookup],
   );
 
   const confirmMatch = (match: LookupMatch) => {
@@ -355,7 +378,6 @@ export default function ScanFlow({
           {idx >= VALVE ? (
             <ValveCard
               value={String(A["problems_raw"] ?? "")}
-              carriedInsight={leftInsight}
               onChange={(v) => setAnswer("problems_raw", v)}
               onSubmit={goForward}
               onBack={goBack}
@@ -365,74 +387,87 @@ export default function ScanFlow({
           ) : step ? (
             <div className={`glass ${styles.card}`}>
               {stepKicker(step) && <div className={styles.kicker}>{stepKicker(step)}</div>}
+              <div className={styles.sageAsk} aria-hidden="true">
+                <span className={styles.sageAskDot} />
+                <span>Sage</span>
+              </div>
               <h2 className={styles.question}>{stemText(step, answers)}</h2>
               {stepHint(step) && <p className={styles.hint}>{pipeText(stepHint(step)!, answers)}</p>}
 
-              {leftInsight && (
-                <div className={styles.sageNote} aria-live="polite">
+              {reaction ? (
+                <div className={styles.reactionBubble} aria-live="polite">
                   <span className={styles.sageNoteLabel}>Sage</span>
-                  <span className={styles.sageNoteText}>{pipeText(leftInsight, answers)}</span>
-                </div>
-              )}
-
-              {/* ---- Q1 live lookup ---- */}
-              {kind === "lookup" && (
-                <LookupField
-                  initialQuery={String(A[stepId(step)] ?? lookup?.match?.name ?? "")}
-                  onConfirm={confirmMatch}
-                  onManual={manualContinue}
-                />
-              )}
-
-              {/* ---- single select ---- */}
-              {kind === "single" && (
-                <SingleSelect
-                  st={step}
-                  selected={String(A[stepId(step)] ?? "")}
-                  otherText={String(A[`${stepId(step)}_other`] ?? "")}
-                  onChoose={(v) => chooseSingle(step, v)}
-                  onOtherText={(v) => setAnswer(`${stepId(step)}_other`, v)}
-                  onContinue={goForward}
-                />
-              )}
-
-              {/* ---- multi select ---- */}
-              {kind === "multi" && (
-                <MultiSelect
-                  st={step}
-                  has={(v) => multiHas(step, v)}
-                  otherText={String(A[`${stepId(step)}_other`] ?? "")}
-                  onToggle={(v) => toggleMulti(step, v)}
-                  onOtherText={(v) => setAnswer(`${stepId(step)}_other`, v)}
-                  onContinue={goForward}
-                />
-              )}
-
-              {/* ---- slide (legacy shape only) ---- */}
-              {kind === "slide" && (
-                <SlideInput st={step} value={A[stepId(step)]} onChange={(n) => setAnswer(stepId(step), n)} onContinue={goForward} />
-              )}
-
-              {/* ---- free text ---- */}
-              {kind === "text" && (
-                <TextInput
-                  st={step}
-                  value={String(A[stepId(step)] ?? "")}
-                  onChange={(v) => setAnswer(stepId(step), v)}
-                  onContinue={goForward}
-                />
-              )}
-
-              <div className={styles.controls}>
-                {(idx > 0 || trailLen > 0) && (
-                  <button type="button" className={styles.back} onClick={goBack}>
-                    &larr; Back
+                  <span className={styles.reactionText}>{reaction}</span>
+                  <button type="button" className={styles.reactionNext} onClick={skipReaction}>
+                    Continue &rarr;
                   </button>
-                )}
-                <span className={styles.count}>
-                  {count} / {TOTAL}
-                </span>
-              </div>
+                </div>
+              ) : (
+                <>
+                  {/* ---- Q1 live lookup ---- */}
+                  {kind === "lookup" && (
+                    <LookupField
+                      initialQuery={String(A[stepId(step)] ?? lookup?.match?.name ?? "")}
+                      onConfirm={confirmMatch}
+                      onManual={manualContinue}
+                    />
+                  )}
+
+                  {/* ---- single select ---- */}
+                  {kind === "single" && (
+                    <SingleSelect
+                      st={step}
+                      selected={String(A[stepId(step)] ?? "")}
+                      otherText={String(A[`${stepId(step)}_other`] ?? "")}
+                      onChoose={(v) => chooseSingle(step, v)}
+                      onOtherText={(v) => setAnswer(`${stepId(step)}_other`, v)}
+                      onContinue={() => reactThenAdvance(reactionFor(stepId(step), String(A[stepId(step)] ?? "")))}
+                    />
+                  )}
+
+                  {/* ---- multi select ---- */}
+                  {kind === "multi" && (
+                    <MultiSelect
+                      st={step}
+                      has={(v) => multiHas(step, v)}
+                      otherText={String(A[`${stepId(step)}_other`] ?? "")}
+                      onToggle={(v) => toggleMulti(step, v)}
+                      onOtherText={(v) => setAnswer(`${stepId(step)}_other`, v)}
+                      onContinue={() =>
+                        reactThenAdvance(
+                          reactionFor(stepId(step), Array.isArray(A[stepId(step)]) ? (A[stepId(step)] as string[]) : []),
+                        )
+                      }
+                    />
+                  )}
+
+                  {/* ---- slide (legacy shape only) ---- */}
+                  {kind === "slide" && (
+                    <SlideInput st={step} value={A[stepId(step)]} onChange={(n) => setAnswer(stepId(step), n)} onContinue={goForward} />
+                  )}
+
+                  {/* ---- free text ---- */}
+                  {kind === "text" && (
+                    <TextInput
+                      st={step}
+                      value={String(A[stepId(step)] ?? "")}
+                      onChange={(v) => setAnswer(stepId(step), v)}
+                      onContinue={goForward}
+                    />
+                  )}
+
+                  <div className={styles.controls}>
+                    {(idx > 0 || trailLen > 0) && (
+                      <button type="button" className={styles.back} onClick={goBack}>
+                        &larr; Back
+                      </button>
+                    )}
+                    <span className={styles.count}>
+                      {count} / {TOTAL}
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           ) : null}
         </div>

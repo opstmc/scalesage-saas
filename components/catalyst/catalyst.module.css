@@ -132,6 +132,70 @@
   color: var(--text-primary);
 }
 
+/* Sage "asks" chip above each question — frames the question as Sage speaking */
+.sageAsk {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--accent-primary);
+  margin: 0 0 10px;
+}
+.sageAskDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 22%, transparent);
+  animation: ssAskPulse 2.4s ease-in-out infinite;
+}
+@keyframes ssAskPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Sage's reaction to your answer — replaces the options during the beat */
+.reactionBubble {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 22px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-elevated));
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 30%, var(--border-subtle));
+  animation: ssReactIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reactionText {
+  font-size: clamp(17px, 2.2vw, 20px);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--text-headline);
+  text-wrap: pretty;
+}
+.reactionNext {
+  align-self: flex-start;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--accent-primary);
+  background: none;
+  border: none;
+  padding: 2px 0;
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+.reactionNext:hover {
+  opacity: 1;
+}
+@keyframes ssReactIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* option buttons (choose / multi) */
 .options {
   display: grid;
