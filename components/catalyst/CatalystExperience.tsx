@@ -176,20 +176,20 @@ function EntryScreen({ onBegin }: { onBegin: () => void }) {
         <SageOrb state="idle" size={132} />
         <div className={styles.entryCopy}>
           <div className="eyebrow" style={{ marginBottom: 0 }}>The Catalyst scan</div>
-          {/* Title — verbatim from brief */}
+          {/* Title, verbatim from brief */}
           <h1 className="display" style={{ fontSize: "clamp(34px,5.4vw,60px)" }}>
             Sage is ready to scan your business.
           </h1>
-          {/* Subline — JW-approval-pending */}
+          {/* Subline, JW-approval-pending */}
           <p className="lead" style={{ maxWidth: "44ch" }}>
-            Thirteen sharp questions, mostly taps. Sage reads each answer live and takes a quick look at your online
+            A short set of questions, mostly taps. Sage reads each answer live and takes a quick look at your online
             presence, then shows you exactly where revenue and time are leaking.
           </p>
         </div>
         <button type="button" className="btn btn-primary btn-lg" onClick={onBegin} style={{ boxShadow: "var(--shadow-glow)" }}>
           Begin scan.
         </button>
-        {/* Reassurance — verbatim from brief */}
+        {/* Reassurance, verbatim from brief */}
         <p className={styles.reassure}>
           <b>No payment to begin.</b> Directional scan first. Full roadmap within 24 hours.
         </p>

@@ -10,9 +10,9 @@ export default function Proof() {
       <div className="inner">
         <div className="section-head" data-reveal="">
           <div className="eyebrow">Proof</div>
-          <h2 className="h2">Founding client programme — open now.</h2>
+          <h2 className="h2">Founding client programme, open now.</h2>
           <p className="lead">
-            We&rsquo;re a founding-stage team taking on our first cohort. The first three case studies are running their 90-day proof cycles — published results from Q3 2026. The discipline is the same one we put on every client: baseline measured, intervention installed, results tracked, ROI proven.
+            We&rsquo;re a founding-stage team taking on our first cohort. The first three case studies are running their 90-day proof cycles, published results from Q3 2026. The discipline is the same one we put on every client: baseline measured, intervention installed, results tracked, ROI proven.
           </p>
         </div>
         <div className="grid-3">

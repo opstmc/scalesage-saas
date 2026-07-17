@@ -171,7 +171,7 @@ export default function Nav() {
         </div>
       </nav>
 
-      {/* mobile sticky CTA — always one tap away */}
+      {/* mobile sticky CTA, always one tap away */}
       <div className="sticky-cta">
         <Link
           href={CATALYST_HREF}

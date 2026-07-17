@@ -40,7 +40,7 @@ export default function CookieBanner() {
     <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 70, display: "flex", justifyContent: "center", padding: 16 }}>
       <div className="glass" style={{ padding: "16px 18px", maxWidth: 700, display: "flex", alignItems: "center", gap: 18, boxShadow: "var(--shadow-depth)", flexWrap: "wrap" }}>
         <span style={{ fontSize: 13.5, lineHeight: 1.5, color: "var(--text-muted)", flex: 1, minWidth: 240 }}>
-          We use privacy-first analytics, and only fire tracking after you consent. GDPR-compliant by design — you&rsquo;re in control.
+          We use privacy-first analytics, and only fire tracking after you consent. GDPR-compliant by design, you&rsquo;re in control.
         </span>
         <div style={{ display: "flex", gap: 10 }}>
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => set("declined")}>

@@ -31,7 +31,7 @@ function CatalystPreview() {
 
       <div style={{ padding: "18px 18px 8px", display: "flex", flexDirection: "column", gap: 12 }}>
         <div style={{ alignSelf: "flex-start", maxWidth: "88%", background: "color-mix(in srgb,var(--text-primary) 5%,transparent)", border: "1px solid var(--border-hair)", borderRadius: "4px 13px 13px 13px", padding: "11px 14px", fontSize: 14, color: "var(--text-primary)", lineHeight: 1.5 }}>
-          Tell me what you do and where it hurts — I&rsquo;ll show you the leak.
+          Tell me what you do and where it hurts, I&rsquo;ll show you the leak.
         </div>
         <div style={{ alignSelf: "flex-end", background: "var(--accent-primary)", color: "var(--on-accent)", borderRadius: "13px 13px 4px 13px", padding: "10px 14px", fontSize: 14, fontWeight: 500 }}>
           Plumbing · missed calls
@@ -70,7 +70,7 @@ export default function CatalystEntry() {
               This isn&rsquo;t a form. It&rsquo;s a <span className="accent-em">scan</span>.
             </h2>
             <p className="lead" style={{ marginBottom: 28 }}>
-              Sage — our diagnostic intelligence — already knows your industry. Tell us your business, and within minutes you&rsquo;ll see exactly where you&rsquo;re leaking revenue, what to fix first, and what the recovery looks like in numbers.
+              Sage, our diagnostic intelligence, already knows your industry. Tell us your business, and within minutes you&rsquo;ll see exactly where you&rsquo;re leaking revenue, what to fix first, and what the recovery looks like in numbers.
             </p>
             <JourneyButton className="btn btn-primary btn-lg">Start the Catalyst diagnostic</JourneyButton>
             <p className="small" style={{ marginTop: 18, color: "var(--text-faint)" }}>

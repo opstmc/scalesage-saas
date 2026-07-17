@@ -7,7 +7,7 @@ import FinalCta from "@/components/FinalCta";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Starter £597, Pro £1,497, Max £4,997 — public, monthly pricing, every tier accountable to a number. Plus straight answers to the real questions.",
+    "Starter £597, Pro £1,497, Max £4,997, public, monthly pricing, every tier accountable to a number. Plus straight answers to the real questions.",
   alternates: { canonical: "/pricing" },
 };
 
@@ -26,7 +26,7 @@ const faqJsonLd = {
     },
     {
       "@type": "Question",
-      name: "We're a small business — is this overkill for us?",
+      name: "We're a small business, is this overkill for us?",
       acceptedAnswer: {
         "@type": "Answer",
         text: "Starter exists for exactly this: one acute leak, plugged, with a monthly ROI report. The Catalyst diagnostic shows you what your biggest leak is worth before you commit to anything.",

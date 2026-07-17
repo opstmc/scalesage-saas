@@ -133,7 +133,7 @@ export default function IndustryModal({
 
         {/* body */}
         <div className="ind-modal-body">
-          {/* 1 — what it feels like */}
+          {/* 1, what it feels like */}
           <section>
             <div style={label}>What it feels like</div>
             <p style={{ margin: 0, fontSize: 16.5, lineHeight: 1.55, color: "var(--text-primary)" }}>
@@ -141,7 +141,7 @@ export default function IndustryModal({
             </p>
           </section>
 
-          {/* 2 — where it leaks (the six locked leaks) */}
+          {/* 2, where it leaks (the six locked leaks) */}
           <section>
             <div style={label}>Where it leaks</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -177,7 +177,7 @@ export default function IndustryModal({
             </div>
           </section>
 
-          {/* 3 — what Sage asks (diagnostic question, Sage's voice) */}
+          {/* 3, what Sage asks (diagnostic question, Sage's voice) */}
           <section>
             <div style={label}>What Sage asks</div>
             <blockquote
@@ -195,7 +195,7 @@ export default function IndustryModal({
             </blockquote>
           </section>
 
-          {/* 4 — what ScaleSage installs (the five locked systems) */}
+          {/* 4, what ScaleSage installs (the five locked systems) */}
           <section>
             <div style={label}>What ScaleSage installs</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -219,7 +219,7 @@ export default function IndustryModal({
             </div>
           </section>
 
-          {/* 5 — what the owner gets back */}
+          {/* 5, what the owner gets back */}
           <div
             style={{
               background:
@@ -247,7 +247,7 @@ export default function IndustryModal({
           </div>
         </div>
 
-        {/* footer CTA — reuses JourneyButton to open the Catalyst diagnostic.
+        {/* footer CTA, reuses JourneyButton to open the Catalyst diagnostic.
             The wrapping span (display:contents) closes the modal on the same click. */}
         <div className="ind-modal-foot">
           <span onClick={onClose} style={{ display: "contents" }}>

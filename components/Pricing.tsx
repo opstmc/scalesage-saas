@@ -49,7 +49,7 @@ export default function Pricing() {
         <div className="section-head" data-reveal="">
           <div className="eyebrow">Pricing</div>
           <h2 className="h2">Three tiers. Every one accountable to a number.</h2>
-          <p className="lead">Public, monthly, no surprises. Not sure which? The diagnostic decides — it shows what your leak is worth and what to fix first.</p>
+          <p className="lead">Public, monthly, no surprises. Not sure which? The diagnostic decides, it shows what your leak is worth and what to fix first.</p>
         </div>
 
         <div className="grid-3" style={{ alignItems: "stretch" }}>

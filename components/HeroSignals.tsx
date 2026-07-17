@@ -242,7 +242,7 @@ export default function HeroSignals() {
         />
       </div>
 
-      {/* active signal — re-keyed so the ssFade keyframe replays on each switch */}
+      {/* active signal, re-keyed so the ssFade keyframe replays on each switch */}
       <div
         key={active}
         style={{
@@ -257,7 +257,7 @@ export default function HeroSignals() {
         </div>
       </div>
 
-      {/* position indicators — active is a teal pill; tap to jump */}
+      {/* position indicators, active is a teal pill; tap to jump */}
       <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
         {SIGNALS.map((sig, i) => (
           <button

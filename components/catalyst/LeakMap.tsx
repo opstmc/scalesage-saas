@@ -113,7 +113,7 @@ export default function LeakMap({
       </div>
       <NodeList nodes={nodes} />
       <p className="small" style={{ color: "var(--text-faint)", margin: "12px 2px 0", fontSize: 11.5, lineHeight: 1.5 }}>
-        Directional — chips sharpen as Sage reads each answer.
+        Directional, chips sharpen as Sage reads each answer.
       </p>
     </div>
   );

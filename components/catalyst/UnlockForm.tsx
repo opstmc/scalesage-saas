@@ -154,7 +154,7 @@ export default function UnlockForm({
             <h1 className="h1" style={{ margin: "12px 0 8px" }}>
               Full Catalyst request received.
             </h1>
-            {/* Post-submit copy — verbatim from brief */}
+            {/* Post-submit copy, verbatim from brief */}
             <p className="lead">
               Sage has saved your leak map and everything you told it. The full report checks your website, search
               visibility, AI visibility, reviews, enquiry flow, follow-up, and operations before recommending the build.
@@ -167,7 +167,7 @@ export default function UnlockForm({
           </div>
         </div>
 
-        {/* Two doors — equal weight, both end in a call (brief). The no-fit route
+        {/* Two doors, equal weight, both end in a call (brief). The no-fit route
             drops the pay door: we said we won't sell a build that isn't needed. */}
         <div className={styles.doors} style={{ marginTop: 6 }}>
           {mode === "build" && (
@@ -318,7 +318,7 @@ export default function UnlockForm({
             &larr; Back to leak map
           </button>
         </div>
-        {/* Reassurance — JW-approval-pending */}
+        {/* Reassurance, JW-approval-pending */}
         <p className={styles.reassureLine}>
           No payment to begin. You keep the leak report either way. GDPR-safe and encrypted. We never sell your data or
           use it to train external AI.

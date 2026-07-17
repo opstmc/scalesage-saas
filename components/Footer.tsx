@@ -67,7 +67,7 @@ export default function Footer() {
         </div>
         <div style={{ borderTop: "1px solid var(--border-hair)", paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
           <span style={{ fontSize: 13.5, color: "var(--text-faint)" }}>© 2026 ScaleSage. UK-registered · GDPR-compliant by design.</span>
-          <span style={{ fontSize: 13, color: "var(--text-faint)" }}>Founding client programme — open now.</span>
+          <span style={{ fontSize: 13, color: "var(--text-faint)" }}>Founding client programme, open now.</span>
         </div>
       </div>
     </footer>

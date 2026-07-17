@@ -2,9 +2,9 @@ const LEAKS = [
   { title: "Missed calls", line: "Every unanswered call is a customer dialing the next business.", stat: "30–60% of inbound calls go unanswered · 75% leave no voicemail [D]" },
   { title: "Cold quotes", line: "Quotes sent and forgotten. No follow-up, no second chance.", stat: "The deal goes cold while you're on the next job [D]" },
   { title: "Forgotten reviews", line: "Every happy customer is a 5-star review you didn't ask for.", stat: "Most businesses ask for none [D]" },
-  { title: "Lapsed customers", line: "Bought once, never came back — sitting in your database.", stat: "Worth more than every cold prospect combined [D]" },
-  { title: "Invisible online", line: "Customers ask ChatGPT, Google and Perplexity — and you don't come up.", stat: "AI search is where the next recommendation happens [D]" },
-  { title: "Admin drag", line: "Quoting, invoicing, chasing — hours AI does in minutes.", stat: "Time your team should be spending earning [D]" },
+  { title: "Lapsed customers", line: "Bought once, never came back, sitting in your database.", stat: "Worth more than every cold prospect combined [D]" },
+  { title: "Invisible online", line: "Customers ask ChatGPT, Google and Perplexity, and you don't come up.", stat: "AI search is where the next recommendation happens [D]" },
+  { title: "Admin drag", line: "Quoting, invoicing, chasing, hours AI does in minutes.", stat: "Time your team should be spending earning [D]" },
 ];
 
 export default function Leaking() {
@@ -13,8 +13,8 @@ export default function Leaking() {
       <div className="inner">
         <div className="section-head" data-reveal="">
           <div className="eyebrow">What&rsquo;s leaking?</div>
-          <h2 className="h2">Six places revenue slips out — quietly.</h2>
-          <p className="lead">This is where most growing businesses see themselves — the places execution bandwidth runs out first. Every leak has a number; we find it, then we close it.</p>
+          <h2 className="h2">Six places revenue slips out, quietly.</h2>
+          <p className="lead">This is where most growing businesses see themselves, the places execution bandwidth runs out first. Every leak has a number; we find it, then we close it.</p>
         </div>
         <div className="leak-grid">
           {LEAKS.map((l) => (

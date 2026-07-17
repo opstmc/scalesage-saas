@@ -138,7 +138,7 @@ export default function ResultScreen({
           <h1 className="h1" style={{ marginBottom: 8 }}>
             Leak map ready.
           </h1>
-          {/* Subheader — verbatim from brief */}
+          {/* Subheader, verbatim from brief */}
           <p className="lead">
             Directional scan based on your answers and a quick look at your online presence. The full Catalyst replaces
             this with deep evidence.
@@ -146,7 +146,7 @@ export default function ResultScreen({
         </div>
       </div>
 
-      {/* TIER 1 + 2 — live-verified facts, stated FLAT (Q1 lookup + background checks) */}
+      {/* TIER 1 + 2, live-verified facts, stated FLAT (Q1 lookup + background checks) */}
       {facts.length > 0 && (
         <div className={`glass ${styles.block}`}>
           <div className={styles.blockHead}>
@@ -196,7 +196,7 @@ export default function ResultScreen({
         </div>
       ) : (
         <>
-          {/* primary + secondary leak — Directional (from what you told Sage) */}
+          {/* primary + secondary leak, Directional (from what you told Sage) */}
           {(primary || secondary) && (
             <div className={`glass ${styles.block}`}>
               <div className={styles.blockHead}>
@@ -239,7 +239,7 @@ export default function ResultScreen({
             </div>
           )}
 
-          {/* revenue + time bands — only when the scoring enables them */}
+          {/* revenue + time bands, only when the scoring enables them */}
           {(revenue.enabled || time.enabled) && (
             <div className={`glass ${styles.block}`}>
               <div className={styles.blockLabel}>The maths, directional, on your answers</div>
@@ -265,7 +265,7 @@ export default function ResultScreen({
                 Unlock the full leak report.
               </button>
             </div>
-            {/* Reassurance — verbatim from brief */}
+            {/* Reassurance, verbatim from brief */}
             <p className={styles.reassureLine}>No payment to begin. You keep the leak report either way.</p>
           </div>
         </>

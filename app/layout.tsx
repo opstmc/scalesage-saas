@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import JourneyProvider from "@/components/JourneyProvider";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -19,11 +18,11 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "ScaleSage — Diagnose. Build. Prove.",
+    default: "ScaleSage, Diagnose. Build. Prove.",
     template: "%s · ScaleSage",
   },
   description:
-    "Your business is leaking. We find it, fix it, and prove it. ScaleSage is the business doctor for growing SMEs — we diagnose the leak, install the systems that restore your execution bandwidth, and prove the result in numbers.",
+    "Your business is leaking. We find it, fix it, and prove it. ScaleSage is the business doctor for growing SMEs, we diagnose the leak, install the systems that restore your execution bandwidth, and prove the result in numbers.",
   applicationName: "ScaleSage",
   keywords: [
     "business doctor",
@@ -41,13 +40,13 @@ export const metadata: Metadata = {
     type: "website",
     url: SITE_URL,
     siteName: "ScaleSage",
-    title: "ScaleSage — Diagnose. Build. Prove.",
+    title: "ScaleSage, Diagnose. Build. Prove.",
     description:
       "Your business is leaking. We find it, fix it, and prove it. The operating system for growing SMEs.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "ScaleSage — Diagnose. Build. Prove.",
+    title: "ScaleSage, Diagnose. Build. Prove.",
     description:
       "Your business is leaking. We find it, fix it, and prove it. The operating system for growing SMEs.",
   },
@@ -91,12 +90,10 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <JourneyProvider>
-          <Nav />
-          {children}
-          <Footer />
-          <ScrollReveal />
-        </JourneyProvider>
+        <Nav />
+        {children}
+        <Footer />
+        <ScrollReveal />
       </body>
     </html>
   );

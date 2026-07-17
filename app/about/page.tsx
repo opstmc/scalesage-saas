@@ -6,7 +6,7 @@ import FinalCta from "@/components/FinalCta";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Why ScaleSage isn't a normal AI agency — we don't sell tools or promise outcomes, we prove them. The difference, and the founding-client proof discipline.",
+    "Why ScaleSage isn't a normal AI agency, we don't sell tools or promise outcomes, we prove them. The difference, and the founding-client proof discipline.",
   alternates: { canonical: "/about" },
 };
 

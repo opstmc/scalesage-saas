@@ -1,7 +1,7 @@
 const POINTS = [
-  { head: "We don't sell tools. We diagnose leaks.", body: "Most AI agencies hand you a chatbot and leave. We find what's actually costing you money — then fix it." },
+  { head: "We don't sell tools. We diagnose leaks.", body: "Most AI agencies hand you a chatbot and leave. We find what's actually costing you money, then fix it." },
   { head: "We don't promise outcomes. We prove them.", body: "Every claim on this site carries a confidence tag. Every client report carries baselines and numbers. Nothing you can't check." },
-  { head: "We don't disappear after install.", body: "Monitoring is part of delivery. If a system stops moving the number, we know first — and we fix it before you ask." },
+  { head: "We don't disappear after install.", body: "Monitoring is part of delivery. If a system stops moving the number, we know first, and we fix it before you ask." },
 ];
 
 export default function WhyNotAgency() {

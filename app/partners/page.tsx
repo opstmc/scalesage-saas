@@ -9,7 +9,7 @@ import styles from "./partners.module.css";
 export const metadata: Metadata = {
   title: "Partners",
   description:
-    "Earn recurring commission on every client you introduce to ScaleSage — 20–25% in Year 1, a lifetime trail from Year 4 for Gold and Platinum partners, full support from day one. No technical expertise required.",
+    "Earn recurring commission on every client you introduce to ScaleSage, 20–25% in Year 1, a lifetime trail from Year 4 for Gold and Platinum partners, full support from day one. No technical expertise required.",
   alternates: { canonical: "/partners" },
 };
 
@@ -20,30 +20,30 @@ const PARTNER_LOGIN = process.env.NEXT_PUBLIC_PORTAL_URL
   : "#contact";
 
 const STEPS = [
-  { t: "Sign the Partner Agreement", b: "One document — commission, payment terms, IP. Signed electronically in about ten minutes." },
-  { t: "Receive your Partner Kit", b: "Welcome pack, email templates, demo videos, sales deck and your referral link — within 48 hours." },
-  { t: "Introduce a prospect", b: "Open with the free £750 Catalyst Diagnostic. The diagnostic does the selling — no hard pitch needed." },
+  { t: "Sign the Partner Agreement", b: "One document, commission, payment terms, IP. Signed electronically in about ten minutes." },
+  { t: "Receive your Partner Kit", b: "Welcome pack, email templates, demo videos, sales deck and your referral link, within 48 hours." },
+  { t: "Introduce a prospect", b: "Open with the free £750 Catalyst Diagnostic. The diagnostic does the selling, no hard pitch needed." },
   { t: "We close & deliver", b: "We handle the sales process, onboarding, build and ongoing delivery. Stay as involved as you like." },
-  { t: "Get paid every month", b: "50% within 5 days of the client's payment, 50% at Day 90. Monthly, via Wise — GBP, EUR or USD." },
+  { t: "Get paid every month", b: "50% within 5 days of the client's payment, 50% at Day 90. Monthly, via Wise, GBP, EUR or USD." },
 ];
 
 const TIERS = [
-  { name: "Silver", when: "From your first close", rate: "20%", sub: "of monthly subscription · Year 1", trail: [["Y2", "5%"], ["Y3", "3%"], ["Y4", "Stops"]], note: "For partners getting started. No threshold — you earn from your very first introduction." },
+  { name: "Silver", when: "From your first close", rate: "20%", sub: "of monthly subscription · Year 1", trail: [["Y2", "5%"], ["Y3", "3%"], ["Y4", "Stops"]], note: "For partners getting started. No threshold, you earn from your very first introduction." },
   { name: "Gold", when: "5+ closes in 12 months", rate: "25%", sub: "of monthly subscription · Year 1", trail: [["Y2", "8%"], ["Y3", "5%"], ["Y4", "4% ∞"]], note: "For serious partners building recurring income. A lifetime trail from Year 4 that never stops.", featured: true },
   { name: "Platinum", when: "15+ closes in 12 months", rate: "25% +10%", sub: "Year 1 + a 10% retention bonus", trail: [["Y2", "12%"], ["Y3", "8%"], ["Y4", "5% ∞"]], note: "For top partners building a portfolio. The retention bonus pays an extra 10% when a client hits 12 months." },
 ];
 
 const GETS = [
   ["Partner welcome pack + demo walkthrough", "A PDF guide plus a recorded walkthrough covering positioning, who ScaleSage is for, and the first conversation."],
-  ["Pre-written email templates", "Warm intro, cold-warm and follow-up — professionally written. Change the name and industry, nothing else."],
-  ["Demo videos", "Catalyst walkthrough plus live system demos — AI receptionist, cold-email engine, reactivation in action."],
+  ["Pre-written email templates", "Warm intro, cold-warm and follow-up, professionally written. Change the name and industry, nothing else."],
+  ["Demo videos", "Catalyst walkthrough plus live system demos, AI receptionist, cold-email engine, reactivation in action."],
   ["One-page sales deck", "Who ScaleSage is for, what each tier includes, pricing and the Catalyst Diagnostic. Clean and updated quarterly."],
-  ["Free Catalyst Diagnostic — £750 value", "A free 20-minute AI health check you can offer every prospect. The best door-opener in the market."],
+  ["Free Catalyst Diagnostic, £750 value", "A free 20-minute AI health check you can offer every prospect. The best door-opener in the market."],
   ["Direct WhatsApp to Partner Success", "Got a live prospect? Message Cy directly. Warm lead handoff, real humans, 4-business-hour response."],
   ["Co-selling support", "For Pro prospects, Cy joins your call. For Max, the founder joins personally. Close rates jump to 30–50%."],
-  ["Co-branded materials", "A one-pager with your name and logo alongside ScaleSage — and optionally your own landing page."],
+  ["Co-branded materials", "A one-pager with your name and logo alongside ScaleSage, and optionally your own landing page."],
   ["Monthly partner scorecard", "Sent on the 1st: leads referred, diagnostics booked, calls held, clients closed and commission paid. Full visibility."],
-  ["Quarterly office hours with the founder", "A 30-minute open Q&A — product roadmap previews, ICP insights and what's working. Gold+ get monthly access."],
+  ["Quarterly office hours with the founder", "A 30-minute open Q&A, product roadmap previews, ICP insights and what's working. Gold+ get monthly access."],
 ];
 
 const INDUSTRIES = [
@@ -57,13 +57,13 @@ const INDUSTRIES = [
 const TERMS = [
   ["Commission payment", "50% within 5 days of the client's payment, 50% at the Day-90 retention milestone. Monthly, by the 10th, via Wise in GBP, EUR or USD."],
   ["First-close bonus", "Your very first standard client earns 100% of the first month's commission, paid immediately and not split. Once per partner."],
-  ["Annual prepay bonus", "If a client signs annually (10% off), you receive the full Year-1 commission as a lump sum within 30 days — not spread over 12 months."],
-  ["Eligible clients", "UK and Ireland registered businesses. You can operate from anywhere in the world — only the client's business location matters."],
+  ["Annual prepay bonus", "If a client signs annually (10% off), you receive the full Year-1 commission as a lump sum within 30 days, not spread over 12 months."],
+  ["Eligible clients", "UK and Ireland registered businesses. You can operate from anywhere in the world, only the client's business location matters."],
   ["Tier permanence", "Once you reach Gold or Platinum, you keep that tier permanently, even if your close volume dips in a future 12-month window."],
   ["90-day retention rule", "Commission is split 50/50. If a client cancels before Day 90, the 50% already paid is clawed back. It protects quality on both sides."],
-  ["Termination", "30 days' written notice by either side. Trail commissions on clients already closed keep paying — termination doesn't kill earned income."],
+  ["Termination", "30 days' written notice by either side. Trail commissions on clients already closed keep paying, termination doesn't kill earned income."],
   ["Minimum payout", "£100 / €120 / $120. Anything below the threshold rolls forward to the following month's payment."],
-  ["Tax & exclusivity", "Commission is paid gross; you handle your local tax. Non-exclusive — the only rule is no competing AI service to the same prospect at once."],
+  ["Tax & exclusivity", "Commission is paid gross; you handle your local tax. Non-exclusive, the only rule is no competing AI service to the same prospect at once."],
 ];
 
 export default function PartnersPage() {
@@ -78,7 +78,7 @@ export default function PartnersPage() {
           </h1>
           <p className={styles.heroSub}>
             Recurring commission on every client you introduce. A lifetime trail into Year 4 and
-            beyond. Full support from day one — you introduce, we build, deliver and retain. No
+            beyond. Full support from day one, you introduce, we build, deliver and retain. No
             technical expertise required.
           </p>
           <div className={styles.heroCtas}>
@@ -95,7 +95,7 @@ export default function PartnersPage() {
           <div className="section-head" data-reveal="">
             <div className="eyebrow">The process</div>
             <h2 className="h2">Five steps. Then you get paid.</h2>
-            <p className="lead">You introduce. We close, build and deliver. You earn for as long as the client stays — without managing any of the work.</p>
+            <p className="lead">You introduce. We close, build and deliver. You earn for as long as the client stays, without managing any of the work.</p>
           </div>
           <div className={styles.steps}>
             {STEPS.map((s, i) => (
@@ -131,7 +131,7 @@ export default function PartnersPage() {
             <div data-reveal="" className="glass glass-hover price-card">
               <h3 className="h3">Max</h3>
               <div className="price-amount">£4,997<span>/mo</span></div>
-              <p className="small">Multi-site operators — done-for-you, a dedicated EA and founder-level strategy. +£2,497 setup.</p>
+              <p className="small">Multi-site operators, done-for-you, a dedicated EA and founder-level strategy. +£2,497 setup.</p>
             </div>
           </div>
         </div>
@@ -143,7 +143,7 @@ export default function PartnersPage() {
           <div className="section-head" data-reveal="">
             <div className="eyebrow">What you earn</div>
             <h2 className="h2">Commission that trails into Year 4 and beyond.</h2>
-            <p className="lead">Earn 20–25% of every subscription in Year 1. Gold and Platinum partners earn a lifetime trail that never stops — ongoing income even if you stop actively selling.</p>
+            <p className="lead">Earn 20–25% of every subscription in Year 1. Gold and Platinum partners earn a lifetime trail that never stops, ongoing income even if you stop actively selling.</p>
           </div>
           <div className="grid-3">
             {TIERS.map((t) => (
@@ -173,7 +173,7 @@ export default function PartnersPage() {
             <div className={styles.calcRow}><span className={styles.calcLabel}>Year 1 (20% × £1,497 × 12)</span><span className={styles.calcVal}>£3,593</span></div>
             <div className={styles.calcRow}><span className={styles.calcLabel}>Year 2 trail (5% × £1,497 × 12)</span><span className={styles.calcVal}>£898</span></div>
             <div className={styles.calcRow}><span className={styles.calcLabel}>Year 3 trail (3% × £1,497 × 12)</span><span className={styles.calcVal}>£539</span></div>
-            <div className={styles.calcTotal}><span className={styles.calcTotalLabel}>Total from one client — 3 years</span><span className={styles.calcTotalVal}>£5,030</span></div>
+            <div className={styles.calcTotal}><span className={styles.calcTotalLabel}>Total from one client, 3 years</span><span className={styles.calcTotalVal}>£5,030</span></div>
             <p className={styles.calcFoot}>At Gold tier: about £8,264 from the same client over 5 years, including the lifetime trail. Annual-prepay closes pay the full Year-1 commission as a lump sum within 30 days.</p>
           </div>
         </div>
@@ -183,11 +183,11 @@ export default function PartnersPage() {
       <section className="section">
         <div className="inner">
           <div className={styles.founding} data-reveal="">
-            <div className="eyebrow">★ Founding Partner — first 10 only</div>
+            <div className="eyebrow">★ Founding Partner, first 10 only</div>
             <div className={styles.foundingTitle}>Gold economics from close number one.</div>
-            <p className="lead" style={{ margin: 0 }}>The first 10 partners earn 25% commission from their very first client — no threshold, no waiting. Once 10 Founding Partners are signed, this closes permanently.</p>
+            <p className="lead" style={{ margin: 0 }}>The first 10 partners earn 25% commission from their very first client, no threshold, no waiting. Once 10 Founding Partners are signed, this closes permanently.</p>
             <div className={styles.foundingList}>
-              <div className={styles.foundingItem}><strong>100% first commission — instantly</strong>Your very first close pays 100% of the first month&rsquo;s commission within 5 business days. Not split.</div>
+              <div className={styles.foundingItem}><strong>100% first commission, instantly</strong>Your very first close pays 100% of the first month&rsquo;s commission within 5 business days. Not split.</div>
               <div className={styles.foundingItem}><strong>Lifetime priority access to the founder</strong>A direct line with a 2-hour response during UK business hours, for life while you&rsquo;re active.</div>
               <div className={styles.foundingItem}><strong>First-look product access</strong>New launches and roadmap previews before any general announcement, plus annual Founding Partner summits.</div>
             </div>
@@ -201,7 +201,7 @@ export default function PartnersPage() {
           <div className="section-head" data-reveal="">
             <div className="eyebrow">What every partner gets</div>
             <h2 className="h2">Everything you need to sell confidently.</h2>
-            <p className="lead">Every partner receives a full kit within 48 hours of signing. You don&rsquo;t figure this out yourself — we build it with you and support every step.</p>
+            <p className="lead">Every partner receives a full kit within 48 hours of signing. You don&rsquo;t figure this out yourself, we build it with you and support every step.</p>
           </div>
           <div className={styles.getGrid}>
             {GETS.map(([t, b], i) => (
@@ -223,7 +223,7 @@ export default function PartnersPage() {
           <div className="section-head" data-reveal="">
             <div className="eyebrow">Who we serve</div>
             <h2 className="h2">Industries you can sell into, day one.</h2>
-            <p className="lead">ScaleSage works for any UK business losing revenue to missed calls, cold leads or admin — with systems built for each industry&rsquo;s exact problems.</p>
+            <p className="lead">ScaleSage works for any UK business losing revenue to missed calls, cold leads or admin, with systems built for each industry&rsquo;s exact problems.</p>
           </div>
           <div className={styles.chips}>
             {INDUSTRIES.map((n) => (

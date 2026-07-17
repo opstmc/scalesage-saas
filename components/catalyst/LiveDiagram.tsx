@@ -191,7 +191,7 @@ export default function LiveDiagram({
     const severity = scored?.severity ?? 0;
     const chip: Chip = scored?.chip ?? "Clear";
     const present = GOVERN[g.leak].some(answered);
-    const lit = present && severity >= 2; // Likely / Detected — a real finding
+    const lit = present && severity >= 2; // Likely / Detected, a real finding
     return {
       ...g,
       severity,
@@ -252,7 +252,7 @@ export default function LiveDiagram({
     ? `Live diagram of ${centreLabel || "your business"}: ${presentCount} of 6 systems mapped, ${detectedCount} leak${
         detectedCount === 1 ? "" : "s"
       } showing so far.`
-    : "Your business diagram — assembling as you answer.";
+    : "Your business diagram, assembling as you answer.";
 
   return (
     <div className={cx(styles.wrap, reduced && styles.reduced)}>
@@ -280,7 +280,7 @@ export default function LiveDiagram({
           </radialGradient>
         </defs>
 
-        {/* centre heat — a touch brighter as more leaks light (real) */}
+        {/* centre heat, a touch brighter as more leaks light (real) */}
         <circle
           className={styles.field}
           cx={CX}
