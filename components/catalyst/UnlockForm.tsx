@@ -167,8 +167,54 @@ export default function UnlockForm({
           </div>
         </div>
 
-        {/* Two doors, equal weight, both end in a call (brief). The no-fit route
-            drops the pay door: we said we won't sell a build that isn't needed. */}
+        {/* The baseline the visitor can rely on: the report is coming in 24h with a
+            payment link, whatever they click. The doors below are optional accelerators. */}
+        <ol style={{ margin: "18px 0 0", padding: 0, listStyle: "none", display: "grid", gap: 10 }}>
+          {[
+            "Sage builds your full report, checking your website, search and AI visibility, reviews, enquiry flow, follow-up and operations.",
+            "It lands within 24 hours, by email and WhatsApp, with your recommended plan and a payment link.",
+            "You decide. Start the build when you're ready, or book a call to talk it through first.",
+          ].map((step, i) => (
+            <li
+              key={i}
+              style={{
+                display: "flex",
+                gap: 12,
+                alignItems: "flex-start",
+                padding: "12px 14px",
+                borderRadius: 12,
+                background: "rgba(244,246,249,.03)",
+                border: "1px solid var(--border-hair)",
+              }}
+            >
+              <span
+                style={{
+                  flexShrink: 0,
+                  width: 24,
+                  height: 24,
+                  borderRadius: 999,
+                  display: "grid",
+                  placeItems: "center",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "var(--on-accent)",
+                  background: "var(--accent-primary)",
+                }}
+              >
+                {i + 1}
+              </span>
+              <span style={{ fontSize: 15, lineHeight: 1.5, color: "var(--text-primary)" }}>{step}</span>
+            </li>
+          ))}
+        </ol>
+
+        <p style={{ margin: "24px 0 8px", fontSize: 14, fontWeight: 600, color: "var(--text-muted)" }}>
+          Want to move sooner? Two options, both optional:
+        </p>
+
+        {/* Optional accelerators: book a call (real calendar when configured) or start the
+            build now (Stripe when configured). Both fall back to a calm note otherwise. The
+            no-fit route drops the pay door: we won't sell a build that isn't needed. */}
         <div className={styles.doors} style={{ marginTop: 6 }}>
           {mode === "build" && (
             <div className={`${styles.door} ${styles.doorPrimary}`}>
@@ -198,9 +244,9 @@ export default function UnlockForm({
               {bookState === "opening" ? "Finding a time…" : "Talk it through first"}
             </button>
             {bookState === "deferred" && (
-              /* Placeholder booking link — calendar not connected yet. JW-approval-pending. */
+              /* No self-serve calendar configured — the click still briefed ops on WhatsApp. */
               <p className={styles.doorNote}>
-                Booking calendar is being connected. Reply to your report email and the team will lock in a time.
+                Done. The team will message you on WhatsApp shortly to lock in a time.
               </p>
             )}
           </div>
