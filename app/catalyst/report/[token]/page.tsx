@@ -384,11 +384,9 @@ function CompleteReport({ data, token }: { data: CatalystReport; token: string }
             Generated {generated}
           </p>
         )}
-        {report?.meta?.synthesis && (
-          <p className="lead" style={{ marginTop: 18 }}>
-            {report.meta.synthesis}
-          </p>
-        )}
+        {/* report.meta is engineering telemetry only — synthesis provenance,
+            engine/config versions, per-section health. Nothing in it is written
+            for a customer, so nothing from it is rendered here. */}
       </header>
 
       {report ? (
