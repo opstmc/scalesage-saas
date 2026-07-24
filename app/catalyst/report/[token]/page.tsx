@@ -365,13 +365,64 @@ function Doors({
 
 /* ---------- complete report ---------- */
 
+// The Stripe checkout redirects back here with ?payment=success|cancel. Without
+// this the payer just lands back on their report with no acknowledgement, which
+// reads as "did my payment even work?". Read the param client-side (avoids the
+// useSearchParams/Suspense dance) and show a plain confirmation.
+function PaymentBanner({ kind }: { kind: "success" | "cancel" | null }) {
+  if (!kind) return null;
+  const success = kind === "success";
+  return (
+    <div
+      role="status"
+      style={{
+        display: "flex",
+        gap: 12,
+        alignItems: "flex-start",
+        border: `1px solid ${
+          success
+            ? "color-mix(in srgb, var(--accent-primary) 45%, transparent)"
+            : "var(--border-hair)"
+        }`,
+        background: success
+          ? "color-mix(in srgb, var(--accent-primary) 8%, transparent)"
+          : "var(--bg-elevated)",
+        borderRadius: 14,
+        padding: "16px 18px",
+        marginBottom: 24,
+      }}
+    >
+      <span aria-hidden style={{ fontSize: 18, lineHeight: "24px" }}>
+        {success ? "✓" : "↩"}
+      </span>
+      <div>
+        <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)" }}>
+          {success ? "Payment received — we’re on it." : "Payment cancelled — no charge was made."}
+        </p>
+        <p style={{ margin: "4px 0 0", fontSize: 14, color: "var(--text-muted)" }}>
+          {success
+            ? "Thanks — your build is booked. We’ll be in touch shortly to schedule your kickoff."
+            : "No problem. You can start the build whenever you’re ready, using the button below."}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function CompleteReport({ data, token }: { data: CatalystReport; token: string }) {
   const report = data.report;
   const generated = fmtDate(data.generated_at ?? report?.meta?.generated_at ?? null);
   const title = data.business_name?.trim() || "Your business";
 
+  const [payment, setPayment] = useState<"success" | "cancel" | null>(null);
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search).get("payment");
+    setPayment(p === "success" ? "success" : p === "cancel" ? "cancel" : null);
+  }, []);
+
   return (
     <Shell>
+      <PaymentBanner kind={payment} />
       <header>
         <span className="eyebrow" style={{ display: "block" }}>
           YOUR CATALYST REPORT
