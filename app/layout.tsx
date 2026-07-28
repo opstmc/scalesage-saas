@@ -60,11 +60,27 @@ const jsonLd = {
       "@type": "Organization",
       "@id": `${SITE_URL}/#organization`,
       name: "ScaleSage",
+      legalName: "ScaleSage Ai Limited",
       url: SITE_URL,
+      logo: `${SITE_URL}/brand/scalesage-mark.png`,
       description:
         "The business doctor for growing SMEs. We diagnose the leak, build the systems that close it, and prove the result in numbers.",
       slogan: "Diagnose. Build. Prove.",
+      foundingDate: "2026",
       areaServed: ["GB", "EU"],
+      identifier: {
+        "@type": "PropertyValue",
+        propertyID: "Companies House registration number",
+        value: "17232390",
+      },
+      // Verified Companies House record. Cy: append verified social profile URLs
+      // (LinkedIn, X, Instagram, TikTok) to sameAs as each verification lands.
+      sameAs: [
+        "https://find-and-update.company-information.service.gov.uk/company/17232390",
+      ],
+      // TODO (Cy, pending verification): add `email`, `telephone`, and a
+      // PostalAddress `address` (registered office) once the public contact
+      // details and registered address are confirmed.
     },
     {
       "@type": "Service",
