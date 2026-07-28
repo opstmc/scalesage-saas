@@ -3,6 +3,7 @@ import JourneyButton from "./JourneyButton";
 interface Tier {
   name: string;
   price: string;
+  setup: string;
   best: string;
   includes: string[];
   sub: string;
@@ -14,6 +15,7 @@ const TIERS: Tier[] = [
   {
     name: "Starter",
     price: "£597",
+    setup: "£297",
     best: "Best for: one acute leak to fix",
     includes: ["One core service installed", "Monthly ROI report", "Founder-led onboarding"],
     sub: "For businesses ready to plug their biggest leak.",
@@ -21,6 +23,7 @@ const TIERS: Tier[] = [
   {
     name: "Pro",
     price: "£1,497",
+    setup: "£747",
     best: "Best for: a multi-service operating system",
     includes: ["2–3 services installed", "Full Catalyst diagnostic", "Monthly ROI proof report", "Quarterly strategy review", "Priority support"],
     sub: "For businesses ready to operate at a different level.",
@@ -30,6 +33,7 @@ const TIERS: Tier[] = [
   {
     name: "Max",
     price: "£4,997",
+    setup: "£2,497",
     best: "Best for: full operational transformation",
     includes: ["Full service stack", "Dedicated EA hours", "Custom AI builds", "Weekly proof reporting", "Executive strategy partnership"],
     sub: "For businesses ready to compound.",
@@ -60,9 +64,12 @@ export default function Pricing() {
               )}
               <div style={{ fontWeight: 600, fontSize: 22, color: "var(--text-headline)" }}>{t.name}</div>
               <div className="small" style={{ margin: "4px 0 18px", color: "var(--text-faint)" }}>{t.best}</div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 20 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
                 <span className="price-amount">{t.price}</span>
                 <span style={{ fontSize: 15, color: "var(--text-muted)" }}>/mo</span>
+              </div>
+              <div style={{ fontSize: 13.5, color: "var(--text-faint)", marginBottom: 20 }}>
+                + {t.setup} one-off setup
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 11, marginBottom: 24, flex: 1 }}>
                 {t.includes.map((inc) => (

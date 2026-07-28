@@ -218,7 +218,7 @@ body{
 .leak-card:hover .leak-stat{max-height:60px;opacity:1;margin-top:12px;}
 
 /* industry card */
-.ind-card{padding:20px;border-radius:var(--r-card);cursor:pointer;min-height:128px;display:flex;flex-direction:column;justify-content:space-between;text-align:left;width:100%;font-family:inherit;color:inherit;}
+.ind-card{padding:20px;border-radius:var(--r-card);cursor:pointer;min-height:128px;display:flex;flex-direction:column;justify-content:space-between;text-align:left;width:100%;font-family:inherit;color:inherit;background:linear-gradient(180deg,color-mix(in srgb,var(--bg-elevated) 97%,transparent),color-mix(in srgb,var(--bg-elevated) 93%,transparent));}
 .ind-name{font-weight:600;font-size:16px;color:var(--text-headline);}
 .ind-leaks{margin-top:12px;opacity:0;max-height:0;overflow:hidden;transition:opacity .3s ease,max-height .35s ease;display:flex;flex-direction:column;gap:6px;}
 .ind-card:hover .ind-leaks{opacity:1;max-height:140px;}
