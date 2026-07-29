@@ -209,7 +209,7 @@
       "insightApproval": "JW-approval-pending",
       "other": true,
       "options": [
-        { "value": "cope-fine", "label": "We would cope fine", "deltas": {} },
+        { "value": "cope-fine", "label": "We would cope fine", "deltas": {}, "exclusiveWith": ["pile-up", "couldnt-reach", "through-me"] },
         { "value": "pile-up", "label": "Enquiries would pile up unanswered", "deltas": { "Missed calls": 2, "Admin drag": 1 } },
         { "value": "couldnt-reach", "label": "New customers could not reach us", "deltas": { "Missed calls": 3 } },
         { "value": "through-me", "label": "Most things run through me", "deltas": { "Admin drag": 3 } },

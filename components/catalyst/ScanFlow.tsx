@@ -329,13 +329,28 @@ export default function ScanFlow({
   };
   const toggleMulti = (st: Raw, value: string) => {
     const id = stepId(st);
+    // Mutually-exclusive answers: an option can declare `exclusiveWith` in the
+    // config (e.g. "we'd cope fine" excludes "enquiries pile up"). Enforced
+    // symmetrically so a contradictory pair can never both be selected.
+    const rawOpts =
+      (st as { options?: Array<{ value: string; exclusiveWith?: string[] }> }).options ?? [];
+    const conflicts = (a: string, b: string): boolean => {
+      const oa = rawOpts.find((o) => o.value === a);
+      const ob = rawOpts.find((o) => o.value === b);
+      return Boolean(oa?.exclusiveWith?.includes(b) || ob?.exclusiveWith?.includes(a));
+    };
     setAnswers((a) => {
       const rec = a as unknown as Record<string, unknown>;
       const cur = Array.isArray(rec[id]) ? [...(rec[id] as string[])] : [];
       const at = cur.indexOf(value);
-      if (at >= 0) cur.splice(at, 1);
-      else cur.push(value);
-      return { ...rec, [id]: cur } as ScanAnswers;
+      if (at >= 0) {
+        cur.splice(at, 1);
+        return { ...rec, [id]: cur } as ScanAnswers;
+      }
+      // On select, drop any currently-selected answer that contradicts this one.
+      const kept = cur.filter((v) => !conflicts(value, v));
+      kept.push(value);
+      return { ...rec, [id]: kept } as ScanAnswers;
     });
   };
   const multiHas = (st: Raw, value: string) => Array.isArray(A[stepId(st)]) && (A[stepId(st)] as string[]).includes(value);
