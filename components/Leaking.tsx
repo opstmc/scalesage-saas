@@ -1,10 +1,10 @@
 const LEAKS = [
-  { title: "Missed calls", line: "Every unanswered call is a customer dialing the next business.", stat: "30–60% of inbound calls go unanswered · 75% leave no voicemail [D]" },
-  { title: "Cold quotes", line: "Quotes sent and forgotten. No follow-up, no second chance.", stat: "The deal goes cold while you're on the next job [D]" },
-  { title: "Forgotten reviews", line: "Every happy customer is a 5-star review you didn't ask for.", stat: "Most businesses ask for none [D]" },
-  { title: "Lapsed customers", line: "Bought once, never came back, sitting in your database.", stat: "Worth more than every cold prospect combined [D]" },
-  { title: "Invisible online", line: "Customers ask ChatGPT, Google and Perplexity, and you don't come up.", stat: "AI search is where the next recommendation happens [D]" },
-  { title: "Admin drag", line: "Quoting, invoicing, chasing, hours AI does in minutes.", stat: "Time your team should be spending earning [D]" },
+  { title: "Missed calls", line: "Every unanswered call is a customer dialing the next business.", stat: "30–60% of inbound calls go unanswered · 75% leave no voicemail" },
+  { title: "Cold quotes", line: "Quotes sent and forgotten. No follow-up, no second chance.", stat: "The deal goes cold while you're on the next job" },
+  { title: "Forgotten reviews", line: "Every happy customer is a 5-star review you didn't ask for.", stat: "Most businesses ask for none" },
+  { title: "Lapsed customers", line: "Bought once, never came back, sitting in your database.", stat: "Worth more than every cold prospect combined" },
+  { title: "Invisible online", line: "Customers ask ChatGPT, Google and Perplexity, and you don't come up.", stat: "AI search is where the next recommendation happens" },
+  { title: "Admin drag", line: "Quoting, invoicing, chasing, hours AI does in minutes.", stat: "Time your team should be spending earning" },
 ];
 
 export default function Leaking() {

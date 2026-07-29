@@ -29,7 +29,7 @@ export default function FinalCta() {
           </p>
           <div style={{ display: "flex", gap: 14, justifyContent: "flex-start", flexWrap: "wrap" }}>
             <JourneyButton className="btn btn-primary btn-lg">Start the Catalyst diagnostic</JourneyButton>
-            <a href="#contact" className="btn btn-ghost btn-lg">Talk to us first</a>
+            <a href="https://calendly.com/scalesage/booking" target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-lg">Talk to us first</a>
           </div>
         </div>
       </div>

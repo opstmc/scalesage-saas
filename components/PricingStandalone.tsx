@@ -62,8 +62,7 @@ export default function PricingStandalone() {
         <div data-reveal="" className={styles.tableWrap}>
           <table className={styles.table}>
             <caption className="sr-only" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>
-              Standalone build and bolt-on prices compared with subscriber prices. Figures pending
-              final reconciliation against Partner Pack v5.
+              Standalone build and bolt-on prices compared with subscriber prices.
             </caption>
             <thead>
               <tr>
@@ -94,11 +93,6 @@ export default function PricingStandalone() {
             </tbody>
           </table>
         </div>
-        {/* PENDING FLAG: surfaced visibly + flagged for JW */}
-        <p className={styles.pending}>
-          Figures pending final reconciliation against Partner Pack v5.
-        </p>
-
         {/* --- Orbit access tiers (reference) --- */}
         <div className="section-head" data-reveal="" style={{ marginTop: 56, marginBottom: 24 }}>
           <div className="eyebrow" style={{ marginBottom: 12 }}>Orbit access, for reference</div>
