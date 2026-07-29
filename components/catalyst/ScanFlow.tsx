@@ -198,6 +198,8 @@ export default function ScanFlow({
   const trail = useRef<number[]>([]); // visited indices, so Back respects skips
   const [trailLen, setTrailLen] = useState(0); // reactive mirror of trail length for render
   const skipIds = useRef<Set<string>>(new Set());
+  const cardRef = useRef<HTMLDivElement>(null);
+  const firstStep = useRef(true);
 
   const clearTimers = () => {
     timers.current.forEach((t) => clearTimeout(t));
@@ -209,6 +211,22 @@ export default function ScanFlow({
   useEffect(() => {
     saveSession({ phase: "scan", idx, answers, lookup, checks });
   }, [idx, answers, lookup, checks]);
+
+  // ---- on step change, bring the new step into view ----
+  // Without this, advancing to a shorter step leaves the viewport parked where the
+  // previous (taller) step was, so the user lands staring at empty space and the
+  // footer. Scroll the new card to the top and move focus for keyboard users.
+  // Skips the first render so there's no scroll jump on load.
+  useEffect(() => {
+    if (firstStep.current) {
+      firstStep.current = false;
+      return;
+    }
+    const el = cardRef.current;
+    if (!el) return;
+    el.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+    el.focus({ preventScroll: true });
+  }, [idx, reduced]);
 
   // ---- progress ring feed ----
   useEffect(() => {
@@ -385,7 +403,7 @@ export default function ScanFlow({
               total={TOTAL}
             />
           ) : step ? (
-            <div className={`glass ${styles.card}`}>
+            <div ref={cardRef} tabIndex={-1} className={`glass ${styles.card}`}>
               {stepKicker(step) && <div className={styles.kicker}>{stepKicker(step)}</div>}
               <div className={styles.sageAsk} aria-hidden="true">
                 <span className={styles.sageAskDot} />
