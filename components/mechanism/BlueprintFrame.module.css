@@ -1,0 +1,86 @@
+/* Blueprint aesthetic (Cy motion brief): monospace micro-labels over a faint
+   grid, hairline frame, corner ticks. Brand-agnostic — driven entirely by the
+   site's existing tokens, so it re-skins for free when the brand pack lands. */
+
+.frame {
+  position: relative;
+  border: 1px solid var(--border-hair, rgba(255, 255, 255, 0.1));
+  border-radius: var(--r-card, 14px);
+  padding: 28px clamp(18px, 3vw, 34px) 24px;
+  overflow: hidden;
+  background:
+    linear-gradient(0deg, var(--bg-elev, rgba(255, 255, 255, 0.02)), transparent);
+}
+
+/* Faint blueprint grid. Sits behind content, never intercepts pointer. */
+.frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--accent-primary) 8%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent-primary) 8%, transparent) 1px, transparent 1px);
+  background-size: 26px 26px;
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 78%);
+  mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 78%);
+}
+
+.label,
+.fig {
+  position: absolute;
+  top: 10px;
+  z-index: 2;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--text-faint, rgba(255, 255, 255, 0.42));
+}
+
+.label {
+  left: clamp(14px, 3vw, 30px);
+}
+
+.fig {
+  right: clamp(14px, 3vw, 30px);
+  color: color-mix(in srgb, var(--accent-primary) 70%, var(--text-faint, #888));
+}
+
+/* Blueprint corner ticks. */
+.frame::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 12px;
+  height: 12px;
+  z-index: 2;
+  border-top: 1px solid color-mix(in srgb, var(--accent-primary) 45%, transparent);
+  border-left: 1px solid color-mix(in srgb, var(--accent-primary) 45%, transparent);
+  pointer-events: none;
+}
+
+.body {
+  position: relative;
+  z-index: 1;
+  margin-top: 14px;
+}
+
+.title {
+  position: relative;
+  z-index: 1;
+  margin: 14px 0 2px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-headline, #fff);
+}
+
+.caption {
+  position: relative;
+  z-index: 1;
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-muted, rgba(255, 255, 255, 0.62));
+}

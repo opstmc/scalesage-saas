@@ -1,0 +1,321 @@
+/* Mechanism-demo motion. All animation is gated behind .running (added by an
+   IntersectionObserver when the demo scrolls into view) and killed under
+   prefers-reduced-motion, where the finished state shows statically. Only
+   transform/opacity animate, so it stays on the compositor — no layout cost. */
+
+.stage {
+  --acc: var(--accent-primary, #3dd9d0);
+  width: 100%;
+  min-height: 132px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- pipeline: lead advancing capture → reply → booked ---------- */
+
+.pipeline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: 100%;
+}
+
+.node {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.nodeDot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  flex: none;
+  border: 1.5px solid color-mix(in srgb, var(--acc) 45%, transparent);
+  background: transparent;
+  transition: none;
+}
+
+.nodeLabel {
+  font-size: 13.5px;
+  color: var(--text-faint, rgba(255, 255, 255, 0.42));
+  white-space: nowrap;
+}
+
+.wire {
+  position: relative;
+  width: clamp(28px, 6vw, 64px);
+  height: 2px;
+  margin: 0 8px;
+  background: color-mix(in srgb, var(--acc) 18%, transparent);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.pulse {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 14px;
+  height: 6px;
+  transform: translate(-16px, -50%);
+  border-radius: 6px;
+  background: linear-gradient(90deg, transparent, var(--acc));
+  opacity: 0;
+}
+
+.running .nodeDot {
+  animation: mdNodeOn 0.5s var(--ease-out, cubic-bezier(0.2, 0.7, 0.2, 1)) forwards;
+  animation-delay: calc(var(--i) * 0.62s);
+}
+
+.running .nodeLabel {
+  animation: mdLabelOn 0.5s ease forwards;
+  animation-delay: calc(var(--i) * 0.62s);
+}
+
+.running .pulse {
+  animation: mdPulse 1.7s linear infinite;
+  animation-delay: calc(var(--i) * 0.62s + 0.4s);
+}
+
+@keyframes mdNodeOn {
+  to {
+    background: var(--acc);
+    border-color: var(--acc);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--acc) 18%, transparent);
+  }
+}
+
+@keyframes mdLabelOn {
+  to {
+    color: var(--text-headline, #fff);
+  }
+}
+
+@keyframes mdPulse {
+  0% {
+    transform: translate(-16px, -50%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(72px, -50%);
+    opacity: 0;
+  }
+}
+
+/* ---------- handoff: a task passing between agents ---------- */
+
+.handoff {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.agentBox {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted, rgba(255, 255, 255, 0.62));
+  border: 1px solid var(--border-hair, rgba(255, 255, 255, 0.1));
+  background: var(--bg-elev, rgba(255, 255, 255, 0.03));
+}
+
+.running .agentBox {
+  animation: mdReceive 3.6s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 1.2s);
+}
+
+.token {
+  position: absolute;
+  left: 8%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--acc);
+  box-shadow: 0 0 12px 2px color-mix(in srgb, var(--acc) 60%, transparent);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+}
+
+.running .token {
+  animation: mdToken 3.6s ease-in-out infinite;
+}
+
+@keyframes mdReceive {
+  0%,
+  100% {
+    border-color: var(--border-hair, rgba(255, 255, 255, 0.1));
+    color: var(--text-muted, rgba(255, 255, 255, 0.62));
+  }
+  8%,
+  25% {
+    border-color: var(--acc);
+    color: var(--text-headline, #fff);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc) 14%, transparent);
+  }
+}
+
+@keyframes mdToken {
+  0% {
+    left: 8%;
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  44% {
+    left: 50%;
+  }
+  90% {
+    left: 92%;
+    opacity: 1;
+  }
+  100% {
+    left: 92%;
+    opacity: 0;
+  }
+}
+
+/* ---------- terminal: a build running, checks ticking green ---------- */
+
+.terminal {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 10px;
+  border: 1px solid var(--border-hair, rgba(255, 255, 255, 0.1));
+  background: color-mix(in srgb, var(--bg-primary, #0a1628) 70%, #000);
+  overflow: hidden;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+.termBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border-hair, rgba(255, 255, 255, 0.08));
+}
+
+.termDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text-faint, #888) 40%, transparent);
+}
+
+.termTally {
+  margin-left: auto;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--text-faint, rgba(255, 255, 255, 0.42));
+}
+
+.termBody {
+  list-style: none;
+  margin: 0;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.termLine {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-muted, rgba(255, 255, 255, 0.62));
+  opacity: 0.5;
+}
+
+.termCheck {
+  color: var(--text-faint, rgba(255, 255, 255, 0.35));
+  font-weight: 700;
+  transform: scale(0.6);
+  opacity: 0;
+}
+
+.running .termLine {
+  animation: mdLineOn 0.35s ease forwards;
+  animation-delay: calc(var(--i) * 0.9s + 0.2s);
+}
+
+.running .termCheck {
+  animation: mdCheckPop 0.4s var(--ease-out, cubic-bezier(0.2, 0.7, 0.2, 1)) forwards;
+  animation-delay: calc(var(--i) * 0.9s + 0.2s);
+}
+
+@keyframes mdLineOn {
+  to {
+    opacity: 1;
+    color: var(--text-headline, #fff);
+  }
+}
+
+@keyframes mdCheckPop {
+  60% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    color: #34d399;
+  }
+}
+
+/* ---------- reduced motion: show the finished state, no movement ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .stage *,
+  .running .nodeDot,
+  .running .nodeLabel,
+  .running .pulse,
+  .running .agentBox,
+  .running .token,
+  .running .termLine,
+  .running .termCheck {
+    animation: none !important;
+  }
+  .nodeDot {
+    background: var(--acc);
+    border-color: var(--acc);
+  }
+  .nodeLabel {
+    color: var(--text-headline, #fff);
+  }
+  .pulse,
+  .token {
+    opacity: 0;
+  }
+  .agentBox {
+    border-color: color-mix(in srgb, var(--acc) 40%, transparent);
+    color: var(--text-headline, #fff);
+  }
+  .termLine {
+    opacity: 1;
+    color: var(--text-headline, #fff);
+  }
+  .termCheck {
+    opacity: 1;
+    transform: scale(1);
+    color: #34d399;
+  }
+}
