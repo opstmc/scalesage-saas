@@ -46,6 +46,7 @@ body{
 
 @keyframes ssFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes ssDot{0%,80%,100%{opacity:.25}40%{opacity:1}}
+@keyframes ssPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(.82)}}
 @keyframes ssFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 @keyframes ssScan{0%{transform:translateY(-100%)}100%{transform:translateY(220%)}}
 @keyframes ssMenuIn{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}

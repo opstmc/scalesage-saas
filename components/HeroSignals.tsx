@@ -3,59 +3,68 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 /**
- * Hero "live signal" monitor — a single glass panel that auto-cycles through the
- * three proof-signals (Capture / Convert / Be found) every CYCLE_MS, reading like
- * a live ops dashboard: a thin teal progress tick fills across the cycle, the
- * active signal fades in (reusing the ssFade keyframe), and small dot indicators
- * mark position (and let you jump between signals).
+ * Hero "live activity" feed — a glass panel that reads like a real-time ops log:
+ * illustrative events stream in at the top with ticking timestamps and a live
+ * clock, older rows age and dim down the stack. This replaced the earlier
+ * slow-rotating signal carousel (Jordan: wanted it to feel more live / real-time).
  *
- * Motion principle: exactly ONE continuously-moving element (the progress tick).
- * prefers-reduced-motion → no auto-rotation; all three signals shown, still.
+ * Motion: a new row arrives every FEED_MS (fades in via the shared ssFade
+ * keyframe), timestamps re-render each second so rows visibly age, and the header
+ * clock ticks. prefers-reduced-motion → a static, complete list with fixed
+ * timestamps and no streaming. Every event stays labelled Illustrative (hard rule).
  */
 
-type Signal = {
-  tag: string;
-  headline: React.ReactNode;
-  meta: string;
-};
+type FeedEvent = { text: React.ReactNode; ok?: boolean };
 
-const SIGNALS: Signal[] = [
+const EVENTS: FeedEvent[] = [
   {
-    tag: "Capture",
-    headline: (
+    text: (
       <>
-        Missed call → <span className="accent">booked in 00:12</span>
+        Missed call → <span className="accent">booked</span>
       </>
     ),
-    meta: "Voice AI · 24/7 coverage",
+    ok: true,
   },
   {
-    tag: "Convert",
-    headline: (
+    text: (
       <>
-        Quote follow-up · <span className="accent">Day 1 · 3 · 7</span>
+        Quote follow-up sent · <span className="accent">Day 3</span>
       </>
     ),
-    meta: "Sequenced until it converts",
   },
+  { text: <>Review request sent</>, ok: true },
+  { text: <>New lead captured</> },
   {
-    tag: "Be found",
-    headline: (
+    text: (
       <>
-        You&rsquo;re the <span className="accent">answer</span> on AI search
+        Surfaced on <span className="accent">AI search</span>
       </>
     ),
-    meta: "ChatGPT · Perplexity · Google",
   },
+  { text: <>Voice AI answered · 24/7</>, ok: true },
+  { text: <>Reactivation reply received</> },
+  { text: <>Booking confirmed</>, ok: true },
 ];
 
-const CYCLE_MS = 3500;
+const ROWS = 5;
+const FEED_MS = 2300;
+// Seed ages (seconds) so the feed starts populated and staggered, not empty.
+const SEED_AGES = [3, 12, 27, 44, 61];
+
+type Row = { key: number; ev: FeedEvent; age: number };
+
+function ago(sec: number): string {
+  if (sec <= 0) return "now";
+  if (sec < 60) return `${sec}s`;
+  return `${Math.floor(sec / 60)}m`;
+}
+
+function clock(d: Date): string {
+  return d.toTimeString().slice(0, 8); // HH:MM:SS
+}
 
 const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
 
-// Subscribe to the reduced-motion preference via useSyncExternalStore — the
-// lint-clean way to read an external store, with no setState-in-effect and a
-// stable SSR snapshot (false) that matches the animated first paint.
 function subscribeReducedMotion(onChange: () => void): () => void {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
     return () => {};
@@ -82,69 +91,50 @@ const panelStyle: React.CSSProperties = {
   flexDirection: "column",
 };
 
-const tagStyle: React.CSSProperties = {
-  display: "inline-block",
-  fontSize: 11,
-  letterSpacing: ".14em",
-  textTransform: "uppercase",
-  fontWeight: 600,
-  color: "var(--accent-primary)",
-  background: "color-mix(in srgb, var(--accent-primary) 12%, transparent)",
-  border: "1px solid var(--border-subtle)",
-  borderRadius: 999,
-  padding: "5px 11px",
-};
-
-const headlineStyle: React.CSSProperties = {
-  fontWeight: 600,
-  fontSize: "clamp(19px, 2.2vw, 23px)",
-  lineHeight: 1.28,
-  color: "var(--text-headline)",
-};
+function seedRows(): Row[] {
+  return Array.from({ length: ROWS }, (_, i) => ({
+    key: i,
+    ev: EVENTS[i % EVENTS.length],
+    age: SEED_AGES[i] ?? (i + 1) * 15,
+  }));
+}
 
 export default function HeroSignals() {
-  const [active, setActive] = useState(0);
   const reduced = useSyncExternalStore(
     subscribeReducedMotion,
     getReducedMotion,
     getReducedMotionServer,
   );
-  const activeRef = useRef(0);
-  const startRef = useRef<number | null>(null);
-  const fillRef = useRef<HTMLDivElement | null>(null);
-  const rafRef = useRef(0);
+  const [rows, setRows] = useState<Row[]>(seedRows);
+  const [now, setNow] = useState<Date>(() => new Date());
+  const nextEvent = useRef(ROWS); // next event to pull from the pool
+  const nextKey = useRef(ROWS); // monotonic keys so new rows mount fresh
 
   useEffect(() => {
     if (reduced) return;
 
-    // The cycle clock is derived from the rAF timestamp (no performance.now()):
-    // a null start means "re-base to the next frame", used on mount and on jump.
-    startRef.current = null;
-    const loop = (now: number) => {
-      if (startRef.current === null) startRef.current = now;
-      let frac = (now - startRef.current) / CYCLE_MS;
-      if (frac >= 1) {
-        activeRef.current = (activeRef.current + 1) % SIGNALS.length;
-        setActive(activeRef.current);
-        startRef.current = now;
-        frac = 0;
-      }
-      if (fillRef.current) {
-        fillRef.current.style.width = `${Math.min(frac, 1) * 100}%`;
-      }
-      rafRef.current = requestAnimationFrame(loop);
-    };
-    rafRef.current = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [reduced]);
+    // Age every visible row each second (timestamps tick) + advance the clock.
+    const ageTimer = window.setInterval(() => {
+      setRows((prev) => prev.map((r) => ({ ...r, age: r.age + 1 })));
+      setNow(new Date());
+    }, 1000);
 
-  const goTo = (i: number) => {
-    activeRef.current = i;
-    setActive(i);
-    // Re-base the clock on the next rAF frame instead of reading performance.now().
-    startRef.current = null;
-    if (fillRef.current) fillRef.current.style.width = "0%";
-  };
+    // A new event arrives at the top; the oldest drops off the bottom.
+    const feedTimer = window.setInterval(() => {
+      setRows((prev) => {
+        const ev = EVENTS[nextEvent.current % EVENTS.length];
+        nextEvent.current += 1;
+        const row: Row = { key: nextKey.current, ev, age: 0 };
+        nextKey.current += 1;
+        return [row, ...prev].slice(0, ROWS);
+      });
+    }, FEED_MS);
+
+    return () => {
+      window.clearInterval(ageTimer);
+      window.clearInterval(feedTimer);
+    };
+  }, [reduced]);
 
   const header = (
     <div
@@ -153,7 +143,7 @@ export default function HeroSignals() {
         alignItems: "center",
         justifyContent: "space-between",
         gap: 12,
-        marginBottom: 14,
+        marginBottom: 16,
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -165,121 +155,103 @@ export default function HeroSignals() {
             background: "var(--accent-primary)",
             boxShadow: "0 0 10px var(--accent-primary)",
             flex: "none",
+            animation: reduced ? undefined : "ssPulse 1.8s ease-in-out infinite",
           }}
         />
         <span className="eyebrow" style={{ margin: 0, fontSize: 11 }}>
-          Live signal
+          Live activity
         </span>
-        <span style={{ fontSize: 10.5, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--text-faint)", border: "1px solid var(--border-hair)", borderRadius: 6, padding: "2px 6px" }}>
+        <span
+          style={{
+            fontSize: 10.5,
+            letterSpacing: ".06em",
+            textTransform: "uppercase",
+            color: "var(--text-faint)",
+            border: "1px solid var(--border-hair)",
+            borderRadius: 6,
+            padding: "2px 6px",
+          }}
+        >
           Illustrative
         </span>
       </div>
-      {!reduced && (
-        <span
-          style={{
-            fontSize: 11,
-            letterSpacing: ".14em",
-            color: "var(--text-faint)",
-            fontVariantNumeric: "tabular-nums",
-          }}
-        >
-          {String(active + 1).padStart(2, "0")} / {String(SIGNALS.length).padStart(2, "0")}
-        </span>
-      )}
+      <span
+        style={{
+          fontSize: 12,
+          letterSpacing: ".08em",
+          color: "var(--text-faint)",
+          fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        {clock(now)}
+      </span>
     </div>
   );
 
-  // Reduced motion: no rotation — show all three signals, calm and complete.
-  if (reduced) {
-    return (
-      <div className="glass" style={panelStyle}>
-        {header}
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          {SIGNALS.map((s, i) => (
-            <div
-              key={i}
-              style={{
-                padding: "14px 0",
-                borderTop: i === 0 ? "none" : "1px solid var(--border-hair)",
-              }}
-            >
-              <div style={{ ...tagStyle, marginBottom: 9 }}>{s.tag}</div>
-              <div style={headlineStyle}>{s.headline}</div>
-              <div className="small" style={{ marginTop: 7, color: "var(--text-faint)" }}>
-                {s.meta}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  const s = SIGNALS[active];
   return (
     <div className="glass" style={panelStyle}>
       {header}
-
-      {/* the single continuously-moving element: the progress tick */}
-      <div
-        style={{
-          height: 2,
-          borderRadius: 2,
-          background: "var(--border-hair)",
-          overflow: "hidden",
-          marginBottom: 22,
-        }}
-      >
-        <div
-          ref={fillRef}
-          style={{
-            height: "100%",
-            width: "0%",
-            borderRadius: 2,
-            background: "linear-gradient(90deg, var(--accent-deep), var(--accent-primary))",
-            boxShadow: "0 0 10px var(--accent-primary)",
-          }}
-        />
-      </div>
-
-      {/* active signal, re-keyed so the ssFade keyframe replays on each switch */}
-      <div
-        key={active}
-        style={{
-          minHeight: 100,
-          animation: "ssFade .5s cubic-bezier(.2,.7,.2,1)",
-        }}
-      >
-        <div style={{ ...tagStyle, marginBottom: 12 }}>{s.tag}</div>
-        <div style={headlineStyle}>{s.headline}</div>
-        <div className="small" style={{ marginTop: 10, color: "var(--text-faint)" }}>
-          {s.meta}
-        </div>
-      </div>
-
-      {/* position indicators, active is a teal pill; tap to jump */}
-      <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
-        {SIGNALS.map((sig, i) => (
-          <button
-            key={i}
-            type="button"
-            aria-label={`Show signal: ${sig.tag}`}
-            onClick={() => goTo(i)}
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {rows.map((r, i) => (
+          <div
+            key={r.key}
             style={{
-              flex: "none",
-              height: 6,
-              width: i === active ? 26 : 6,
-              padding: 0,
-              border: "none",
-              cursor: "pointer",
-              borderRadius: 999,
-              background: i === active ? "var(--accent-primary)" : "var(--text-faint)",
-              opacity: i === active ? 1 : 0.4,
-              boxShadow: i === active ? "0 0 10px var(--accent-primary)" : "none",
-              transition:
-                "width .4s cubic-bezier(.2,.7,.2,1), opacity .3s ease, background .3s ease",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "11px 0",
+              borderTop: i === 0 ? "none" : "1px solid var(--border-hair)",
+              opacity: reduced ? 1 : Math.max(0.4, 1 - i * 0.15),
+              animation: reduced ? undefined : "ssFade .5s cubic-bezier(.2,.7,.2,1)",
             }}
-          />
+          >
+            <span
+              style={{
+                flex: "none",
+                width: 40,
+                fontSize: 12,
+                textAlign: "right",
+                color: "var(--text-faint)",
+                fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              {reduced ? `${SEED_AGES[i] ?? (i + 1) * 15}s` : ago(r.age)}
+            </span>
+            <span
+              style={{
+                flex: "none",
+                width: 16,
+                height: 16,
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 10,
+                fontWeight: 700,
+                color: r.ev.ok ? "var(--on-accent)" : "var(--text-faint)",
+                background: r.ev.ok
+                  ? "var(--accent-primary)"
+                  : "color-mix(in srgb, var(--text-faint) 20%, transparent)",
+                boxShadow: r.ev.ok
+                  ? "0 0 8px color-mix(in srgb, var(--accent-primary) 60%, transparent)"
+                  : "none",
+              }}
+              aria-hidden="true"
+            >
+              {r.ev.ok ? "✓" : "•"}
+            </span>
+            <span
+              style={{
+                fontSize: "clamp(14px, 1.6vw, 15.5px)",
+                color: "var(--text-primary)",
+                lineHeight: 1.35,
+              }}
+            >
+              {r.ev.text}
+            </span>
+          </div>
         ))}
       </div>
     </div>
