@@ -8,6 +8,7 @@ import type { OrbState } from "./SageOrb";
 import LiveDiagram from "./LiveDiagram";
 import { saveSession, type LookupState } from "./session";
 import { reactionFor, reactionForLookup } from "./reactions";
+import SageReaction, { sageReactDurationMs } from "./SageReaction";
 import styles from "./catalyst.module.css";
 
 /* ---------------------------------------------------------------------------
@@ -20,7 +21,6 @@ const RAW = STEPS as unknown as Raw[];
 
 const OTHER = "__other__";
 const BEAT_MS = 520; // ~500ms (max 900ms) non-blocking reaction beat (brief)
-const REACT_MS = 1400; // Sage's per-answer reaction beat before advancing (skippable)
 const DEBOUNCE_MS = 340; // Q1 lookup debounce
 
 // Which step ids the Q1 lookup can satisfy (for auto-skip / auto-confirm).
@@ -308,7 +308,7 @@ export default function ScanFlow({
         window.setTimeout(() => {
           setReaction(null);
           goForward();
-        }, REACT_MS),
+        }, sageReactDurationMs(text)),
       );
     },
     [goForward, reduced, setOrb],
@@ -428,13 +428,7 @@ export default function ScanFlow({
               {stepHint(step) && <p className={styles.hint}>{pipeText(stepHint(step)!, answers)}</p>}
 
               {reaction ? (
-                <div className={styles.reactionBubble} aria-live="polite">
-                  <span className={styles.sageNoteLabel}>Sage</span>
-                  <span className={styles.reactionText}>{reaction}</span>
-                  <button type="button" className={styles.reactionNext} onClick={skipReaction}>
-                    Continue &rarr;
-                  </button>
-                </div>
+                <SageReaction text={reaction} reduced={reduced} onContinue={skipReaction} />
               ) : (
                 <>
                   {/* ---- Q1 live lookup ---- */}
