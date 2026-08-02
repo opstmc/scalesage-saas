@@ -293,7 +293,14 @@ export default function ScanFlow({
     setOrb("listening");
   }, [setOrb]);
 
-  /* ---- Sage reacts to the answer, then advances (skippable; instant when reduced) ---- */
+  /* ---- Sage reacts to the answer, and WAITS (instant when reduced) ----
+   * The reply types out and then STAYS on screen until the person moves on
+   * themselves. It used to clear itself and advance once the typing plus a read
+   * pause had elapsed, which meant Sage's line could vanish mid-read: the timer
+   * guesses a reading speed, and when it guesses wrong the answer is destroyed
+   * in front of someone still reading it. A diagnostic that talks to you has to
+   * let you finish. The orb still settles on its own; only the Continue button
+   * advances the scan. */
   const reactThenAdvance = useCallback(
     (text: string | null) => {
       clearTimers();
@@ -305,15 +312,13 @@ export default function ScanFlow({
       setOrb("detection");
       timers.current.push(window.setTimeout(() => setOrb("thinking"), 180));
       timers.current.push(
-        window.setTimeout(() => {
-          setReaction(null);
-          goForward();
-        }, sageReactDurationMs(text)),
+        window.setTimeout(() => setOrb("listening"), sageReactDurationMs(text)),
       );
     },
     [goForward, reduced, setOrb],
   );
-  const skipReaction = useCallback(() => {
+  /** Dismiss the reply and move to the next question. Reader-driven, always. */
+  const continueFromReaction = useCallback(() => {
     clearTimers();
     setReaction(null);
     goForward();
@@ -428,7 +433,7 @@ export default function ScanFlow({
               {stepHint(step) && <p className={styles.hint}>{pipeText(stepHint(step)!, answers)}</p>}
 
               {reaction ? (
-                <SageReaction text={reaction} reduced={reduced} onContinue={skipReaction} />
+                <SageReaction text={reaction} reduced={reduced} onContinue={continueFromReaction} />
               ) : (
                 <>
                   {/* ---- Q1 live lookup ---- */}

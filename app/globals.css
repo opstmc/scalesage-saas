@@ -113,8 +113,18 @@ body{
 .nav-mark{width:30px;height:30px;border-radius:50%;display:block;flex:none;box-shadow:0 0 0 1px var(--border-hair),0 0 18px -6px color-mix(in srgb,var(--accent-primary) 75%,transparent);}
 .nav-actions{display:flex;align-items:center;gap:12px;}
 
-/* hamburger toggle — present at every breakpoint */
-.nav-toggle{display:flex;background:transparent;border:1px solid var(--border-hair);border-radius:10px;width:42px;height:42px;color:var(--text-primary);cursor:pointer;align-items:center;justify-content:center;transition:border-color .2s,color .2s,background .2s;}
+/* Desktop nav links, visible. Clarity beats cleverness on navigation: hiding
+   every destination behind an icon on a wide screen makes a visitor work to
+   find out what the site even contains. Collapses into the panel below 980px. */
+.nav-links{display:flex;align-items:center;gap:4px;}
+.nav-links a{text-decoration:none;color:var(--text-muted);font-size:14.5px;font-weight:500;padding:8px 12px;border-radius:var(--r-input);transition:background .15s var(--ease-out),color .15s var(--ease-out);}
+.nav-links a:hover{background:rgba(244,246,249,.05);color:var(--text-headline);}
+.nav-links a.is-active{color:var(--text-headline);}
+.nav-links a:focus-visible{outline:none;color:var(--text-headline);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent-primary) 40%,transparent);}
+
+/* hamburger toggle — mobile/tablet only, and labelled */
+.nav-toggle{display:none;background:transparent;border:1px solid var(--border-hair);border-radius:10px;height:42px;padding:0 12px;gap:8px;color:var(--text-primary);cursor:pointer;align-items:center;justify-content:center;font:inherit;font-size:14px;font-weight:600;transition:border-color .2s,color .2s,background .2s;}
+.nav-toggle-label{line-height:1;}
 .nav-toggle:hover{border-color:color-mix(in srgb,var(--accent-primary) 60%,transparent);color:var(--text-headline);}
 .nav-toggle.is-open{border-color:var(--accent-primary);color:var(--text-headline);}
 .nav-toggle-bars{position:relative;width:18px;height:14px;}
@@ -271,6 +281,9 @@ body{
 
 /* ---------- responsive ---------- */
 @media (max-width:980px){
+  /* below desktop the links collapse back into the labelled Menu panel */
+  .nav-links{display:none;}
+  .nav-toggle{display:inline-flex;}
   .hero-content{grid-template-columns:1fr;gap:36px;padding:120px 24px 80px;}
   .hero-signature{order:-1;align-items:stretch;flex-direction:row;flex-wrap:wrap;gap:12px;}
   .sig-card{width:100%;margin:0 !important;}

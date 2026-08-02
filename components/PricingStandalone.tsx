@@ -1,48 +1,15 @@
 import Link from "next/link";
 import styles from "./PricingStandalone.module.css";
+import {
+  BOLT_ONS as DUAL,
+  ORBIT,
+  ORBIT_ANNUAL_NOTE,
+  ORBIT_WAITLIST_NOTE,
+  VAT_NOTE,
+} from "@/lib/offer";
 
-/* ============================================================
-   FIGURES: quoted from Partner Pack v5 via the build brief.
-   Copied, never retyped. Do NOT add prices not in the pack.
-   FLAG FOR JW: whole table pending final reconciliation
-   against Partner Pack v5 (setup fees / founding terms not
-   supplied for this build, so none shown, none invented).
-   ============================================================ */
-interface DualItem {
-  item: string;
-  standalone: string;
-  subscriber: string;
-  saving: string;
-}
-
-const DUAL: DualItem[] = [
-  { item: "LinkedIn outreach", standalone: "£397", subscriber: "£197", saving: "£200" },
-  { item: "Voice AI agent", standalone: "£197", subscriber: "£97", saving: "£100" },
-  { item: "Website build", standalone: "£1,797", subscriber: "£997", saving: "£800" },
-  { item: "Landing page", standalone: "£697", subscriber: "£397", saving: "£300" },
-  { item: "Explainer video", standalone: "£1,497", subscriber: "£797", saving: "£700" },
-  { item: "Pitch deck", standalone: "£897", subscriber: "£497", saving: "£400" },
-  { item: "Missed-call SMS bot", standalone: "£67/mo", subscriber: "£47/mo", saving: "£20/mo" },
-];
-
-interface OrbitTier {
-  name: string;
-  price: string;
-  freeWith: string;
-  note?: string;
-  flagship?: string;
-}
-
-const ORBIT: OrbitTier[] = [
-  { name: "Orbit Solo", price: "£97/mo standalone", freeWith: "Starter" },
-  { name: "Orbit Pro", price: "£297/mo standalone", freeWith: "Pro" },
-  {
-    name: "Orbit Premium",
-    price: "£597/mo standalone",
-    freeWith: "Max",
-    flagship: "Frontier live monitoring",
-  },
-];
+/* Figures come from lib/offer.ts, which mirrors Offer Book v1.7 s11. Copied
+ * from canon, never retyped here, and never invented. */
 
 export default function PricingStandalone() {
   return (
@@ -75,30 +42,37 @@ export default function PricingStandalone() {
             <tbody>
               {DUAL.map((r) => (
                 <tr key={r.item}>
-                  <td className={styles.item}>{r.item}</td>
+                  <td className={styles.item}>
+                    {r.item}
+                    {r.note && (
+                      <span style={{ display: "block", fontSize: 12.5, opacity: 0.7, marginTop: 3 }}>
+                        {r.note}
+                      </span>
+                    )}
+                  </td>
                   <td className={`${styles.num} ${styles.standalonePrice}`}>{r.standalone}</td>
                   <td className={`${styles.num} ${styles.subPrice}`}>{r.subscriber}</td>
                   <td className={`${styles.num} ${styles.saving}`}>{r.saving}</td>
                 </tr>
               ))}
-              {/* Frontier Visibility: subscription-only, included in every tier */}
-              <tr className={styles.subOnlyRow}>
-                <td className={styles.item}>Frontier Visibility</td>
-                <td colSpan={3} className={styles.subOnlyNote}>
-                  <span className={styles.flag}>Subscription-only.</span> Included in every tier,
-                  not sold as a one-off. Live AI-search and reputation visibility is a reason to
-                  subscribe, not a box to buy once.
-                </td>
-              </tr>
             </tbody>
           </table>
         </div>
-        {/* --- Orbit access tiers (reference) --- */}
+        <p className={styles.pending}>{VAT_NOTE}</p>
+
+        {/* --- Orbit standalone: Free / Pro / Premium, waitlist only ---
+            No buy button anywhere in this block. The purchase path ships in a
+            later phase, and the rule is that anything not fully ready to
+            deliver goes live as a waitlist, never a hidden page and never an
+            overpromise. --- */}
         <div className="section-head" data-reveal="" style={{ marginTop: 56, marginBottom: 24 }}>
-          <div className="eyebrow" style={{ marginBottom: 12 }}>Orbit access, for reference</div>
+          <div className="eyebrow" style={{ marginBottom: 12 }}>Orbit, on its own</div>
+          <h2 className="h2">Better tier, better brain, better decisions.</h2>
           <p className="lead">
-            Orbit is the access layer. Each tier is priced standalone, and comes free with the
-            matching subscription. Frontier live monitoring is the Orbit Premium flagship.
+            Orbit is where your business makes sense in one place. Free runs on fast, efficient
+            models. Pro steps up to stronger ones. Premium runs on frontier models with deeper
+            reasoning, and adds live market intelligence. Every paying ScaleSage client gets Orbit
+            Pro or Premium included, so nobody paying for the service sits on the free product.
           </p>
         </div>
         <div className={styles.orbitGrid}>
@@ -107,12 +81,20 @@ export default function PricingStandalone() {
               <div className={styles.orbitName}>{o.name}</div>
               <div className={styles.orbitPrice}>{o.price}</div>
               <div className={styles.orbitFree}>
-                Free with <span className="accent">{o.freeWith}</span>
+                <strong>{o.line}</strong>
               </div>
-              {o.flagship && <span className={styles.orbitFlagship}>{o.flagship}</span>}
+              <p style={{ fontSize: 13.5, color: "var(--text-muted)", lineHeight: 1.55, margin: "10px 0 0" }}>
+                {o.detail}
+              </p>
+              {o.includedWith && (
+                <span className={styles.orbitFlagship}>Included with {o.includedWith}</span>
+              )}
             </div>
           ))}
         </div>
+        <p className={styles.pending}>
+          {ORBIT_WAITLIST_NOTE} {ORBIT_ANNUAL_NOTE}
+        </p>
 
         {/* --- Bespoke line (bottom of the standalone section) --- */}
         <div data-reveal="" className={`glass ${styles.bespoke}`}>

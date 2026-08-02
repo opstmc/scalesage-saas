@@ -15,14 +15,20 @@ export const metadata: Metadata = {
 
 const PARTNER_EMAIL = "admin@scalesage.ai";
 const APPLY = `mailto:${PARTNER_EMAIL}?subject=${encodeURIComponent("Partner application")}`;
-const PARTNER_LOGIN = process.env.NEXT_PUBLIC_PORTAL_URL
-  ? `${process.env.NEXT_PUBLIC_PORTAL_URL}/portal/login`
-  : "#contact";
+// One canonical label per destination (fix list A6): the Partner Hub is the
+// partner entrance, the Client Portal is the client one. "Partner login" is
+// retired as a label because it read as the door for paying clients.
+// Falls back to the application email rather than an anchor that goes nowhere.
+const PARTNER_HUB = process.env.NEXT_PUBLIC_PORTAL_URL
+  ? `${process.env.NEXT_PUBLIC_PORTAL_URL.replace(/\/+$/, "")}/portal/login?as=partner`
+  : APPLY;
 
 const STEPS = [
   { t: "Sign the Partner Agreement", b: "One document, commission, payment terms, IP. Signed electronically in about ten minutes." },
   { t: "Receive your Partner Kit", b: "Welcome pack, email templates, demo videos, sales deck and your referral link, within 48 hours." },
-  { t: "Introduce a prospect", b: "Open with the free £750 Catalyst Diagnostic. The diagnostic does the selling, no hard pitch needed." },
+  // No headline value figure on the Catalyst: it is free, and putting a price
+  // on a free diagnostic is a claim we cannot source (decision D11).
+  { t: "Introduce a prospect", b: "Open with the Catalyst diagnostic. It prices their leaks in pounds a month from their own data, so the diagnostic does the selling and there is no hard pitch needed." },
   { t: "We close & deliver", b: "We handle the sales process, onboarding, build and ongoing delivery. Stay as involved as you like." },
   { t: "Get paid every month", b: "50% within 5 days of the client's payment, 50% at Day 90. Monthly, via Wise, GBP, EUR or USD." },
 ];
@@ -38,7 +44,7 @@ const GETS = [
   ["Pre-written email templates", "Warm intro, cold-warm and follow-up, professionally written. Change the name and industry, nothing else."],
   ["Demo videos", "Catalyst walkthrough plus live system demos, AI receptionist, cold-email engine, reactivation in action."],
   ["One-page sales deck", "Who ScaleSage is for, what each tier includes, pricing and the Catalyst Diagnostic. Clean and updated quarterly."],
-  ["Free Catalyst Diagnostic, £750 value", "A free 20-minute AI health check you can offer every prospect. The best door-opener in the market."],
+  ["The Catalyst diagnostic, free to offer", "A diagnostic you can put in front of every prospect. It runs live checks while they answer and prices their leaks in pounds a month, which is the best door-opener in the market."],
   ["Direct WhatsApp to Partner Success", "Got a live prospect? Message Cy directly. Warm lead handoff, real humans, 4-business-hour response."],
   ["Co-selling support", "For Pro prospects, Cy joins your call. For Max, the founder joins personally. Close rates jump to 30–50%."],
   ["Co-branded materials", "A one-pager with your name and logo alongside ScaleSage, and optionally your own landing page."],
@@ -57,7 +63,11 @@ const INDUSTRIES = [
 const TERMS = [
   ["Commission payment", "50% within 5 days of the client's payment, 50% at the Day-90 retention milestone. Monthly, by the 10th, via Wise in GBP, EUR or USD."],
   ["First-close bonus", "Your very first standard client earns 100% of the first month's commission, paid immediately and not split. Once per partner."],
-  ["Annual prepay bonus", "If a client signs annually (10% off), you receive the full Year-1 commission as a lump sum within 30 days, not spread over 12 months."],
+  // Annual prepay is deferred, not live: it returns at standard pricing once
+  // the founding cohort closes, at 10%, and it never stacks with another
+  // discount (decision D1). The old lump-sum commission mechanic is not
+  // advertised while the option itself is not on sale.
+  ["Annual prepay", "Available at standard pricing after the founding cohort closes, at 10% off, and it does not stack with any other discount. Commission on a prepaid year is paid monthly-equivalent."],
   ["Eligible clients", "UK and Ireland registered businesses. You can operate from anywhere in the world, only the client's business location matters."],
   ["Tier permanence", "Once you reach Gold or Platinum, you keep that tier permanently, even if your close volume dips in a future 12-month window."],
   ["90-day retention rule", "Commission is split 50/50. If a client cancels before Day 90, the 50% already paid is clawed back. It protects quality on both sides."],
@@ -83,7 +93,7 @@ export default function PartnersPage() {
           </p>
           <div className={styles.heroCtas}>
             <a href={APPLY} className="btn btn-primary btn-lg">Become a partner</a>
-            <a href={PARTNER_LOGIN} className="btn btn-ghost btn-lg">Partner login</a>
+            <a href={PARTNER_HUB} className="btn btn-ghost btn-lg">Partner Hub</a>
           </div>
           <p className={styles.heroNote}>You introduce them to us. We build, deliver and retain them. You earn a recurring cut for as long as they stay.</p>
         </div>
@@ -264,7 +274,7 @@ export default function PartnersPage() {
           </p>
           <div className={styles.closerCtas}>
             <a href={APPLY} className="btn btn-primary btn-lg">Become a partner</a>
-            <a href={PARTNER_LOGIN} className="btn btn-secondary btn-lg">Partner login</a>
+            <a href={PARTNER_HUB} className="btn btn-secondary btn-lg">Partner Hub</a>
           </div>
         </div>
       </section>

@@ -9,9 +9,12 @@ import styles from "./catalyst.module.css";
  * This is what makes the scan feel like a conversation rather than a form
  * (Jordan: "as interactive as possible / a real conversation").
  *
- * Timing is exported so ScanFlow can hold its auto-advance for exactly as long as
- * the reply takes to type + be read (sageReactDurationMs). Clicking the button
- * reveals the full line instantly while typing, and continues once done. Under
+ * Nothing here advances the scan on a timer. The line types out and then stays
+ * put until the reader presses Continue: a timer has to guess a reading speed,
+ * and when it guesses wrong it deletes the answer in front of someone still
+ * reading it. sageReactDurationMs is still exported, but ScanFlow now uses it
+ * only to settle the orb, never to move on. Clicking the button reveals the
+ * full line instantly while typing, and continues once done. Under
  * prefers-reduced-motion the full text shows at once with no animation (and in
  * practice ScanFlow skips the reply beat entirely under reduced motion).
  */
