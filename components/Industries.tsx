@@ -210,7 +210,7 @@ export default function Industries() {
       <div className="inner">
         <div className="section-head" data-reveal="">
           <div className="eyebrow">Industries</div>
-          <h2 className="h2">We&rsquo;ve mapped the leak patterns across 18 SME industries.</h2>
+          <h1 className="h2">We&rsquo;ve mapped the leak patterns across 18 SME industries.</h1>
           <p className="lead">
             Find yours and open its leak map: what it feels like, where the money leaks, the question Sage
             asks, what we install, and what you get back.

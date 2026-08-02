@@ -1,10 +1,19 @@
 import Link from "next/link";
 
-// Where partners log in to grab their referral link + see earnings. Set
-// NEXT_PUBLIC_PORTAL_URL (e.g. https://dash.scalesage.ai) to point at the portal.
-const PARTNER_PORTAL = process.env.NEXT_PUBLIC_PORTAL_URL
-  ? `${process.env.NEXT_PUBLIC_PORTAL_URL.replace(/\/+$/, "")}/portal/login`
-  : "#contact";
+/* Two doors for two audiences, labelled once and consistently (fix list A6,
+ * resolved as R-E): the CLIENT PORTAL is where a paying client sees their
+ * pipeline, reports and deliverables; the PARTNER HUB is where a partner grabs
+ * their referral link and sees earnings. "Partner login" is dead as a label: it
+ * read as the entrance for paying clients, who are not partners.
+ * Both live on the app host, set via NEXT_PUBLIC_PORTAL_URL. */
+const PORTAL_BASE = process.env.NEXT_PUBLIC_PORTAL_URL?.replace(/\/+$/, "") ?? "";
+const CLIENT_PORTAL = PORTAL_BASE ? `${PORTAL_BASE}/portal/login` : null;
+const PARTNER_HUB = PORTAL_BASE ? `${PORTAL_BASE}/portal/login?as=partner` : null;
+
+// A contact route has to end somewhere a human answers. "#contact" pointed at
+// this footer, which is where the visitor already was: the dead end on the fix
+// list. Email is the honest answer until a contact page exists.
+const CONTACT_EMAIL = "hello@scalesage.ai";
 
 const COLS = [
   {
@@ -13,7 +22,7 @@ const COLS = [
       { href: "/how-it-works", label: "How it works" },
       { href: "/pricing", label: "Pricing" },
       { href: "/industries", label: "Industries" },
-      { href: "/how-it-works#catalyst", label: "Catalyst diagnostic" },
+      { href: "/catalyst", label: "Run the Catalyst" },
     ],
   },
   {
@@ -21,8 +30,9 @@ const COLS = [
     links: [
       { href: "/about", label: "About" },
       { href: "/partners", label: "Partners" },
-      { href: PARTNER_PORTAL, label: "Partner login" },
-      { href: "#contact", label: "Contact" },
+      ...(CLIENT_PORTAL ? [{ href: CLIENT_PORTAL, label: "Client Portal" }] : []),
+      ...(PARTNER_HUB ? [{ href: PARTNER_HUB, label: "Partner Hub" }] : []),
+      { href: `mailto:${CONTACT_EMAIL}`, label: "Contact" },
     ],
   },
   {
@@ -49,6 +59,14 @@ export default function Footer() {
             <p style={{ fontSize: 15, color: "var(--text-muted)", margin: 0, maxWidth: "30em", lineHeight: 1.6 }}>
               The business doctor for growing SMEs. We diagnose the leak, build the systems that close it, and prove the result in numbers.
             </p>
+            {/* The footer carries #contact, so it has to actually answer it. */}
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              className="footer-link"
+              style={{ display: "inline-block", marginTop: 14, fontSize: 15 }}
+            >
+              {CONTACT_EMAIL}
+            </a>
           </div>
           {COLS.map((c) => (
             <div key={c.title}>

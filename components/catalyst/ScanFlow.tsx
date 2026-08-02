@@ -20,7 +20,8 @@ const RAW = STEPS as unknown as Raw[];
 
 const OTHER = "__other__";
 const BEAT_MS = 520; // ~500ms (max 900ms) non-blocking reaction beat (brief)
-const REACT_MS = 1400; // Sage's per-answer reaction beat before advancing (skippable)
+const REACT_MS = 1400; // how long Sage's orb stays animated after replying (not a timeout:
+                       // the reaction itself persists until the reader continues)
 const DEBOUNCE_MS = 340; // Q1 lookup debounce
 
 // Which step ids the Q1 lookup can satisfy (for auto-skip / auto-confirm).
@@ -275,7 +276,13 @@ export default function ScanFlow({
     setOrb("listening");
   }, [setOrb]);
 
-  /* ---- Sage reacts to the answer, then advances (skippable; instant when reduced) ---- */
+  /* ---- Sage reacts to the answer, and WAITS (instant when reduced) ----
+   * The reaction stays on screen until the person moves on themselves. It used
+   * to clear itself and advance on a 1.4s timer, which meant Sage's line
+   * appeared and vanished faster than anyone could read it: the reply was
+   * written, shown, and destroyed before it had been read. A diagnostic that
+   * talks to you has to let you finish reading. Nothing here disappears on a
+   * clock; the Continue button is the only thing that advances the scan. */
   const reactThenAdvance = useCallback(
     (text: string | null) => {
       clearTimers();
@@ -286,16 +293,13 @@ export default function ScanFlow({
       setReaction(text);
       setOrb("detection");
       timers.current.push(window.setTimeout(() => setOrb("thinking"), 180));
-      timers.current.push(
-        window.setTimeout(() => {
-          setReaction(null);
-          goForward();
-        }, REACT_MS),
-      );
+      // Sage settles into listening and stays there, waiting on the reader.
+      timers.current.push(window.setTimeout(() => setOrb("listening"), REACT_MS));
     },
     [goForward, reduced, setOrb],
   );
-  const skipReaction = useCallback(() => {
+  /** Dismiss the reaction and move to the next question. Reader-driven, always. */
+  const continueFromReaction = useCallback(() => {
     clearTimers();
     setReaction(null);
     goForward();
@@ -398,7 +402,7 @@ export default function ScanFlow({
                 <div className={styles.reactionBubble} aria-live="polite">
                   <span className={styles.sageNoteLabel}>Sage</span>
                   <span className={styles.reactionText}>{reaction}</span>
-                  <button type="button" className={styles.reactionNext} onClick={skipReaction}>
+                  <button type="button" className={styles.reactionNext} onClick={continueFromReaction}>
                     Continue &rarr;
                   </button>
                 </div>

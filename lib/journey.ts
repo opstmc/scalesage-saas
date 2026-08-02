@@ -219,7 +219,7 @@ export const RECOVER_PCT = 30;
 export function buildSnapshot(a: Answers): Snapshot {
   const ind = INDUSTRY[a.industry as string] || "business";
   const painObs: Record<string, string> = {
-    calls: "Missed calls are your loudest leak, 30–60% of inbound calls go unanswered, and most callers just dial the next business. Voice AI captures and books them, day or night.",
+    calls: "Missed calls are your loudest leak: most callers who cannot reach you just dial the next business, and they rarely leave a voicemail first. Voice AI captures and books them, day or night.",
     quotes: "Quotes go cold while you're on the next job. Sequenced follow-up chases every one until it converts or closes, no second chance left on the table.",
     reviews: "Every happy customer is a 5-star review you didn't ask for. An automated review engine turns finished jobs into the proof that wins the next ones.",
     lapsed: "Past customers sitting in your database are worth more than every cold prospect combined. Reactivation campaigns bring them back on autopilot.",
@@ -246,23 +246,23 @@ export function buildSnapshot(a: Answers): Snapshot {
     starter: {
       tierLabel: "Starter",
       track: "Starter",
-      price: "£597/mo",
+      price: "£597/mo plus £297 setup",
       ctaLabel: "Start the Catalyst diagnostic",
-      note: "Plug your biggest leak first, one core system installed, founder-led onboarding, and a monthly ROI report. The diagnostic shows what that leak is worth before you commit.",
+      note: "Plug your biggest leak first: missed-call text-back, automated quote follow-up, the review system, 1,500 cold emails a month, guided onboarding and a monthly ROI report. The diagnostic shows what that leak is worth before you commit.",
     },
     pro: {
       tierLabel: "Pro · most popular",
       track: "Pro",
-      price: "£1,497/mo",
+      price: "£1,497/mo plus £747 setup",
       ctaLabel: "Start the Catalyst diagnostic",
-      note: "Two to three systems installed as one operating system, a full Catalyst diagnostic, quarterly strategy review, and a 90-day ROI proof report.",
+      note: "The full engine: Voice AI answering every call with 750 minutes a month, 100 LinkedIn connections, 3,000 cold emails, live visibility work, and a monthly one-on-one Score Review with our operations lead.",
     },
     max: {
       tierLabel: "Max",
       track: "Max",
-      price: "£4,997/mo",
+      price: "£4,997/mo plus £2,497 setup, waitlist",
       ctaLabel: "Talk to us first",
-      note: "Full service stack, dedicated capacity, custom AI builds and weekly proof reporting, operational transformation with an executive strategy partnership.",
+      note: "Done for you, end to end: a named senior operator with daily oversight, 1,500 voice minutes, 500 LinkedIn connections across multiple accounts, weekly visibility work and quarterly strategy with the founder. Max is waitlist only right now.",
     },
   }[tier];
   const indLabel = (STEPS[0].options!.find((o) => o.value === a.industry) || ({} as ChooseOption)).label || "business";
@@ -306,19 +306,24 @@ export const SAGE_SUGGEST = [
   "How is this different?",
 ];
 
+/* EU AI Act (in force 2 Aug 2026): anyone interacting with an AI system has to
+ * be told that it is AI. Sage is our own chatbot talking to visitors, so the
+ * disclosure is baked into the opening line, not hidden in a toggle, and a
+ * hand-off to a person is offered in the same breath. Matches the wording the
+ * backend uses for the same bot (src/api/routes/support.py). */
 export const SAGE_GREETING =
-  "Hi, I'm Sage, ScaleSage's diagnostic intelligence. Ask me about the scan, pricing, what we fix, or how we prove it.";
+  "Hi, you're chatting with Sage, an AI assistant for ScaleSage. Ask me about the scan, pricing, what we fix, or how we prove it, or just say the word and I'll point you to a person.";
 
 export function sageReply(q: string): string {
   const t = (q || "").toLowerCase();
   if (/diagnostic|catalyst|scan|audit|journey|form/.test(t))
     return "This isn't a form, it's a scan. The Catalyst diagnostic checks your missed calls, follow-up speed, search and AI visibility, retention and operations drag, then shows you exactly where revenue is leaving the building, what to fix first, and what recovery looks like in numbers. About 60 seconds.";
   if (/price|pricing|cost|how much|fee|£|expensive|budget|tier/.test(t))
-    return "Three tiers, monthly: Starter £597 (one acute leak plugged), Pro £1,497 (a 2–3 system operating system, most popular), and Max £4,997 (full transformation, dedicated capacity). Not sure which? Run the Catalyst diagnostic, it shows what your leak is worth and what to fix first.";
+    return "Three tiers, monthly, plus a one-off setup fee: Starter £597 a month plus £297 setup, Pro £1,497 plus £747 (most popular), and Max £4,997 plus £2,497, which is waitlist only right now. Not sure which? Run the Catalyst diagnostic, it shows what your leak is worth and what to fix first.";
   if (/work|prove|proof|result|roi|guarantee|number|baseline/.test(t))
-    return "Every system has a number against it. We measure a baseline at install, track improvement weekly, and ship a proof report every 90 days. We guarantee implementation. We target performance. We report both honestly.";
+    return "Every system has a number against it. We measure a baseline before anything goes live, track it, and report against it every month. The Implementation Guarantee covers the build. We target performance, measure it against your baseline, and report both honestly.";
   if (/own|ownership|keep|lock.?in|template|contract|cancel/.test(t))
-    return "The systems are built into your business, not bolted on, and cancellation is self-serve, never “email us”. No long lock-in. You stay in control.";
+    return "The systems are built into your business, not bolted on, and what we install stays yours. On standard pricing there is no long lock-in and cancellation is self-serve, never “email us”. The one exception is the founding cohort: those places are 20 percent off for life and carry a 12 month minimum term, and that is stated on the pricing card before you buy.";
   if (/different|why|agency|better|compare|tool|chatbot|receptionist|99/.test(t))
     return "Most AI agencies hand you a tool, a chatbot, a £99 receptionist, and leave. We're the business doctor: we diagnose the leak, install the system that closes it, monitor it, and prove it moved your numbers. We don't sell tools; we fix what's costing you money.";
   if (/fast|quick|long|time|timeline|when|live/.test(t))

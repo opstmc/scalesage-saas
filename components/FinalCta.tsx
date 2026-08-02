@@ -29,7 +29,9 @@ export default function FinalCta() {
           </p>
           <div style={{ display: "flex", gap: 14, justifyContent: "flex-start", flexWrap: "wrap" }}>
             <JourneyButton className="btn btn-primary btn-lg">Start the Catalyst diagnostic</JourneyButton>
-            <a href="#contact" className="btn btn-ghost btn-lg">Talk to us first</a>
+            {/* Goes to a person, not back to the footer the visitor is already
+                standing in (the dead-end contact route on the fix list). */}
+            <a href="mailto:hello@scalesage.ai" className="btn btn-ghost btn-lg">Talk to us first</a>
           </div>
         </div>
       </div>

@@ -10,7 +10,7 @@ export default function WhyNotAgency() {
       <div className="inner">
         <div className="section-head" data-reveal="">
           <div className="eyebrow">The difference</div>
-          <h2 className="h2">Why ScaleSage isn&rsquo;t a normal AI agency.</h2>
+          <h1 className="h2">Why ScaleSage isn&rsquo;t a normal AI agency.</h1>
         </div>
         <div className="grid-3">
           {POINTS.map((p) => (

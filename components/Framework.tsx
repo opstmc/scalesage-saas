@@ -39,7 +39,7 @@ export default function Framework() {
     <section id="how" className="inner">
       <div className="section-head" data-reveal="">
         <div className="eyebrow">The method</div>
-        <h2 className="h2">Diagnose. Build. Prove.</h2>
+        <h1 className="h2">Diagnose. Build. Prove.</h1>
         <p className="lead">An actual process, not guesswork. Three phases, every one accountable to a number.</p>
       </div>
       <div className="grid-3">

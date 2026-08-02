@@ -1,10 +1,18 @@
+/* The trailing "[D]" markers that used to sit on every stat line were internal
+ * claim-confidence tags from the evidence system. They were never meant to be
+ * read by a customer and were rendering raw on the page.
+ *
+ * The missed-calls line also carried a hard statistic with no source attached.
+ * Under the evidence rule a number only goes on the site with its source next
+ * to it, so it is stated qualitatively here like the other five. Cy: the
+ * figure can come straight back the moment a citation rides with it. */
 const LEAKS = [
-  { title: "Missed calls", line: "Every unanswered call is a customer dialing the next business.", stat: "30–60% of inbound calls go unanswered · 75% leave no voicemail [D]" },
-  { title: "Cold quotes", line: "Quotes sent and forgotten. No follow-up, no second chance.", stat: "The deal goes cold while you're on the next job [D]" },
-  { title: "Forgotten reviews", line: "Every happy customer is a 5-star review you didn't ask for.", stat: "Most businesses ask for none [D]" },
-  { title: "Lapsed customers", line: "Bought once, never came back, sitting in your database.", stat: "Worth more than every cold prospect combined [D]" },
-  { title: "Invisible online", line: "Customers ask ChatGPT, Google and Perplexity, and you don't come up.", stat: "AI search is where the next recommendation happens [D]" },
-  { title: "Admin drag", line: "Quoting, invoicing, chasing, hours AI does in minutes.", stat: "Time your team should be spending earning [D]" },
+  { title: "Missed calls", line: "Every unanswered call is a customer dialing the next business.", stat: "Most missed callers never leave a voicemail, they just call the next name" },
+  { title: "Cold quotes", line: "Quotes sent and forgotten. No follow-up, no second chance.", stat: "The deal goes cold while you're on the next job" },
+  { title: "Forgotten reviews", line: "Every happy customer is a 5-star review you didn't ask for.", stat: "Most businesses ask for none" },
+  { title: "Lapsed customers", line: "Bought once, never came back, sitting in your database.", stat: "Worth more than every cold prospect combined" },
+  { title: "Invisible online", line: "Customers ask ChatGPT, Google and Perplexity, and you don't come up.", stat: "AI search is where the next recommendation happens" },
+  { title: "Admin drag", line: "Quoting, invoicing, chasing, hours AI does in minutes.", stat: "Time your team should be spending earning" },
 ];
 
 export default function Leaking() {

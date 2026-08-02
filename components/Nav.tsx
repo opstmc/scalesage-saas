@@ -115,10 +115,34 @@ export default function Nav() {
       <nav className={`nav${scrolled ? " scrolled" : ""}`} aria-label="Primary">
         <div className="nav-row">
           <Logo />
+
+          {/* Desktop: the destinations are visible, not hidden behind an icon. */}
+          <div className="nav-links">
+            {LINKS.map((l) => {
+              const active = l.href === "/" ? pathname === "/" : pathname === l.href;
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className={active ? "is-active" : undefined}
+                  aria-current={active ? "page" : undefined}
+                >
+                  {l.label}
+                </Link>
+              );
+            })}
+          </div>
+
           <div className="nav-actions">
-            <Link href={CATALYST_HREF} className="btn btn-primary btn-sm nav-cta-desktop">
-              Run the Catalyst
-            </Link>
+            {/* One primary CTA per viewport. Above the fold the hero owns it, so
+                the nav pill stays out of the way until the visitor has scrolled
+                past it. Two identical primary buttons competing in one screen
+                reads as bombardment; premium is restraint. */}
+            {scrolled && (
+              <Link href={CATALYST_HREF} className="btn btn-primary btn-sm nav-cta-desktop">
+                Run the Catalyst
+              </Link>
+            )}
             <button
               ref={toggleRef}
               type="button"
@@ -133,6 +157,9 @@ export default function Nav() {
                 <span />
                 <span />
               </span>
+              {/* The word, next to the icon. An unlabelled hamburger asks the
+                  visitor to guess; this one does not. */}
+              <span className="nav-toggle-label">{menuOpen ? "Close" : "Menu"}</span>
             </button>
           </div>
 
@@ -171,16 +198,20 @@ export default function Nav() {
         </div>
       </nav>
 
-      {/* mobile sticky CTA, always one tap away */}
-      <div className="sticky-cta">
-        <Link
-          href={CATALYST_HREF}
-          className="btn btn-primary btn-md"
-          style={{ boxShadow: "var(--shadow-glow)" }}
-        >
-          Run the Catalyst
-        </Link>
-      </div>
+      {/* Mobile sticky CTA. Holds back until the visitor scrolls, so the first
+          screen carries exactly one primary call to action rather than a
+          floating button competing with the hero's. */}
+      {scrolled && (
+        <div className="sticky-cta">
+          <Link
+            href={CATALYST_HREF}
+            className="btn btn-primary btn-md"
+            style={{ boxShadow: "var(--shadow-glow)" }}
+          >
+            Run the Catalyst
+          </Link>
+        </div>
+      )}
     </>
   );
 }
