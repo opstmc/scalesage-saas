@@ -11,7 +11,7 @@
 import type { ScanAnswers } from "@/lib/catalyst";
 import type { LookupMatch, ChecksResult } from "@/lib/catalyst-api";
 
-export type CatalystPhase = "entry" | "scan" | "result" | "unlock" | "confirmed";
+export type CatalystPhase = "entry" | "scan" | "result" | "unlock" | "interview" | "confirmed";
 
 /** The confirmed Q1 identity + its lock reason (match vs. manual add). */
 export interface LookupState {
@@ -28,6 +28,14 @@ export interface CatalystSession {
   lookup: LookupState | null;
   /** Background live-check facts (public business data only). */
   checks: ChecksResult | null;
+  /** The server session id, once unlock has captured the lead. Needed to resume
+   *  the deep interview after a refresh — without it the answers have nowhere
+   *  to go. Not personal data: an unguessable id, not a contact detail. */
+  sessionId: string | null;
+  /** How far into the deep interview, and what has been answered so far. The
+   *  interview is long, so an abandoned one has to survive a closed tab. */
+  interviewIdx: number;
+  interviewAnswers: Record<string, unknown>;
 }
 
 const KEY = "ss_catalyst_v1";
@@ -38,6 +46,9 @@ const EMPTY: CatalystSession = {
   answers: {} as ScanAnswers,
   lookup: null,
   checks: null,
+  sessionId: null,
+  interviewIdx: 0,
+  interviewAnswers: {},
 };
 
 export function loadSession(): CatalystSession {
@@ -52,6 +63,9 @@ export function loadSession(): CatalystSession {
       answers: (parsed.answers ?? {}) as ScanAnswers,
       lookup: parsed.lookup ?? null,
       checks: parsed.checks ?? null,
+      sessionId: parsed.sessionId ?? null,
+      interviewIdx: typeof parsed.interviewIdx === "number" ? parsed.interviewIdx : 0,
+      interviewAnswers: parsed.interviewAnswers ?? {},
     };
   } catch {
     return { ...EMPTY };

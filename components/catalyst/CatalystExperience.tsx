@@ -7,9 +7,18 @@ import SageOrb, { type OrbState } from "./SageOrb";
 import ScanFlow from "./ScanFlow";
 import ResultScreen from "./ResultScreen";
 import UnlockForm from "./UnlockForm";
+import InterviewFlow from "./InterviewFlow";
 import { isNoFit } from "./meta";
 import { clearSession, loadSession, saveSession, type CatalystPhase, type LookupState } from "./session";
 import styles from "./catalyst.module.css";
+
+/** The sector the mini captured, which picks the interview's spine. */
+function sectorOf(answers: ScanAnswers): string | null {
+  const raw = (answers as unknown as Record<string, unknown>).sectors;
+  if (Array.isArray(raw) && typeof raw[0] === "string") return raw[0];
+  if (typeof raw === "string") return raw;
+  return null;
+}
 
 function safeResult(answers: ScanAnswers): ScanResult {
   try {
@@ -28,6 +37,11 @@ export default function CatalystExperience() {
   const [unlockMode, setUnlockMode] = useState<"build" | "nofit">("build");
   const [lookup, setLookup] = useState<LookupState | null>(null);
   const [checks, setChecks] = useState<ChecksResult | null>(null);
+  // Deep-interview state. sessionId only exists once unlock captured the lead;
+  // without it the interview has nowhere to save, so it is never entered.
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [interviewIdx, setInterviewIdx] = useState(0);
+  const [interviewAnswers, setInterviewAnswers] = useState<Record<string, unknown>>({});
 
   // Resume after a refresh. Runs post-mount only: sessionStorage is unavailable
   // during SSR, so both the server output and the first client render are the
@@ -41,6 +55,14 @@ export default function CatalystExperience() {
       setAnswers(s.answers);
       setResumeIdx(s.idx);
       setPhase("scan");
+      setOrb("listening");
+    } else if (s.phase === "interview" && s.sessionId) {
+      // The interview is long, so an abandoned one has to survive a closed tab.
+      setAnswers(s.answers);
+      setSessionId(s.sessionId);
+      setInterviewIdx(s.interviewIdx);
+      setInterviewAnswers(s.interviewAnswers ?? {});
+      setPhase("interview");
       setOrb("listening");
     } else if (s.phase === "result" || s.phase === "unlock" || s.phase === "confirmed") {
       setAnswers(s.answers);
@@ -87,6 +109,9 @@ export default function CatalystExperience() {
     setLookup(null);
     setChecks(null);
     setProgress(0);
+    setSessionId(null);
+    setInterviewIdx(0);
+    setInterviewAnswers({});
     setPhase("entry");
     setOrb("idle");
   };
@@ -103,7 +128,7 @@ export default function CatalystExperience() {
         />
       ) : (
         <>
-          <TopBar orb={orb} progress={phase === "scan" ? progress : 1} onReset={reset} />
+          <TopBar orb={orb} progress={phase === "scan" || phase === "interview" ? progress : 1} onReset={reset} />
           {phase === "scan" && (
             <ScanFlow
               initialIdx={resumeIdx}
@@ -122,6 +147,21 @@ export default function CatalystExperience() {
               <ResultScreen result={result} answers={answers} checks={checks} lookup={lookup} onUnlock={openUnlock} onBookWalkthrough={openBook} />
             </div>
           )}
+          {phase === "interview" && (
+            <InterviewFlow
+              sessionId={sessionId}
+              sector={sectorOf(answers)}
+              initialIdx={interviewIdx}
+              initialAnswers={interviewAnswers}
+              onOrb={setOrb}
+              onProgress={setProgress}
+              onComplete={() => {
+                setPhase("result");
+                setOrb("handover");
+                setProgress(1);
+              }}
+            />
+          )}
           {phase === "unlock" && result && (
             <div className={styles.shell}>
               <UnlockForm
@@ -130,6 +170,16 @@ export default function CatalystExperience() {
                 checks={checks}
                 lookup={lookup}
                 mode={unlockMode}
+                onContinueToInterview={(id) => {
+                  setSessionId(id);
+                  setInterviewIdx(0);
+                  setInterviewAnswers({});
+                  setPhase("interview");
+                  setOrb("listening");
+                  setProgress(0);
+                  saveSession({ phase: "interview", sessionId: id, interviewIdx: 0, interviewAnswers: {} });
+                  if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
                 onBack={() => {
                   setPhase("result");
                   saveSession({ phase: "result" });

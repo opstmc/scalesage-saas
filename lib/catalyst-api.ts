@@ -269,8 +269,57 @@ export async function bookCall(sessionId: string | null): Promise<BookCallResult
   return { ok: false, deferred: true, booking_url: null };
 }
 
+/* ---------- 6. the deep interview ---------- */
+
+/**
+ * Save interview answers as they are given, not only at the end.
+ *
+ * The interview is long enough that some people will abandon it, and a partial
+ * interview is still a warm lead with real answers in it. Fire-and-forget by
+ * design: a failed save must never block the person mid-question, and the next
+ * save carries the same answers again (the endpoint merges, later wins).
+ */
+export async function saveInterview(
+  sessionId: string | null,
+  answers: Record<string, unknown>,
+): Promise<boolean> {
+  if (!sessionId || sessionId.startsWith("local_")) return false;
+  const json = await post<{ ok?: boolean }>(
+    `/${encodeURIComponent(sessionId)}/interview`,
+    { answers },
+    9000,
+  );
+  return Boolean(json?.ok);
+}
+
+/**
+ * Close the interview and release the report.
+ *
+ * This is the gate: the full report exists only on the far side of it. The
+ * endpoint is idempotent, so a retry after a flaky connection cannot produce a
+ * second report.
+ */
+export async function completeInterview(sessionId: string | null): Promise<boolean> {
+  if (!sessionId || sessionId.startsWith("local_")) return false;
+  const json = await post<{ ok?: boolean }>(
+    `/${encodeURIComponent(sessionId)}/interview/complete`,
+    {},
+    12000,
+  );
+  return Boolean(json?.ok);
+}
+
 /** True when a backend is configured. Lets the UI soften copy in preview. */
 export const hasBackend = Boolean(API_BASE);
 
-export const api = { lookup, checks, unlock, pay, bookCall, hasBackend };
+export const api = {
+  lookup,
+  checks,
+  unlock,
+  pay,
+  bookCall,
+  saveInterview,
+  completeInterview,
+  hasBackend,
+};
 export default api;

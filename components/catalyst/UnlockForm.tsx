@@ -4,7 +4,7 @@ import { useState } from "react";
 import { buildPayload, type ScanResult, type ScanAnswers } from "@/lib/catalyst";
 import api, { type ChecksResult } from "@/lib/catalyst-api";
 import { resolveTier } from "./meta";
-import type { LookupState } from "./session";
+import { saveSession, type LookupState } from "./session";
 import styles from "./catalyst.module.css";
 
 type Urgency = "annoying" | "weekly_cost" | "urgent";
@@ -46,6 +46,7 @@ export default function UnlockForm({
   lookup,
   mode = "build",
   onBack,
+  onContinueToInterview,
 }: {
   result: ScanResult;
   answers: ScanAnswers;
@@ -53,6 +54,10 @@ export default function UnlockForm({
   lookup?: LookupState | null;
   mode?: "build" | "nofit";
   onBack: () => void;
+  /** Hands off to the deep interview once the lead is captured. Absent (or a
+   *  deferred/local capture) falls back to the old confirmation screen, so a
+   *  backend outage never strands someone mid-funnel. */
+  onContinueToInterview?: (sessionId: string) => void;
 }) {
   const [form, setForm] = useState<FormState>(() => ({
     ...EMPTY,
@@ -107,12 +112,26 @@ export default function UnlockForm({
     if (!payload || typeof payload !== "object") {
       payload = { answers, contact, result };
     }
-    const body = { ...(payload as Record<string, unknown>), checks: checks ?? null };
+    // interview: true tells the backend a deep interview follows, so it starts
+    // the scrape now (overlapping the questions) and holds the report until the
+    // interview completes. Without it the server takes the old one-shot path.
+    const body = {
+      ...(payload as Record<string, unknown>),
+      checks: checks ?? null,
+      interview: true,
+    };
 
     const res = await api.unlock(body); // never throws; local-persists on failure
     if (res.ok) {
       setSessionId(res.session_id);
       setDeferred(res.deferred);
+      saveSession({ sessionId: res.session_id });
+      // Straight into the deep interview while they are warm. The mini result
+      // is already theirs; this is what unlocks the full one.
+      if (onContinueToInterview && res.session_id && !res.session_id.startsWith("local_")) {
+        onContinueToInterview(res.session_id);
+        return;
+      }
       setStatus("done");
       if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
