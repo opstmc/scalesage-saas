@@ -22,6 +22,9 @@ const RAW = STEPS as unknown as Raw[];
 const OTHER = "__other__";
 const BEAT_MS = 520; // ~500ms (max 900ms) non-blocking reaction beat (brief)
 const DEBOUNCE_MS = 340; // Q1 lookup debounce
+// Questions per page after Q1. Four keeps a page readable on a phone without
+// making the scan feel like a form.
+const QUESTIONS_PER_PAGE = 4;
 
 // Which step ids the Q1 lookup can satisfy (for auto-skip / auto-confirm).
 const LOOKUP_IDS = new Set(["business", "company", "business_name", "businessname", "name", "lookup"]);
@@ -177,7 +180,6 @@ export default function ScanFlow({
 }) {
   const reduced = usePrefersReducedMotion();
   const VALVE = RAW.length; // the expression valve sits after the last real step
-  const TOTAL = VALVE + 1;
 
   const [idx, setIdx] = useState(Math.min(Math.max(0, initialIdx), VALVE));
   const [answers, setAnswers] = useState<ScanAnswers>(initialAnswers ?? ({} as ScanAnswers));
@@ -197,7 +199,7 @@ export default function ScanFlow({
   const timers = useRef<number[]>([]);
   const trail = useRef<number[]>([]); // visited indices, so Back respects skips
   const [trailLen, setTrailLen] = useState(0); // reactive mirror of trail length for render
-  const skipIds = useRef<Set<string>>(new Set());
+  const [skipIds, setSkipIds] = useState<Set<string>>(new Set());
   const cardRef = useRef<HTMLDivElement>(null);
   const firstStep = useRef(true);
 
@@ -228,10 +230,32 @@ export default function ScanFlow({
     el.focus({ preventScroll: true });
   }, [idx, reduced]);
 
+  /* ---- pages ----------------------------------------------------------
+   * Q1 sits alone: it is the live lookup, it fires the background checks, and
+   * its reply ("I am already pulling what is public on you") is the moment the
+   * scan earns the next twelve answers. Everything after it groups four to a
+   * page, and the free-text valve rides on the last one.
+   *
+   * Computed from the steps the lookup did NOT already answer, so a business we
+   * recognise gets a shorter scan rather than pages with holes in them. */
+  const pages = useMemo<number[][]>(() => {
+    const live: number[] = [];
+    for (let i = 0; i < VALVE; i += 1) {
+      if (i === 0 || !skipIds.has(stepId(RAW[i]))) live.push(i);
+    }
+    const out: number[][] = [];
+    if (live.length) out.push([live[0]]); // Q1, alone
+    for (let i = 1; i < live.length; i += QUESTIONS_PER_PAGE) {
+      out.push(live.slice(i, i + QUESTIONS_PER_PAGE));
+    }
+    return out;
+  }, [VALVE, skipIds]);
+
   // ---- progress ring feed ----
   useEffect(() => {
-    onProgress?.(Math.min(idx, VALVE) / TOTAL);
-  }, [idx, VALVE, TOTAL, onProgress]);
+    const totalPages = pages.length + 1; // + the valve
+    onProgress?.(Math.min(idx, totalPages) / totalPages);
+  }, [idx, pages.length, onProgress]);
 
   // ---- orb ----
   const setOrb = useCallback((s: OrbState) => onOrb?.(s), [onOrb]);
@@ -245,8 +269,8 @@ export default function ScanFlow({
     timers.current.push(window.setTimeout(() => setOrb("listening"), BEAT_MS));
   }, [reduced, setOrb]);
 
+
   const step = RAW[idx] as Raw | undefined;
-  const kind = step ? stepKind(step, idx) : "single";
   const A = answers as unknown as Record<string, unknown>;
 
   const setAnswer = useCallback((id: string, val: unknown) => {
@@ -267,22 +291,28 @@ export default function ScanFlow({
     return c.includes("detect") || c.includes("likely");
   }).length;
 
-  /* ---- navigation (non-blocking: advance immediately, react in parallel) ---- */
+  /* ---- navigation, a page at a time ----
+   * idx is the PAGE index now, not the step index. Page 0 is Q1 alone, the
+   * pages after it hold four questions each, and the page after the last one is
+   * the free-text valve. Steps the lookup already answered never appear on a
+   * page, so recognising a business shortens the scan instead of leaving holes
+   * in it. */
+  const onValve = idx >= pages.length;
+  const pageSteps = onValve ? [] : (pages[idx] ?? []);
+
   const goForward = useCallback(() => {
     clearTimers();
-    if (idx >= VALVE) {
+    if (onValve) {
       setOrb("handover");
       onComplete(answersRef.current, { lookup, checks });
       return;
     }
-    // advance, skipping any steps the lookup already answered
-    let next = idx + 1;
-    while (next < VALVE && skipIds.current.has(stepId(RAW[next]))) next += 1;
     trail.current.push(idx);
     setTrailLen(trail.current.length);
-    setIdx(next);
+    setIdx(idx + 1);
     pulse();
-  }, [idx, VALVE, onComplete, lookup, checks, pulse, setOrb]);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [idx, onValve, onComplete, lookup, checks, pulse, setOrb]);
 
   const goBack = useCallback(() => {
     clearTimers();
@@ -325,13 +355,38 @@ export default function ScanFlow({
   }, [goForward]);
 
   /* ---- answer helpers ---- */
+  /* Choosing an answer records it and nothing else. Advancing is the page's
+   * Continue button, because on a page of four questions an auto-advance would
+   * throw the reader forward the instant they touched the first one. */
   const chooseSingle = (st: Raw, value: string) => {
     setAnswer(stepId(st), value);
-    if (value === OTHER) return; // reveal the "Other" field, wait for Continue
-    const react = reactionFor(stepId(st), value);
-    // let the committed answer reach the diagram first, then Sage reacts
-    timers.current.push(window.setTimeout(() => reactThenAdvance(react), reduced ? 0 : 40));
   };
+
+  /** Sage's line when a page closes, taken from the strongest answer on it. */
+  const reactionForPage = (indices: number[]): string | null => {
+    const current = answersRef.current as unknown as Record<string, unknown>;
+    for (const i of indices) {
+      const id = stepId(RAW[i]);
+      const value = current[id];
+      const line = reactionFor(
+        id,
+        Array.isArray(value) ? (value as string[]) : String(value ?? ""),
+      );
+      if (line) return line;
+    }
+    return null;
+  };
+
+  /** Every question on the page has an answer. */
+  const pageAnswered = (indices: number[]): boolean =>
+    indices.every((i) => {
+      const st = RAW[i];
+      const value = (answers as unknown as Record<string, unknown>)[stepId(st)];
+      const k = stepKind(st, i);
+      if (k === "multi") return Array.isArray(value) && value.length > 0;
+      if (k === "text" || k === "lookup") return typeof value === "string" && value.trim() !== "";
+      return value !== undefined && value !== null && value !== "";
+    });
   const toggleMulti = (st: Raw, value: string) => {
     const id = stepId(st);
     // Mutually-exclusive answers: an option can declare `exclusiveWith` in the
@@ -389,7 +444,7 @@ export default function ScanFlow({
   const confirmMatch = (match: LookupMatch) => {
     const id = step ? stepId(step) : "business";
     const { fills, skip } = fillsFromLookup(match);
-    skipIds.current = skip;
+    setSkipIds(skip);
     // one write: the business name plus every field the lookup could auto-fill
     setAnswers((a) => ({ ...(a as Record<string, unknown>), [id]: match.name, ...fills }) as ScanAnswers);
     lockQ1(match, false, match.name);
@@ -398,12 +453,13 @@ export default function ScanFlow({
     const clean = name.trim();
     if (!clean) return;
     const id = step ? stepId(step) : "business";
-    skipIds.current = new Set(); // manual add answers Q2/Q3 itself, no skipping
+    setSkipIds(new Set()); // manual add answers Q2/Q3 itself, no skipping
     setAnswer(id, clean);
     lockQ1(null, true, clean);
   };
 
-  const count = Math.min(idx, VALVE) + 1;
+  const totalPages = pages.length + 1; // + the valve
+  const count = Math.min(idx, pages.length) + 1;
 
   /* ---- render ---- */
   const activeStepId = idx >= VALVE ? "valve" : step ? stepId(step) : "";
@@ -413,79 +469,102 @@ export default function ScanFlow({
       <div className={styles.scanCols}>
         {/* LEFT (desktop) / BELOW (mobile): the question card */}
         <div className={styles.cardCol}>
-          {idx >= VALVE ? (
+          {onValve ? (
             <ValveCard
               value={String(A["problems_raw"] ?? "")}
               onChange={(v) => setAnswer("problems_raw", v)}
               onSubmit={goForward}
               onBack={goBack}
-              stepNo={TOTAL}
-              total={TOTAL}
+              stepNo={totalPages}
+              total={totalPages}
             />
-          ) : step ? (
+          ) : pageSteps.length ? (
             <div ref={cardRef} tabIndex={-1} className={`glass ${styles.card}`}>
-              {stepKicker(step) && <div className={styles.kicker}>{stepKicker(step)}</div>}
               <div className={styles.sageAsk} aria-hidden="true">
                 <span className={styles.sageAskDot} />
                 <span>Sage</span>
               </div>
-              <h2 className={styles.question}>{stemText(step, answers)}</h2>
-              {stepHint(step) && <p className={styles.hint}>{pipeText(stepHint(step)!, answers)}</p>}
 
               {reaction ? (
                 <SageReaction text={reaction} reduced={reduced} onContinue={continueFromReaction} />
               ) : (
                 <>
-                  {/* ---- Q1 live lookup ---- */}
-                  {kind === "lookup" && (
-                    <LookupField
-                      initialQuery={String(A[stepId(step)] ?? lookup?.match?.name ?? "")}
-                      onConfirm={confirmMatch}
-                      onManual={manualContinue}
-                    />
-                  )}
+                  <div className={styles.pageStack}>
+                    {pageSteps.map((si) => {
+                      const st = RAW[si];
+                      const sid = stepId(st);
+                      const k = stepKind(st, si);
+                      return (
+                        <div key={sid}>
+                          {stepKicker(st) && <div className={styles.kicker}>{stepKicker(st)}</div>}
+                          <h2 className={styles.question}>{stemText(st, answers)}</h2>
+                          {stepHint(st) && (
+                            <p className={styles.hint}>{pipeText(stepHint(st)!, answers)}</p>
+                          )}
 
-                  {/* ---- single select ---- */}
-                  {kind === "single" && (
-                    <SingleSelect
-                      st={step}
-                      selected={String(A[stepId(step)] ?? "")}
-                      otherText={String(A[`${stepId(step)}_other`] ?? "")}
-                      onChoose={(v) => chooseSingle(step, v)}
-                      onOtherText={(v) => setAnswer(`${stepId(step)}_other`, v)}
-                      onContinue={() => reactThenAdvance(reactionFor(stepId(step), String(A[stepId(step)] ?? "")))}
-                    />
-                  )}
+                          {/* Q1 live lookup. Alone on its own page: it fires the
+                              background checks and confirming it is what lets
+                              Sage say it is already reading their world. */}
+                          {k === "lookup" && (
+                            <LookupField
+                              initialQuery={String(A[sid] ?? lookup?.match?.name ?? "")}
+                              onConfirm={confirmMatch}
+                              onManual={manualContinue}
+                            />
+                          )}
 
-                  {/* ---- multi select ---- */}
-                  {kind === "multi" && (
-                    <MultiSelect
-                      st={step}
-                      has={(v) => multiHas(step, v)}
-                      otherText={String(A[`${stepId(step)}_other`] ?? "")}
-                      onToggle={(v) => toggleMulti(step, v)}
-                      onOtherText={(v) => setAnswer(`${stepId(step)}_other`, v)}
-                      onContinue={() =>
-                        reactThenAdvance(
-                          reactionFor(stepId(step), Array.isArray(A[stepId(step)]) ? (A[stepId(step)] as string[]) : []),
-                        )
-                      }
-                    />
-                  )}
+                          {k === "single" && (
+                            <SingleSelect
+                              st={st}
+                              selected={String(A[sid] ?? "")}
+                              otherText={String(A[`${sid}_other`] ?? "")}
+                              onChoose={(v) => chooseSingle(st, v)}
+                              onOtherText={(v) => setAnswer(`${sid}_other`, v)}
+                            />
+                          )}
 
-                  {/* ---- slide (legacy shape only) ---- */}
-                  {kind === "slide" && (
-                    <SlideInput st={step} value={A[stepId(step)]} onChange={(n) => setAnswer(stepId(step), n)} onContinue={goForward} />
-                  )}
+                          {k === "multi" && (
+                            <MultiSelect
+                              st={st}
+                              has={(v) => multiHas(st, v)}
+                              otherText={String(A[`${sid}_other`] ?? "")}
+                              onToggle={(v) => toggleMulti(st, v)}
+                              onOtherText={(v) => setAnswer(`${sid}_other`, v)}
+                            />
+                          )}
 
-                  {/* ---- free text ---- */}
-                  {kind === "text" && (
-                    <TextInput
-                      st={step}
-                      value={String(A[stepId(step)] ?? "")}
-                      onChange={(v) => setAnswer(stepId(step), v)}
-                      onContinue={goForward}
-                    />
+                          {k === "slide" && (
+                            <SlideInput
+                              st={st}
+                              value={A[sid]}
+                              onChange={(n) => setAnswer(sid, n)}
+                            />
+                          )}
+
+                          {k === "text" && (
+                            <TextInput
+                              st={st}
+                              value={String(A[sid] ?? "")}
+                              onChange={(v) => setAnswer(sid, v)}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Q1 advances itself: confirming a business IS the answer, so
+                      a second button to press would be a step for nothing. */}
+                  {!pageSteps.some((si) => stepKind(RAW[si], si) === "lookup") && (
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-md"
+                      style={{ marginTop: 22, alignSelf: "flex-start" }}
+                      disabled={!pageAnswered(pageSteps)}
+                      onClick={() => reactThenAdvance(reactionForPage(pageSteps))}
+                    >
+                      Continue
+                    </button>
                   )}
 
                   <div className={styles.controls}>
@@ -495,7 +574,7 @@ export default function ScanFlow({
                       </button>
                     )}
                     <span className={styles.count}>
-                      {count} / {TOTAL}
+                      {count} / {totalPages}
                     </span>
                   </div>
                 </>
@@ -576,7 +655,7 @@ function SingleSelect({
   otherText: string;
   onChoose: (v: string) => void;
   onOtherText: (v: string) => void;
-  onContinue: () => void;
+  onContinue?: () => void;
 }) {
   const opts = stepOptions(st);
   return (
@@ -599,9 +678,11 @@ function SingleSelect({
             onChange={(e) => onOtherText(e.target.value)}
             aria-label="Describe your answer"
           />
-          <button type="button" className="btn btn-primary btn-md" style={{ marginTop: 12 }} onClick={onContinue}>
+          {onContinue && (
+            <button type="button" className="btn btn-primary btn-md" style={{ marginTop: 12 }} onClick={onContinue}>
             Continue
           </button>
+          )}
         </div>
       )}
     </>
@@ -621,7 +702,7 @@ function MultiSelect({
   otherText: string;
   onToggle: (v: string) => void;
   onOtherText: (v: string) => void;
-  onContinue: () => void;
+  onContinue?: () => void;
 }) {
   const opts = stepOptions(st);
   return (
@@ -646,9 +727,11 @@ function MultiSelect({
           />
         </div>
       )}
-      <button type="button" className="btn btn-primary btn-md" style={{ marginTop: 18 }} onClick={onContinue}>
+      {onContinue && (
+        <button type="button" className="btn btn-primary btn-md" style={{ marginTop: 18 }} onClick={onContinue}>
         Continue
       </button>
+      )}
     </>
   );
 }
@@ -658,7 +741,7 @@ function fmtMoney(v: number): string {
   if (v >= 1000) return "£" + v / 1000 + "k";
   return "£" + v;
 }
-function SlideInput({ st, value, onChange, onContinue }: { st: Raw; value: unknown; onChange: (n: number) => void; onContinue: () => void }) {
+function SlideInput({ st, value, onChange, onContinue }: { st: Raw; value: unknown; onChange: (n: number) => void; onContinue?: () => void }) {
   const min = Number(st.min ?? 0);
   const max = Number(st.max ?? 100);
   const stepN = Number(st.step ?? 1);
@@ -682,14 +765,16 @@ function SlideInput({ st, value, onChange, onContinue }: { st: Raw; value: unkno
         <span>{str(st.minLabel)}</span>
         <span>{str(st.maxLabel)}</span>
       </div>
-      <button type="button" className="btn btn-primary btn-md" style={{ marginTop: 22 }} onClick={onContinue}>
+      {onContinue && (
+        <button type="button" className="btn btn-primary btn-md" style={{ marginTop: 22 }} onClick={onContinue}>
         Continue
       </button>
+      )}
     </div>
   );
 }
 
-function TextInput({ st, value, onChange, onContinue }: { st: Raw; value: string; onChange: (v: string) => void; onContinue: () => void }) {
+function TextInput({ st, value, onChange, onContinue }: { st: Raw; value: string; onChange: (v: string) => void; onContinue?: () => void }) {
   return (
     <>
       <textarea
@@ -699,9 +784,11 @@ function TextInput({ st, value, onChange, onContinue }: { st: Raw; value: string
         onChange={(e) => onChange(e.target.value)}
         aria-label={String(st.stem ?? st.question ?? "")}
       />
-      <button type="button" className="btn btn-primary btn-md" style={{ marginTop: 18 }} onClick={onContinue}>
+      {onContinue && (
+        <button type="button" className="btn btn-primary btn-md" style={{ marginTop: 18 }} onClick={onContinue}>
         Continue
       </button>
+      )}
     </>
   );
 }

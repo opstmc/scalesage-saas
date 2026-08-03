@@ -1193,3 +1193,16 @@
   .orb .orbRing { opacity: 0; }
   .beatDots span { animation: none !important; opacity: 0.7; }
 }
+
+/* A page of questions. Generous spacing so four questions read as four, not as
+   a wall: the scan should never look like a form even when it shows several at
+   once. */
+.pageStack {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.pageStack > div + div {
+  padding-top: 26px;
+  border-top: 1px solid var(--border-hair);
+}
