@@ -34,10 +34,11 @@
     "C": {
       "label": "Order-led",
       "note": "They take orders. The money leaks in carts, repeat rate and support load.",
-      "sectors": ["ecommerce"]
+      "sectors": [
+        "ecommerce"
+      ]
     }
   },
-
   "common": [
     {
       "id": "how_work_arrives",
@@ -46,13 +47,34 @@
       "question": "When new work comes in, how does it usually reach you?",
       "hint": "Pick everything that happens.",
       "options": [
-        { "value": "phone", "label": "Phone call" },
-        { "value": "web_form", "label": "Website form" },
-        { "value": "whatsapp", "label": "WhatsApp or text" },
-        { "value": "email", "label": "Email" },
-        { "value": "walk_in", "label": "Walk-in or in person" },
-        { "value": "portal", "label": "A portal or marketplace" },
-        { "value": "word_of_mouth", "label": "Word of mouth" }
+        {
+          "value": "phone",
+          "label": "Phone call"
+        },
+        {
+          "value": "web_form",
+          "label": "Website form"
+        },
+        {
+          "value": "whatsapp",
+          "label": "WhatsApp or text"
+        },
+        {
+          "value": "email",
+          "label": "Email"
+        },
+        {
+          "value": "walk_in",
+          "label": "Walk-in or in person"
+        },
+        {
+          "value": "portal",
+          "label": "A portal or marketplace"
+        },
+        {
+          "value": "word_of_mouth",
+          "label": "Word of mouth"
+        }
       ]
     },
     {
@@ -61,11 +83,26 @@
       "kicker": "Your operation",
       "question": "Who deals with it first?",
       "options": [
-        { "value": "me", "label": "Me, always" },
-        { "value": "me_mostly", "label": "Mostly me" },
-        { "value": "one_person", "label": "One person whose job it is" },
-        { "value": "whoever", "label": "Whoever is free" },
-        { "value": "nobody", "label": "Honestly, sometimes nobody" }
+        {
+          "value": "me",
+          "label": "Me, always"
+        },
+        {
+          "value": "me_mostly",
+          "label": "Mostly me"
+        },
+        {
+          "value": "one_person",
+          "label": "One person whose job it is"
+        },
+        {
+          "value": "whoever",
+          "label": "Whoever is free"
+        },
+        {
+          "value": "nobody",
+          "label": "Honestly, sometimes nobody"
+        }
       ]
     },
     {
@@ -75,12 +112,30 @@
       "question": "Where does that enquiry get written down?",
       "hint": "The honest answer, not the ideal one.",
       "options": [
-        { "value": "crm", "label": "A proper CRM" },
-        { "value": "spreadsheet", "label": "A spreadsheet" },
-        { "value": "notebook", "label": "Notebook or whiteboard" },
-        { "value": "phone_notes", "label": "Notes on my phone" },
-        { "value": "in_my_head", "label": "In my head" },
-        { "value": "nowhere", "label": "It isn't, really" }
+        {
+          "value": "crm",
+          "label": "A proper CRM"
+        },
+        {
+          "value": "spreadsheet",
+          "label": "A spreadsheet"
+        },
+        {
+          "value": "notebook",
+          "label": "Notebook or whiteboard"
+        },
+        {
+          "value": "phone_notes",
+          "label": "Notes on my phone"
+        },
+        {
+          "value": "in_my_head",
+          "label": "In my head"
+        },
+        {
+          "value": "nowhere",
+          "label": "It isn't, really"
+        }
       ]
     },
     {
@@ -90,10 +145,22 @@
       "question": "How often does the same information get typed in twice?",
       "hint": "Quote to invoice, enquiry to calendar, that kind of thing.",
       "options": [
-        { "value": "never", "label": "Never, it flows through" },
-        { "value": "sometimes", "label": "Sometimes" },
-        { "value": "constantly", "label": "Constantly" },
-        { "value": "not_sure", "label": "Not sure" }
+        {
+          "value": "never",
+          "label": "Never, it flows through"
+        },
+        {
+          "value": "sometimes",
+          "label": "Sometimes"
+        },
+        {
+          "value": "constantly",
+          "label": "Constantly"
+        },
+        {
+          "value": "not_sure",
+          "label": "Not sure"
+        }
       ]
     },
     {
@@ -102,15 +169,29 @@
       "kicker": "Response",
       "question": "What happens to an enquiry that lands at 8pm on a Friday?",
       "options": [
-        { "value": "answered", "label": "Someone answers it" },
-        { "value": "auto_reply", "label": "An automatic reply goes out" },
-        { "value": "monday", "label": "It waits until Monday" },
-        { "value": "if_i_see_it", "label": "I get to it if I happen to see it" },
-        { "value": "lost", "label": "It probably gets lost" }
+        {
+          "value": "answered",
+          "label": "Someone answers it"
+        },
+        {
+          "value": "auto_reply",
+          "label": "An automatic reply goes out"
+        },
+        {
+          "value": "monday",
+          "label": "It waits until Monday"
+        },
+        {
+          "value": "if_i_see_it",
+          "label": "I get to it if I happen to see it"
+        },
+        {
+          "value": "lost",
+          "label": "It probably gets lost"
+        }
       ]
     }
   ],
-
   "spineQuestions": {
     "A": [
       {
@@ -119,11 +200,26 @@
         "kicker": "Quoting",
         "question": "From first enquiry to quote in their hands, how long usually?",
         "options": [
-          { "value": "same_day", "label": "Same day" },
-          { "value": "1_2_days", "label": "One to two days" },
-          { "value": "3_7_days", "label": "Three to seven days" },
-          { "value": "over_week", "label": "Over a week" },
-          { "value": "varies", "label": "It really varies" }
+          {
+            "value": "same_day",
+            "label": "Same day"
+          },
+          {
+            "value": "1_2_days",
+            "label": "One to two days"
+          },
+          {
+            "value": "3_7_days",
+            "label": "Three to seven days"
+          },
+          {
+            "value": "over_week",
+            "label": "Over a week"
+          },
+          {
+            "value": "varies",
+            "label": "It really varies"
+          }
         ]
       },
       {
@@ -132,11 +228,26 @@
         "kicker": "Quoting",
         "question": "After you send a quote, how many times does anyone chase it?",
         "options": [
-          { "value": "none", "label": "Not at all" },
-          { "value": "once", "label": "Once" },
-          { "value": "twice", "label": "Two or three times" },
-          { "value": "until_answer", "label": "Until we get an answer" },
-          { "value": "depends", "label": "Depends how busy we are" }
+          {
+            "value": "none",
+            "label": "Not at all"
+          },
+          {
+            "value": "once",
+            "label": "Once"
+          },
+          {
+            "value": "twice",
+            "label": "Two or three times"
+          },
+          {
+            "value": "until_answer",
+            "label": "Until we get an answer"
+          },
+          {
+            "value": "depends",
+            "label": "Depends how busy we are"
+          }
         ]
       },
       {
@@ -146,11 +257,26 @@
         "question": "When you lose a quote, what is usually behind it?",
         "hint": "Pick the common ones.",
         "options": [
-          { "value": "price", "label": "We were more expensive" },
-          { "value": "slower", "label": "Someone got back to them faster" },
-          { "value": "went_quiet", "label": "They just went quiet" },
-          { "value": "timing", "label": "Timing was wrong" },
-          { "value": "no_idea", "label": "We genuinely don't know" }
+          {
+            "value": "price",
+            "label": "We were more expensive"
+          },
+          {
+            "value": "slower",
+            "label": "Someone got back to them faster"
+          },
+          {
+            "value": "went_quiet",
+            "label": "They just went quiet"
+          },
+          {
+            "value": "timing",
+            "label": "Timing was wrong"
+          },
+          {
+            "value": "no_idea",
+            "label": "We genuinely don't know"
+          }
         ]
       }
     ],
@@ -161,10 +287,22 @@
         "kicker": "Bookings",
         "question": "How does someone book with you?",
         "options": [
-          { "value": "online", "label": "Online, themselves" },
-          { "value": "call_only", "label": "They have to call" },
-          { "value": "message", "label": "Message and we reply" },
-          { "value": "both", "label": "Online or call, both" }
+          {
+            "value": "online",
+            "label": "Online, themselves"
+          },
+          {
+            "value": "call_only",
+            "label": "They have to call"
+          },
+          {
+            "value": "message",
+            "label": "Message and we reply"
+          },
+          {
+            "value": "both",
+            "label": "Online or call, both"
+          }
         ]
       },
       {
@@ -173,10 +311,22 @@
         "kicker": "Bookings",
         "question": "How often do people not turn up?",
         "options": [
-          { "value": "rare", "label": "Rarely" },
-          { "value": "weekly", "label": "Every week or so" },
-          { "value": "often", "label": "Often enough to hurt" },
-          { "value": "not_tracked", "label": "We don't track it" }
+          {
+            "value": "rare",
+            "label": "Rarely"
+          },
+          {
+            "value": "weekly",
+            "label": "Every week or so"
+          },
+          {
+            "value": "often",
+            "label": "Often enough to hurt"
+          },
+          {
+            "value": "not_tracked",
+            "label": "We don't track it"
+          }
         ]
       },
       {
@@ -185,10 +335,22 @@
         "kicker": "Bookings",
         "question": "When someone has been in, what makes them come back?",
         "options": [
-          { "value": "rebook_there", "label": "We rebook them before they leave" },
-          { "value": "reminder", "label": "An automatic reminder goes out" },
-          { "value": "they_call", "label": "They call us when they need us" },
-          { "value": "nothing", "label": "Nothing formal" }
+          {
+            "value": "rebook_there",
+            "label": "We rebook them before they leave"
+          },
+          {
+            "value": "reminder",
+            "label": "An automatic reminder goes out"
+          },
+          {
+            "value": "they_call",
+            "label": "They call us when they need us"
+          },
+          {
+            "value": "nothing",
+            "label": "Nothing formal"
+          }
         ]
       }
     ],
@@ -199,10 +361,22 @@
         "kicker": "Orders",
         "question": "What happens when someone abandons a cart?",
         "options": [
-          { "value": "sequence", "label": "An automated sequence goes out" },
-          { "value": "one_email", "label": "One reminder email" },
-          { "value": "nothing", "label": "Nothing" },
-          { "value": "not_sure", "label": "Not sure" }
+          {
+            "value": "sequence",
+            "label": "An automated sequence goes out"
+          },
+          {
+            "value": "one_email",
+            "label": "One reminder email"
+          },
+          {
+            "value": "nothing",
+            "label": "Nothing"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure"
+          }
         ]
       },
       {
@@ -211,10 +385,22 @@
         "kicker": "Orders",
         "question": "How many customers order a second time?",
         "options": [
-          { "value": "most", "label": "Most of them" },
-          { "value": "some", "label": "Some" },
-          { "value": "few", "label": "Not many" },
-          { "value": "not_tracked", "label": "We don't measure it" }
+          {
+            "value": "most",
+            "label": "Most of them"
+          },
+          {
+            "value": "some",
+            "label": "Some"
+          },
+          {
+            "value": "few",
+            "label": "Not many"
+          },
+          {
+            "value": "not_tracked",
+            "label": "We don't measure it"
+          }
         ]
       },
       {
@@ -223,17 +409,28 @@
         "kicker": "Orders",
         "question": "How much of your week goes on customer questions?",
         "options": [
-          { "value": "little", "label": "Barely any" },
-          { "value": "few_hours", "label": "A few hours" },
-          { "value": "most_days", "label": "Most days" },
-          { "value": "dominates", "label": "It dominates" }
+          {
+            "value": "little",
+            "label": "Barely any"
+          },
+          {
+            "value": "few_hours",
+            "label": "A few hours"
+          },
+          {
+            "value": "most_days",
+            "label": "Most days"
+          },
+          {
+            "value": "dominates",
+            "label": "It dominates"
+          }
         ]
       }
     ]
   },
-
   "numbers": {
-    "note": "The load-bearing block. Every one offers 'not sure', which falls back to a sector benchmark and is marked as inferred — never presented as the client's own figure.",
+    "note": "The load-bearing block. Every one offers 'not sure', which falls back to a sector benchmark and is marked as inferred — never presented as the client's own figure. Includes the retention question, which every Catalyst asks: most operators cannot answer it, and surfacing that gap is usually worth more than the answer would have been.",
     "questions": [
       {
         "id": "avg_job_value",
@@ -243,12 +440,36 @@
         "hint": "A rough band is fine. This is what turns a leak into a number.",
         "numeric": true,
         "options": [
-          { "value": "under_150", "label": "Under £150", "mid": 100 },
-          { "value": "150_500", "label": "£150 to £500", "mid": 325 },
-          { "value": "500_1500", "label": "£500 to £1,500", "mid": 1000 },
-          { "value": "1500_5000", "label": "£1,500 to £5,000", "mid": 3250 },
-          { "value": "over_5000", "label": "Over £5,000", "mid": 8000 },
-          { "value": "not_sure", "label": "Not sure", "unknown": true }
+          {
+            "value": "under_150",
+            "label": "Under £150",
+            "mid": 100
+          },
+          {
+            "value": "150_500",
+            "label": "£150 to £500",
+            "mid": 325
+          },
+          {
+            "value": "500_1500",
+            "label": "£500 to £1,500",
+            "mid": 1000
+          },
+          {
+            "value": "1500_5000",
+            "label": "£1,500 to £5,000",
+            "mid": 3250
+          },
+          {
+            "value": "over_5000",
+            "label": "Over £5,000",
+            "mid": 8000
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "unknown": true
+          }
         ]
       },
       {
@@ -258,12 +479,36 @@
         "question": "Roughly how many do you do in a month?",
         "numeric": true,
         "options": [
-          { "value": "under_10", "label": "Under 10", "mid": 5 },
-          { "value": "10_30", "label": "10 to 30", "mid": 20 },
-          { "value": "30_100", "label": "30 to 100", "mid": 65 },
-          { "value": "100_500", "label": "100 to 500", "mid": 300 },
-          { "value": "over_500", "label": "Over 500", "mid": 800 },
-          { "value": "not_sure", "label": "Not sure", "unknown": true }
+          {
+            "value": "under_10",
+            "label": "Under 10",
+            "mid": 5
+          },
+          {
+            "value": "10_30",
+            "label": "10 to 30",
+            "mid": 20
+          },
+          {
+            "value": "30_100",
+            "label": "30 to 100",
+            "mid": 65
+          },
+          {
+            "value": "100_500",
+            "label": "100 to 500",
+            "mid": 300
+          },
+          {
+            "value": "over_500",
+            "label": "Over 500",
+            "mid": 800
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "unknown": true
+          }
         ]
       },
       {
@@ -273,12 +518,36 @@
         "question": "And how many enquiries come in, whether or not they turn into work?",
         "numeric": true,
         "options": [
-          { "value": "under_20", "label": "Under 20", "mid": 10 },
-          { "value": "20_50", "label": "20 to 50", "mid": 35 },
-          { "value": "50_150", "label": "50 to 150", "mid": 100 },
-          { "value": "150_500", "label": "150 to 500", "mid": 325 },
-          { "value": "over_500", "label": "Over 500", "mid": 800 },
-          { "value": "not_sure", "label": "Not sure", "unknown": true }
+          {
+            "value": "under_20",
+            "label": "Under 20",
+            "mid": 10
+          },
+          {
+            "value": "20_50",
+            "label": "20 to 50",
+            "mid": 35
+          },
+          {
+            "value": "50_150",
+            "label": "50 to 150",
+            "mid": 100
+          },
+          {
+            "value": "150_500",
+            "label": "150 to 500",
+            "mid": 325
+          },
+          {
+            "value": "over_500",
+            "label": "Over 500",
+            "mid": 800
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "unknown": true
+          }
         ]
       },
       {
@@ -288,12 +557,36 @@
         "question": "Out of ten enquiries, how many end up as paid work?",
         "numeric": true,
         "options": [
-          { "value": "1_2", "label": "One or two", "mid": 15 },
-          { "value": "3_4", "label": "Three or four", "mid": 35 },
-          { "value": "5_6", "label": "Five or six", "mid": 55 },
-          { "value": "7_8", "label": "Seven or eight", "mid": 75 },
-          { "value": "9_10", "label": "Nine or ten", "mid": 95 },
-          { "value": "not_sure", "label": "Not sure", "unknown": true }
+          {
+            "value": "1_2",
+            "label": "One or two",
+            "mid": 15
+          },
+          {
+            "value": "3_4",
+            "label": "Three or four",
+            "mid": 35
+          },
+          {
+            "value": "5_6",
+            "label": "Five or six",
+            "mid": 55
+          },
+          {
+            "value": "7_8",
+            "label": "Seven or eight",
+            "mid": 75
+          },
+          {
+            "value": "9_10",
+            "label": "Nine or ten",
+            "mid": 95
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "unknown": true
+          }
         ]
       },
       {
@@ -304,11 +597,31 @@
         "hint": "A guess is fine. Most owners underestimate this one.",
         "numeric": true,
         "options": [
-          { "value": "none", "label": "None that I know of", "mid": 0 },
-          { "value": "1_5", "label": "One to five", "mid": 3 },
-          { "value": "5_15", "label": "Five to fifteen", "mid": 10 },
-          { "value": "over_15", "label": "More than fifteen", "mid": 25 },
-          { "value": "not_sure", "label": "No idea", "unknown": true }
+          {
+            "value": "none",
+            "label": "None that I know of",
+            "mid": 0
+          },
+          {
+            "value": "1_5",
+            "label": "One to five",
+            "mid": 3
+          },
+          {
+            "value": "5_15",
+            "label": "Five to fifteen",
+            "mid": 10
+          },
+          {
+            "value": "over_15",
+            "label": "More than fifteen",
+            "mid": 25
+          },
+          {
+            "value": "not_sure",
+            "label": "No idea",
+            "unknown": true
+          }
         ]
       },
       {
@@ -319,12 +632,36 @@
         "hint": "Ads, directories, lead sites, anything that buys enquiries.",
         "numeric": true,
         "options": [
-          { "value": "nothing", "label": "Nothing", "mid": 0 },
-          { "value": "under_500", "label": "Under £500", "mid": 250 },
-          { "value": "500_2000", "label": "£500 to £2,000", "mid": 1250 },
-          { "value": "2000_10000", "label": "£2,000 to £10,000", "mid": 6000 },
-          { "value": "over_10000", "label": "Over £10,000", "mid": 15000 },
-          { "value": "not_sure", "label": "Not sure", "unknown": true }
+          {
+            "value": "nothing",
+            "label": "Nothing",
+            "mid": 0
+          },
+          {
+            "value": "under_500",
+            "label": "Under £500",
+            "mid": 250
+          },
+          {
+            "value": "500_2000",
+            "label": "£500 to £2,000",
+            "mid": 1250
+          },
+          {
+            "value": "2000_10000",
+            "label": "£2,000 to £10,000",
+            "mid": 6000
+          },
+          {
+            "value": "over_10000",
+            "label": "Over £10,000",
+            "mid": 15000
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "unknown": true
+          }
         ]
       },
       {
@@ -334,11 +671,31 @@
         "question": "How many of your customers come back again?",
         "numeric": true,
         "options": [
-          { "value": "most", "label": "Most of them", "mid": 70 },
-          { "value": "about_half", "label": "About half", "mid": 50 },
-          { "value": "some", "label": "Some", "mid": 25 },
-          { "value": "rarely", "label": "Rarely, it's mostly one-off", "mid": 8 },
-          { "value": "not_sure", "label": "Not sure", "unknown": true }
+          {
+            "value": "most",
+            "label": "Most of them",
+            "mid": 70
+          },
+          {
+            "value": "about_half",
+            "label": "About half",
+            "mid": 50
+          },
+          {
+            "value": "some",
+            "label": "Some",
+            "mid": 25
+          },
+          {
+            "value": "rarely",
+            "label": "Rarely, it's mostly one-off",
+            "mid": 8
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "unknown": true
+          }
         ]
       },
       {
@@ -348,16 +705,75 @@
         "question": "Hours a week on quoting, invoicing, chasing and scheduling?",
         "numeric": true,
         "options": [
-          { "value": "under_5", "label": "Under 5", "mid": 3 },
-          { "value": "5_10", "label": "5 to 10", "mid": 7 },
-          { "value": "10_20", "label": "10 to 20", "mid": 15 },
-          { "value": "over_20", "label": "Over 20", "mid": 28 },
-          { "value": "not_sure", "label": "Not sure", "unknown": true }
+          {
+            "value": "under_5",
+            "label": "Under 5",
+            "mid": 3
+          },
+          {
+            "value": "5_10",
+            "label": "5 to 10",
+            "mid": 7
+          },
+          {
+            "value": "10_20",
+            "label": "10 to 20",
+            "mid": 15
+          },
+          {
+            "value": "over_20",
+            "label": "Over 20",
+            "mid": 28
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "unknown": true
+          }
+        ]
+      },
+      {
+        "id": "retention_12m",
+        "kind": "single",
+        "kicker": "Your numbers",
+        "question": "Of every 10 customers you win, how many are still with you a year later?",
+        "hint": "Most owners have never measured this. A guess is genuinely fine.",
+        "numeric": true,
+        "options": [
+          {
+            "value": "8_10",
+            "label": "Eight or more",
+            "mid": 85
+          },
+          {
+            "value": "5_7",
+            "label": "Five to seven",
+            "mid": 60
+          },
+          {
+            "value": "3_4",
+            "label": "Three or four",
+            "mid": 35
+          },
+          {
+            "value": "under_3",
+            "label": "Fewer than three",
+            "mid": 15
+          },
+          {
+            "value": "one_off",
+            "label": "It's mostly one-off work",
+            "mid": 5
+          },
+          {
+            "value": "not_sure",
+            "label": "Honestly, no idea",
+            "unknown": true
+          }
         ]
       }
     ]
   },
-
   "offGuard": [
     {
       "id": "drop_last",
@@ -366,12 +782,30 @@
       "question": "If you had to drop one source of work tomorrow, which would you keep until the very end?",
       "hint": "Not scored. Sage is just listening.",
       "options": [
-        { "value": "repeat", "label": "Repeat customers" },
-        { "value": "referrals", "label": "Referrals" },
-        { "value": "google", "label": "Google and search" },
-        { "value": "portals", "label": "Lead sites and portals" },
-        { "value": "social", "label": "Social" },
-        { "value": "outbound", "label": "Going out and finding it" }
+        {
+          "value": "repeat",
+          "label": "Repeat customers"
+        },
+        {
+          "value": "referrals",
+          "label": "Referrals"
+        },
+        {
+          "value": "google",
+          "label": "Google and search"
+        },
+        {
+          "value": "portals",
+          "label": "Lead sites and portals"
+        },
+        {
+          "value": "social",
+          "label": "Social"
+        },
+        {
+          "value": "outbound",
+          "label": "Going out and finding it"
+        }
       ]
     },
     {
@@ -383,7 +817,6 @@
       "optional": true
     }
   ],
-
   "sectorOverlays": {
     "plumbers": [
       {
@@ -392,9 +825,18 @@
         "kicker": "Your trade",
         "question": "How much of your work is emergency callout versus planned?",
         "options": [
-          { "value": "mostly_emergency", "label": "Mostly emergency" },
-          { "value": "even", "label": "An even split" },
-          { "value": "mostly_planned", "label": "Mostly planned" }
+          {
+            "value": "mostly_emergency",
+            "label": "Mostly emergency"
+          },
+          {
+            "value": "even",
+            "label": "An even split"
+          },
+          {
+            "value": "mostly_planned",
+            "label": "Mostly planned"
+          }
         ]
       }
     ],
@@ -405,9 +847,18 @@
         "kicker": "Your trade",
         "question": "Do you do certification and compliance work as well as installs?",
         "options": [
-          { "value": "yes_lots", "label": "Yes, a lot of it" },
-          { "value": "some", "label": "Some" },
-          { "value": "no", "label": "No, installs and repairs" }
+          {
+            "value": "yes_lots",
+            "label": "Yes, a lot of it"
+          },
+          {
+            "value": "some",
+            "label": "Some"
+          },
+          {
+            "value": "no",
+            "label": "No, installs and repairs"
+          }
         ]
       }
     ],
@@ -418,10 +869,22 @@
         "kicker": "Your practice",
         "question": "How do patients get recalled for their next appointment?",
         "options": [
-          { "value": "automated", "label": "Automatically" },
-          { "value": "by_hand", "label": "Someone works through a list" },
-          { "value": "they_call", "label": "They call us" },
-          { "value": "none", "label": "We don't recall" }
+          {
+            "value": "automated",
+            "label": "Automatically"
+          },
+          {
+            "value": "by_hand",
+            "label": "Someone works through a list"
+          },
+          {
+            "value": "they_call",
+            "label": "They call us"
+          },
+          {
+            "value": "none",
+            "label": "We don't recall"
+          }
         ]
       }
     ],
@@ -432,9 +895,18 @@
         "kicker": "Your practice",
         "question": "How does a new matter get opened and conflict-checked?",
         "options": [
-          { "value": "case_system", "label": "In the case management system" },
-          { "value": "part_manual", "label": "Partly manual" },
-          { "value": "manual", "label": "Manually, every time" }
+          {
+            "value": "case_system",
+            "label": "In the case management system"
+          },
+          {
+            "value": "part_manual",
+            "label": "Partly manual"
+          },
+          {
+            "value": "manual",
+            "label": "Manually, every time"
+          }
         ]
       }
     ],
@@ -445,9 +917,18 @@
         "kicker": "Your agency",
         "question": "After a valuation, what happens if they don't instruct you?",
         "options": [
-          { "value": "sequence", "label": "They go into a follow-up sequence" },
-          { "value": "occasional", "label": "We call now and then" },
-          { "value": "nothing", "label": "Nothing" }
+          {
+            "value": "sequence",
+            "label": "They go into a follow-up sequence"
+          },
+          {
+            "value": "occasional",
+            "label": "We call now and then"
+          },
+          {
+            "value": "nothing",
+            "label": "Nothing"
+          }
         ]
       }
     ],
@@ -458,12 +939,30 @@
         "kicker": "Your store",
         "question": "Where do you sell?",
         "options": [
-          { "value": "own_site", "label": "Our own site" },
-          { "value": "amazon", "label": "Amazon" },
-          { "value": "etsy", "label": "Etsy" },
-          { "value": "ebay", "label": "eBay" },
-          { "value": "social", "label": "Social shops" },
-          { "value": "wholesale", "label": "Wholesale" }
+          {
+            "value": "own_site",
+            "label": "Our own site"
+          },
+          {
+            "value": "amazon",
+            "label": "Amazon"
+          },
+          {
+            "value": "etsy",
+            "label": "Etsy"
+          },
+          {
+            "value": "ebay",
+            "label": "eBay"
+          },
+          {
+            "value": "social",
+            "label": "Social shops"
+          },
+          {
+            "value": "wholesale",
+            "label": "Wholesale"
+          }
         ]
       }
     ]
