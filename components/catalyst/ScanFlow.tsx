@@ -143,6 +143,19 @@ function fillsFromLookup(match: LookupMatch): { fills: Record<string, string>; s
   return { fills, skip };
 }
 
+/** The business's own site off the Q1 match, if it carries one.
+ *
+ *  Read tolerantly (`website` or `domain`) so the field arriving under either
+ *  name still works, and so an older backend that sends neither is simply a
+ *  null rather than a crash. Sending it matters: without a URL the background
+ *  website check has nothing to open, so the load time, the tap-to-call proxy
+ *  and "does your site load at all" are all null for the whole scan. */
+function websiteOf(match: LookupMatch | null): string | null {
+  if (!match) return null;
+  const raw = match.website ?? (match as { domain?: unknown }).domain;
+  return typeof raw === "string" && raw.trim() !== "" ? raw.trim() : null;
+}
+
 function usePrefersReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
@@ -203,11 +216,20 @@ export default function ScanFlow({
   const cardRef = useRef<HTMLDivElement>(null);
   const firstStep = useRef(true);
 
+  // Stops the bounded background-check retries when the scan is left behind.
+  const checksAbort = useRef<AbortController | null>(null);
+
   const clearTimers = () => {
     timers.current.forEach((t) => clearTimeout(t));
     timers.current = [];
   };
-  useEffect(() => () => clearTimers(), []);
+  useEffect(
+    () => () => {
+      clearTimers();
+      checksAbort.current?.abort();
+    },
+    [],
+  );
 
   // ---- persistence: refresh never resets ----
   useEffect(() => {
@@ -422,18 +444,34 @@ export default function ScanFlow({
       setLookup(state);
       onLookup?.(state);
 
-      // fire the live background checks — non-blocking, never gates the flow
+      /* Fire the live background checks — non-blocking, never gates the flow.
+       *
+       * It used to be one call and one call only, so a deferred answer (a tool
+       * timeout, a cold backend) left the diagram empty for the whole scan and
+       * left the deep interview with no evidence to ask about. Now it retries
+       * on a short, bounded ladder and folds each better answer in as it lands.
+       * Aborted on unmount, so leaving the scan stops the requests. */
       setCheckState("running");
+      checksAbort.current?.abort();
+      const ctrl = new AbortController();
+      checksAbort.current = ctrl;
       void (async () => {
-        const res = await api.checks({
-          business_name: businessName,
-          website: null,
-          sector: match?.sector ?? (typeof A.sector === "string" ? (A.sector as string) : null),
-          location: match?.location ?? null,
-        });
-        setChecks(res);
-        setCheckState("done");
-        onChecks?.(res);
+        await api.checksWithRetry(
+          {
+            business_name: businessName,
+            website: websiteOf(match),
+            sector: match?.sector ?? (typeof A.sector === "string" ? (A.sector as string) : null),
+            location: match?.location ?? null,
+          },
+          {
+            signal: ctrl.signal,
+            onResult: (res) => {
+              setChecks(res);
+              onChecks?.(res);
+            },
+          },
+        );
+        if (!ctrl.signal.aborted) setCheckState("done");
       })();
 
       reactThenAdvance(reactionForLookup(manual));

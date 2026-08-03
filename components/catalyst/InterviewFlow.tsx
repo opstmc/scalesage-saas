@@ -84,9 +84,14 @@ export default function InterviewFlow({
 
   /* The mini already ran the checks and wrote them to the session, so the
      interview can read them back without the parent having to hand them over.
-     Read once, in a lazy initialiser, so the question set is settled before the
-     first paint: questions appearing after someone has started reading a page
-     would be worse than not asking at all. */
+     Read once, in a lazy initialiser: this is the fallback, and re-reading the
+     session on every render would just be the same answer again.
+
+     The props are NOT read once. The mini's checks can defer and land late —
+     the browser goes back for them, and the parent hands the better answer down
+     here while the interview is already running. `idx` below is what keeps that
+     from disturbing anyone: it tracks the page they are on by identity, so a
+     question set that grows underneath them never moves them. */
   const [storedEvidence] = useState<InterviewEvidence>(ambientEvidence);
   const evidence = useMemo<InterviewEvidence>(
     () => ({
@@ -98,7 +103,14 @@ export default function InterviewFlow({
 
   const steps = useMemo(() => buildInterview(sector, evidence), [sector, evidence]);
   const pages = useMemo(() => buildPages(steps), [steps]);
-  const [pageIdx, setPageIdx] = useState(Math.max(0, initialIdx));
+
+  /* Where they are, held as a page number AND the id of the first question on
+   * it. The number alone is not enough, because the question set can change
+   * underneath them — see `idx` below. */
+  const [position, setPosition] = useState<{ idx: number; anchor: string | null }>(() => {
+    const start = Math.min(Math.max(0, initialIdx), Math.max(0, pages.length - 1));
+    return { idx: start, anchor: pages[start]?.steps[0]?.id ?? null };
+  });
   const [answers, setAnswers] = useState<Record<string, unknown>>(initialAnswers);
   const [reaction, setReaction] = useState<string | null>(null);
   const [finishing, setFinishing] = useState(false);
@@ -109,11 +121,29 @@ export default function InterviewFlow({
   }, [answers]);
 
   const saveTimer = useRef<number | null>(null);
-  /* Clamped at render rather than in state. Someone can resume a session that
-     was saved when the interview had a different number of pages (the checks
-     came back late, say), and a resume point past the end has to land on the
-     last page, never on nothing. */
-  const idx = Math.min(pageIdx, Math.max(0, pages.length - 1));
+
+  /* The page they are actually on — resolved by identity, not by number.
+   *
+   * The question set can change underneath them. Late evidence adds the "What
+   * Sage found" block in the middle of the interview, which renumbers every
+   * page after it: someone on page 3 of 5 giving us their numbers would find
+   * themselves on page 3 of 6, looking at a different topic, mid-answer. So we
+   * re-find the question they were actually looking at and stay on it.
+   *
+   * It also covers the resume case the old clamp handled alone: a session saved
+   * when the interview had a different shape has to land on something real.
+   *
+   * Someone already PAST where the evidence questions belong simply never sees
+   * them. That is the right trade — the interview is shorter rather than
+   * rewinding a person who is nearly finished, and the evidence still reaches
+   * the report regardless of whether it earned a question. */
+  const idx = useMemo(() => {
+    if (position.anchor) {
+      const at = pages.findIndex((p) => p.steps.some((s) => s.id === position.anchor));
+      if (at >= 0) return at;
+    }
+    return Math.min(position.idx, Math.max(0, pages.length - 1));
+  }, [pages, position]);
   const page = pages[idx];
 
   useEffect(() => {
@@ -170,10 +200,11 @@ export default function InterviewFlow({
       void finish();
       return;
     }
-    setPageIdx(next);
+    // Re-anchor as we move, from the page list as it stands right now.
+    setPosition({ idx: next, anchor: pages[next]?.steps[0]?.id ?? null });
     onOrb?.("listening");
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [finish, onOrb, idx, pages.length]);
+  }, [finish, onOrb, idx, pages]);
 
   /* Sage speaks once per page rather than once per answer. A reply after every
      one of twenty questions is noise; a reply when a topic closes is a

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { buildResult, type ScanAnswers, type ScanResult } from "@/lib/catalyst";
-import type { ChecksResult } from "@/lib/catalyst-api";
+import api, { type ChecksResult } from "@/lib/catalyst-api";
 import SageOrb, { type OrbState } from "./SageOrb";
 import ScanFlow from "./ScanFlow";
 import ResultScreen from "./ResultScreen";
@@ -82,6 +82,40 @@ export default function CatalystExperience() {
     }
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
+
+  /* Read inside the poll below without making it a dependency: restarting the
+     poll every time its own result lands is exactly the runaway loop the bound
+     exists to prevent. */
+  const checksRef = useRef<ChecksResult | null>(checks);
+  useEffect(() => {
+    checksRef.current = checks;
+  }, [checks]);
+
+  /* ---- late-arriving evidence ------------------------------------------
+   * The mini's live checks fire once, at Q1. When that call defers there is
+   * nothing on the diagram and nothing for the deep interview to ask about,
+   * and before unlock there is no session to ask again about.
+   *
+   * Unlock gives us one. The evidence engine is already running underneath the
+   * interview, so GET /catalyst/{id}/evidence can hand back whatever it has
+   * found since. Bounded inside pollEvidence: seven attempts over ~70s, stops
+   * on a complete answer, on three dead requests, and on unmount. Answers only
+   * ever improve — mergeChecks never replaces a finding with a null — and the
+   * new checks flow straight into InterviewFlow, which re-asks its conditional
+   * questions without losing the visitor's place. */
+  useEffect(() => {
+    if (!sessionId || checksRef.current?.status === "complete") return;
+    const ctrl = new AbortController();
+    void api.pollEvidence(sessionId, {
+      known: checksRef.current,
+      signal: ctrl.signal,
+      onResult: (next) => {
+        setChecks(next);
+        saveSession({ checks: next });
+      },
+    });
+    return () => ctrl.abort();
+  }, [sessionId]);
 
   const result = useMemo<ScanResult | null>(
     () => (phase === "result" || phase === "unlock" || phase === "confirmed" ? safeResult(answers) : null),
@@ -165,6 +199,12 @@ export default function CatalystExperience() {
             <InterviewFlow
               sessionId={sessionId}
               sector={sectorOf(answers)}
+              /* Passed only once we actually hold something, so a null here
+                 still means "look in the session yourself" rather than "there
+                 is no evidence" — the phase-1 fallback stays exactly as it was.
+                 Passed live, so evidence that lands mid-interview reaches it. */
+              checks={checks ?? undefined}
+              lookup={lookup?.match ?? undefined}
               initialIdx={interviewIdx}
               initialAnswers={interviewAnswers}
               onOrb={setOrb}
