@@ -177,3 +177,81 @@ export function progressFor(steps: InterviewStep[], idx: number): number {
   if (steps.length === 0) return 1;
   return Math.min(1, Math.max(0, idx / steps.length));
 }
+
+
+/* ---------------------------------------------------------------------------
+ * Paging
+ *
+ * The interview was one question a screen, which is right for the 13-question
+ * mini where each answer earns a reply from Sage. Twenty screens is a different
+ * experience: it reads as long before it reads as thorough, and every screen is
+ * another chance to close the tab.
+ *
+ * So questions are grouped onto pages. NOT in arbitrary chunks of five, but by
+ * block, because the blocks are already coherent: how the work reaches you, how
+ * your trade specifically runs, your numbers, and the last couple of questions.
+ * Splitting mid-topic, or mixing operational questions with money questions on
+ * one screen, is what makes a form feel like a form. A block larger than the cap
+ * splits across consecutive pages keeping its own order and title.
+ * ------------------------------------------------------------------------- */
+
+export interface InterviewPage {
+  title: string;
+  steps: InterviewStep[];
+}
+
+const BLOCK_TITLES: Record<InterviewStep["block"], string> = {
+  common: "How the work reaches you",
+  spine: "How your business runs",
+  overlay: "Your trade specifically",
+  numbers: "Your numbers",
+  offGuard: "One last thing",
+};
+
+export const MAX_QUESTIONS_PER_PAGE = 5;
+
+export function buildPages(
+  steps: InterviewStep[],
+  maxPerPage: number = MAX_QUESTIONS_PER_PAGE,
+): InterviewPage[] {
+  const pages: InterviewPage[] = [];
+  let current: InterviewStep[] = [];
+  let currentBlock: InterviewStep["block"] | null = null;
+
+  const flush = () => {
+    if (current.length === 0 || currentBlock === null) return;
+    pages.push({ title: BLOCK_TITLES[currentBlock], steps: current });
+    current = [];
+  };
+
+  // How many of each block are left to place, so a block can decide whether it
+  // fits alongside what is already on the page.
+  const remaining = new Map<string, number>();
+  for (const step of steps) remaining.set(step.block, (remaining.get(step.block) ?? 0) + 1);
+
+  for (const step of steps) {
+    const startingNewBlock = step.block !== currentBlock;
+    // A short block rides along with the previous one rather than getting a page
+    // of its own. A single trade-specific question on its own screen reads as
+    // padding, and padding is what makes twenty questions feel like fifty.
+    const fitsAlongside =
+      startingNewBlock &&
+      current.length > 0 &&
+      current.length + (remaining.get(step.block) ?? 0) <= maxPerPage;
+
+    if ((startingNewBlock && !fitsAlongside) || current.length >= maxPerPage) {
+      flush();
+      currentBlock = step.block;
+    } else if (startingNewBlock && currentBlock === null) {
+      currentBlock = step.block;
+    }
+    current.push(step);
+  }
+  flush();
+  return pages;
+}
+
+/** Every non-optional question on the page has been answered. */
+export function pageComplete(page: InterviewPage, answers: Record<string, unknown>): boolean {
+  return page.steps.every((step) => isAnswered(step, answers[step.id]));
+}
