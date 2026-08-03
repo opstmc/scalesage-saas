@@ -42,6 +42,7 @@ export default function CatalystExperience() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [interviewIdx, setInterviewIdx] = useState(0);
   const [interviewAnswers, setInterviewAnswers] = useState<Record<string, unknown>>({});
+  const [interviewDone, setInterviewDone] = useState(false);
 
   // Resume after a refresh. Runs post-mount only: sessionStorage is unavailable
   // during SSR, so both the server output and the first client render are the
@@ -64,8 +65,17 @@ export default function CatalystExperience() {
       setInterviewAnswers(s.interviewAnswers ?? {});
       setPhase("interview");
       setOrb("listening");
-    } else if (s.phase === "result" || s.phase === "unlock" || s.phase === "confirmed") {
+    } else if (s.phase === "confirmed") {
       setAnswers(s.answers);
+      setSessionId(s.sessionId);
+      setInterviewDone(Boolean(s.interviewDone));
+      setPhase("confirmed");
+      setOrb("handover");
+      setProgress(1);
+    } else if (s.phase === "result" || s.phase === "unlock") {
+      setAnswers(s.answers);
+      setSessionId(s.sessionId);
+      setInterviewDone(Boolean(s.interviewDone));
       setPhase(s.phase === "unlock" ? "unlock" : "result");
       setOrb("handover");
       setProgress(1);
@@ -74,7 +84,7 @@ export default function CatalystExperience() {
   }, []);
 
   const result = useMemo<ScanResult | null>(
-    () => (phase === "result" || phase === "unlock" ? safeResult(answers) : null),
+    () => (phase === "result" || phase === "unlock" || phase === "confirmed" ? safeResult(answers) : null),
     [phase, answers],
   );
 
@@ -91,8 +101,11 @@ export default function CatalystExperience() {
 
   const openUnlock = () => {
     setUnlockMode(result && isNoFit(result) ? "nofit" : "build");
-    setPhase("unlock");
-    saveSession({ phase: "unlock" });
+    // Their details are already captured — show the confirmation, not the form.
+    // Asking a second time reads as though the first attempt failed.
+    const next = sessionId ? "confirmed" : "unlock";
+    setPhase(next);
+    saveSession({ phase: next });
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
   const openBook = () => {
@@ -112,6 +125,7 @@ export default function CatalystExperience() {
     setSessionId(null);
     setInterviewIdx(0);
     setInterviewAnswers({});
+    setInterviewDone(false);
     setPhase("entry");
     setOrb("idle");
   };
@@ -156,11 +170,37 @@ export default function CatalystExperience() {
               onOrb={setOrb}
               onProgress={setProgress}
               onComplete={() => {
-                setPhase("result");
+                setInterviewDone(true);
+                setPhase("confirmed");
                 setOrb("handover");
                 setProgress(1);
+                saveSession({ phase: "confirmed", interviewDone: true });
               }}
             />
+          )}
+          {phase === "confirmed" && result && (
+            <div className={styles.shell}>
+              <UnlockForm
+                result={result}
+                answers={answers}
+                checks={checks}
+                lookup={lookup}
+                mode={unlockMode}
+                initialSessionId={sessionId}
+                interviewComplete={interviewDone}
+                onContinueToInterview={(id) => {
+                  setSessionId(id);
+                  setPhase("interview");
+                  setOrb("listening");
+                  setProgress(0);
+                  saveSession({ phase: "interview", sessionId: id });
+                }}
+                onBack={() => {
+                  setPhase("result");
+                  saveSession({ phase: "result" });
+                }}
+              />
+            </div>
           )}
           {phase === "unlock" && result && (
             <div className={styles.shell}>

@@ -36,6 +36,9 @@ export interface CatalystSession {
    *  interview is long, so an abandoned one has to survive a closed tab. */
   interviewIdx: number;
   interviewAnswers: Record<string, unknown>;
+  /** Set once the interview has been completed, so the flow never asks for the
+   *  same details or the same answers a second time. */
+  interviewDone: boolean;
 }
 
 const KEY = "ss_catalyst_v1";
@@ -49,6 +52,7 @@ const EMPTY: CatalystSession = {
   sessionId: null,
   interviewIdx: 0,
   interviewAnswers: {},
+  interviewDone: false,
 };
 
 export function loadSession(): CatalystSession {
@@ -66,6 +70,7 @@ export function loadSession(): CatalystSession {
       sessionId: parsed.sessionId ?? null,
       interviewIdx: typeof parsed.interviewIdx === "number" ? parsed.interviewIdx : 0,
       interviewAnswers: parsed.interviewAnswers ?? {},
+      interviewDone: Boolean(parsed.interviewDone),
     };
   } catch {
     return { ...EMPTY };

@@ -56,6 +56,8 @@ export default function UnlockForm({
   mode = "build",
   onBack,
   onContinueToInterview,
+  initialSessionId = null,
+  interviewComplete = false,
 }: {
   result: ScanResult;
   answers: ScanAnswers;
@@ -67,14 +69,22 @@ export default function UnlockForm({
    *  deferred/local capture) falls back to the old confirmation screen, so a
    *  backend outage never strands someone mid-funnel. */
   onContinueToInterview?: (sessionId: string) => void;
+  /** A capture that already happened. Present means we have their details, so
+   *  the form is skipped entirely and the confirmation shows instead. Asking a
+   *  second time reads as though the first attempt failed. */
+  initialSessionId?: string | null;
+  /** Their interview is finished, so it is not offered again. */
+  interviewComplete?: boolean;
 }) {
   const [form, setForm] = useState<FormState>(() => ({
     ...EMPTY,
     business: lookup?.match?.name ?? "",
   }));
-  const [status, setStatus] = useState<"idle" | "sending" | "done" | "failed">("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "done" | "failed">(
+    initialSessionId ? "done" : "idle",
+  );
   const [error, setError] = useState<string | null>(null);
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(initialSessionId);
   const [deferred, setDeferred] = useState(false);
 
   // doors
@@ -172,7 +182,7 @@ export default function UnlockForm({
   // The interview needs a real server session to save into; a deferred/local
   // capture has nowhere to put the answers, so it is not offered.
   const canInterview = Boolean(
-    onContinueToInterview && sessionId && !sessionId.startsWith("local_"),
+    onContinueToInterview && sessionId && !sessionId.startsWith("local_") && !interviewComplete,
   );
   // The real count, from the same builder the interview runs on, so the number
   // we promise is the number they get. It varies by sector (some carry an extra
