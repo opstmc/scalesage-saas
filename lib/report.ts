@@ -26,10 +26,44 @@ export interface CheckedFact {
   source?: string;
 }
 
+/** Where a priced figure came from: the client's own numbers, or our sector model. */
+export type LeakBasis = "their_number" | "benchmark";
+
+/** How far a leak has been proven out. */
+export type LeakMaturity = "potential" | "validated" | "recoverable";
+
 export interface RankedLeak {
   title: string;
   detail: string;
   source?: string;
+  /** Monthly cost of this leak, in pence (240000 = £2,400 a month). */
+  monthly_pence?: number;
+  basis?: LeakBasis;
+  /** Plain-English sum behind the figure, shown to the reader verbatim. */
+  workings?: string;
+  inputs_used?: string[];
+  maturity?: LeakMaturity;
+}
+
+/**
+ * The priced leaks added up.
+ *
+ * The backend contract has every inner field present, but they are optional
+ * here on purpose: a partial payload must degrade to showing less, never to
+ * the page inventing a confidence it was not given.
+ */
+export interface LeakTotal {
+  monthly_pence: number;
+  /** 0..1 share of the total that came from the client's own numbers. */
+  confidence_their_numbers?: number;
+  basis_mix?: { their_number: number; benchmark: number };
+}
+
+/** The honesty notes that must travel with the total. */
+export interface LeakDiscipline {
+  maturity?: string;
+  disclaimer?: string;
+  margin_note?: string;
 }
 
 export interface BuildStep {
@@ -62,6 +96,9 @@ export interface FullReport {
   mockup: Mockup;
   recommendation: Recommendation;
   meta: ReportMeta;
+  /** Both absent on every report built before leaks were priced. */
+  leak_total?: LeakTotal;
+  leak_discipline?: LeakDiscipline;
 }
 
 export type ReportStatus = "complete" | "pending" | "not_found";
@@ -103,6 +140,32 @@ function asOptString(v: unknown): string | undefined {
   return typeof v === "string" ? v : undefined;
 }
 
+/** Numbers only, and only real ones. NaN/Infinity/"2400" never reach the UI. */
+function asOptNumber(v: unknown): number | undefined {
+  return typeof v === "number" && Number.isFinite(v) ? v : undefined;
+}
+
+function asOptStringList(v: unknown): string[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  const out = v
+    .filter((x): x is string => typeof x === "string")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return out.length > 0 ? out : undefined;
+}
+
+function asBasis(v: unknown): LeakBasis | undefined {
+  return v === "their_number" || v === "benchmark" ? v : undefined;
+}
+
+function asMaturity(v: unknown): LeakMaturity | undefined {
+  return v === "potential" || v === "validated" || v === "recoverable" ? v : undefined;
+}
+
+function asRecord(v: unknown): Record<string, unknown> | null {
+  return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
+}
+
 function normChecked(v: unknown): CheckedFact[] {
   if (!Array.isArray(v)) return [];
   return v.map((row) => {
@@ -124,8 +187,50 @@ function normLeaks(v: unknown): RankedLeak[] {
       title: asString(r.title),
       detail: asString(r.detail),
       source: asOptString(r.source),
+      monthly_pence: asOptNumber(r.monthly_pence),
+      basis: asBasis(r.basis),
+      workings: asOptString(r.workings),
+      inputs_used: asOptStringList(r.inputs_used),
+      maturity: asMaturity(r.maturity),
     };
   });
+}
+
+/**
+ * A total is only a total if it has a figure. Anything less is dropped, so a
+ * half-built payload cannot put a headline number on the page.
+ */
+function normLeakTotal(v: unknown): LeakTotal | undefined {
+  const r = asRecord(v);
+  if (!r) return undefined;
+  const pence = asOptNumber(r.monthly_pence);
+  if (pence === undefined) return undefined;
+
+  const conf = asOptNumber(r.confidence_their_numbers);
+  const mix = asRecord(r.basis_mix);
+  const theirs = mix ? asOptNumber(mix.their_number) : undefined;
+  const bench = mix ? asOptNumber(mix.benchmark) : undefined;
+
+  return {
+    monthly_pence: pence,
+    confidence_their_numbers:
+      conf === undefined ? undefined : Math.min(1, Math.max(0, conf)),
+    basis_mix:
+      theirs !== undefined && bench !== undefined
+        ? { their_number: theirs, benchmark: bench }
+        : undefined,
+  };
+}
+
+function normLeakDiscipline(v: unknown): LeakDiscipline | undefined {
+  const r = asRecord(v);
+  if (!r) return undefined;
+  const out: LeakDiscipline = {
+    maturity: asOptString(r.maturity),
+    disclaimer: asOptString(r.disclaimer),
+    margin_note: asOptString(r.margin_note),
+  };
+  return out.maturity || out.disclaimer || out.margin_note ? out : undefined;
 }
 
 function normBuildPlan(v: unknown): BuildStep[] {
@@ -176,6 +281,8 @@ function normReport(v: unknown): FullReport | null {
     mockup: normMockup(r.mockup),
     recommendation: normRecommendation(r.recommendation),
     meta: normMeta(r.meta),
+    leak_total: normLeakTotal(r.leak_total),
+    leak_discipline: normLeakDiscipline(r.leak_discipline),
   };
 }
 

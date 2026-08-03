@@ -16,7 +16,11 @@ import {
   payReport,
   type CatalystReport,
   type FullReport,
+  type LeakDiscipline,
+  type LeakTotal,
+  type RankedLeak,
 } from "@/lib/report";
+import styles from "./report.module.css";
 
 /* ---------- small style helpers (inline, CSS-var driven, like the catalyst screens) ---------- */
 
@@ -88,6 +92,214 @@ function CalmState({
   );
 }
 
+/* ---------- priced leaks ---------- */
+
+/**
+ * Pence to British money: 240000 becomes "£2,400". Returns null for anything
+ * that is not a real, positive figure, so raw pence can never reach the page.
+ */
+function fmtPence(pence: number | undefined): string | null {
+  if (typeof pence !== "number" || !Number.isFinite(pence) || pence <= 0) return null;
+  const pounds = pence / 100;
+  const whole = Math.abs(pounds - Math.round(pounds)) < 0.005;
+  const digits = whole ? 0 : 2;
+  try {
+    return new Intl.NumberFormat("en-GB", {
+      style: "currency",
+      currency: "GBP",
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    }).format(pounds);
+  } catch {
+    return "£" + (whole ? Math.round(pounds).toLocaleString("en-GB") : pounds.toFixed(2));
+  }
+}
+
+/** "their" = the client's own numbers. "bench" = modelled. "mixed" = some of each. */
+type BasisKind = "their" | "bench" | "mixed";
+
+const MATURITY_LABEL: Record<string, string> = {
+  potential: "Not confirmed yet",
+  validated: "Confirmed with you",
+  recoverable: "Ready to recover",
+};
+
+function maturityLabel(v: string | undefined): string | null {
+  if (!v) return null;
+  return MATURITY_LABEL[v.trim().toLowerCase()] ?? v;
+}
+
+/**
+ * The share of the total that came from the client, in plain English.
+ * At zero it says so outright: a figure modelled end to end is a much weaker
+ * claim than one built from their books, and burying that would be dishonest.
+ */
+function confidenceSentence(c: number): string {
+  const pct = Math.round(Math.min(1, Math.max(0, c)) * 100);
+  const rest = "The rest is estimated from averages for businesses like yours.";
+  if (pct <= 0) {
+    return (
+      "None of this total comes from your own numbers. All of it is estimated from averages " +
+      "for businesses like yours, so treat it as a starting point rather than a measurement."
+    );
+  }
+  if (pct >= 100) return "All of this total is built from figures you gave us.";
+  if (pct < 13) {
+    return (
+      "Only a small part of this total comes from figures you gave us. Almost all of it is " +
+      "estimated from averages for businesses like yours."
+    );
+  }
+  if (pct < 38) return "About a quarter of this total comes from figures you gave us. " + rest;
+  if (pct < 63) return "About half of this total comes from figures you gave us. " + rest;
+  if (pct < 88) return "About three quarters of this total comes from figures you gave us. " + rest;
+  return (
+    "Almost all of this total comes from figures you gave us. A small part is estimated from " +
+    "averages for businesses like yours."
+  );
+}
+
+/** The basis mix as a count, and only when it really is a count. */
+function mixSentence(mix: LeakTotal["basis_mix"]): string | null {
+  if (!mix) return null;
+  const theirs = mix.their_number;
+  const bench = mix.benchmark;
+  if (!Number.isInteger(theirs) || !Number.isInteger(bench)) return null;
+  if (theirs < 0 || bench < 0) return null;
+  const total = theirs + bench;
+  if (total < 1) return null;
+  if (total === 1) {
+    return bench === 0
+      ? "The one figure below came from your own numbers."
+      : "The one figure below is estimated from sector averages.";
+  }
+  if (bench === 0) return `All ${total} figures below came from your own numbers.`;
+  if (theirs === 0) return `All ${total} figures below are estimated from sector averages.`;
+  return `${theirs} of the ${total} figures below came from your own numbers, ${bench} from sector averages.`;
+}
+
+function BasisTag({ kind, label }: { kind: BasisKind; label: string }) {
+  const tone =
+    kind === "their" ? styles.basisTheir : kind === "bench" ? styles.basisBench : styles.basisMixed;
+  const dotTone =
+    kind === "their" ? styles.dotTheir : kind === "bench" ? styles.dotBench : styles.dotMixed;
+  return (
+    <span className={`${styles.basis} ${tone}`}>
+      <span aria-hidden="true" className={`${styles.dot} ${dotTone}`} />
+      {label}
+    </span>
+  );
+}
+
+/**
+ * One leak's monthly figure, its basis and its workings.
+ *
+ * Renders nothing at all when the report predates priced leaks, which keeps
+ * every older report looking exactly as it always has.
+ */
+function LeakPrice({ leak }: { leak: RankedLeak }) {
+  const money = fmtPence(leak.monthly_pence);
+  const inputs = Array.isArray(leak.inputs_used) ? leak.inputs_used.filter(Boolean) : [];
+  const workings = leak.workings?.trim() || "";
+  if (!money && !workings && inputs.length === 0) return null;
+
+  const theirs = leak.basis === "their_number";
+  // Unstated basis is treated as the weaker claim on purpose. We would rather
+  // under-claim a figure than dress a model up as the client's own books.
+  const label = theirs ? "From your numbers" : leak.basis === "benchmark" ? "Sector estimate" : "Estimate";
+  const maturity = maturityLabel(leak.maturity);
+
+  return (
+    <div
+      className={`${styles.priceBlock} ${theirs ? styles.priceBlockTheir : styles.priceBlockBench}`}
+    >
+      {money && (
+        <div className={styles.figureRow}>
+          <span className={`${styles.figure} ${theirs ? styles.figureTheir : styles.figureBench}`}>
+            {money}
+            <span className={styles.per}>/month</span>
+          </span>
+          <BasisTag kind={theirs ? "their" : "bench"} label={label} />
+          {maturity && <span className={styles.maturity}>{maturity}</span>}
+        </div>
+      )}
+      {workings && (
+        <p className={styles.workings}>
+          <span className={styles.workingsLabel}>How we get there: </span>
+          {workings}
+        </p>
+      )}
+      {inputs.length > 0 && (
+        <p className={styles.inputs}>{"What we used: " + inputs.join(", ")}</p>
+      )}
+    </div>
+  );
+}
+
+const TOTAL_LABEL: Record<BasisKind, string> = {
+  their: "From your numbers",
+  bench: "Sector estimate",
+  mixed: "Part your numbers, part estimate",
+};
+
+/**
+ * The priced leaks added up, with how much of it came from the client, and the
+ * two honesty notes. It sits at the top of the leaks section so the number and
+ * its caveats are read together, never a scroll apart.
+ */
+function LeakSummary({
+  total,
+  discipline,
+}: {
+  total: LeakTotal | undefined;
+  discipline: LeakDiscipline | undefined;
+}) {
+  const money = total ? fmtPence(total.monthly_pence) : null;
+  const conf = total?.confidence_their_numbers;
+  const mix = mixSentence(total?.basis_mix);
+  const stand = maturityLabel(discipline?.maturity);
+  const disclaimer = discipline?.disclaimer?.trim() || "";
+  const marginNote = discipline?.margin_note?.trim() || "";
+  const hasNotes = Boolean(stand || disclaimer || marginNote);
+  if (!money && !mix && !hasNotes) return null;
+
+  const kind: BasisKind =
+    conf === undefined ? "mixed" : conf >= 0.999 ? "their" : conf <= 0.001 ? "bench" : "mixed";
+  const figureTone =
+    kind === "their" ? styles.figureTheir : kind === "bench" ? styles.figureBench : styles.figureNeutral;
+
+  return (
+    <div className={styles.totalCard}>
+      {money && (
+        <>
+          <span className={styles.totalLabel}>What this adds up to</span>
+          <div className={styles.figureRow}>
+            <span className={`${styles.figure} ${styles.totalFigure} ${figureTone}`}>
+              {money}
+              <span className={styles.totalPer}>/month</span>
+            </span>
+            {conf !== undefined && <BasisTag kind={kind} label={TOTAL_LABEL[kind]} />}
+          </div>
+        </>
+      )}
+      {conf !== undefined && <p className={styles.confidence}>{confidenceSentence(conf)}</p>}
+      {mix && <p className={styles.mix}>{mix}</p>}
+      {hasNotes && (
+        <div className={styles.notes}>
+          {stand && (
+            <p className={styles.note}>
+              <span className={styles.noteStrong}>Where these figures stand: </span>
+              {stand}
+            </p>
+          )}
+          {disclaimer && <p className={styles.note}>{disclaimer}</p>}
+          {marginNote && <p className={styles.note}>{marginNote}</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ---------- report sections ---------- */
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
@@ -100,11 +312,13 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 
 function Leaks({ report }: { report: FullReport }) {
   const leaks = Array.isArray(report.leaks_ranked) ? report.leaks_ranked : [];
-  if (leaks.length === 0) return null;
+  const hasSummary = Boolean(report.leak_total || report.leak_discipline);
+  if (leaks.length === 0 && !hasSummary) return null;
   return (
     <section style={SECTION_GAP}>
       {/* JW-approval-pending */}
       <SectionHeading>Where you&rsquo;re leaking</SectionHeading>
+      <LeakSummary total={report.leak_total} discipline={report.leak_discipline} />
       <div style={{ display: "grid", gap: 12 }}>
         {leaks.map((leak, i) => (
           <div key={i} style={CARD}>
@@ -120,7 +334,7 @@ function Leaks({ report }: { report: FullReport }) {
               >
                 {String(i + 1).padStart(2, "0")}
               </span>
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 {leak.title && (
                   <h3
                     style={{
@@ -143,6 +357,7 @@ function Leaks({ report }: { report: FullReport }) {
                     Source: {leak.source}
                   </p>
                 )}
+                <LeakPrice leak={leak} />
               </div>
             </div>
           </div>

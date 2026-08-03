@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import api from "@/lib/catalyst-api";
 import {
   buildInterview,
+  figuresFrom,
   isAnswered,
   progressFor,
   spineLabel,
@@ -89,9 +90,13 @@ export default function InterviewFlow({
   const scheduleSave = useCallback(() => {
     if (saveTimer.current) window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
-      void api.saveInterview(sessionId, answersRef.current);
+      void api.saveInterview(
+        sessionId,
+        answersRef.current,
+        figuresFrom(steps, answersRef.current),
+      );
     }, SAVE_DEBOUNCE_MS);
-  }, [sessionId]);
+  }, [sessionId, steps]);
 
   useEffect(
     () => () => {
@@ -113,11 +118,15 @@ export default function InterviewFlow({
     // Save everything one last time, then close the gate. Order matters: the
     // completion call is what releases the report, so the answers have to be on
     // the row before it fires.
-    await api.saveInterview(sessionId, answersRef.current);
+    await api.saveInterview(
+      sessionId,
+      answersRef.current,
+      figuresFrom(steps, answersRef.current),
+    );
     await api.completeInterview(sessionId);
     saveSession({ phase: "confirmed" });
     onComplete();
-  }, [onComplete, onOrb, sessionId]);
+  }, [onComplete, onOrb, sessionId, steps]);
 
   const advance = useCallback(() => {
     setReaction(null);

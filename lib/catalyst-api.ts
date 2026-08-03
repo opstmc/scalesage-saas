@@ -282,11 +282,12 @@ export async function bookCall(sessionId: string | null): Promise<BookCallResult
 export async function saveInterview(
   sessionId: string | null,
   answers: Record<string, unknown>,
+  figures?: Record<string, { value: number | null; basis: string }>,
 ): Promise<boolean> {
   if (!sessionId || sessionId.startsWith("local_")) return false;
   const json = await post<{ ok?: boolean }>(
     `/${encodeURIComponent(sessionId)}/interview`,
-    { answers },
+    figures ? { answers, figures } : { answers },
     9000,
   );
   return Boolean(json?.ok);
