@@ -5,6 +5,7 @@ import { buildPayload, type ScanResult, type ScanAnswers } from "@/lib/catalyst"
 import api, { type ChecksResult } from "@/lib/catalyst-api";
 import { resolveTier } from "./meta";
 import { saveSession, type LookupState } from "./session";
+import { buildInterview } from "@/lib/interview";
 import styles from "./catalyst.module.css";
 
 type Urgency = "annoying" | "weekly_cost" | "urgent";
@@ -37,6 +38,14 @@ function Field({ label, optional, children }: { label: string; optional?: boolea
       {children}
     </label>
   );
+}
+
+/** The sector the mini captured, which decides the interview's shape. */
+function sectorFromAnswers(answers: ScanAnswers): string | null {
+  const raw = (answers as unknown as Record<string, unknown>).sectors;
+  if (Array.isArray(raw) && typeof raw[0] === "string") return raw[0];
+  if (typeof raw === "string") return raw;
+  return null;
 }
 
 export default function UnlockForm({
@@ -126,12 +135,11 @@ export default function UnlockForm({
       setSessionId(res.session_id);
       setDeferred(res.deferred);
       saveSession({ sessionId: res.session_id });
-      // Straight into the deep interview while they are warm. The mini result
-      // is already theirs; this is what unlocks the full one.
-      if (onContinueToInterview && res.session_id && !res.session_id.startsWith("local_")) {
-        onContinueToInterview(res.session_id);
-        return;
-      }
+      // The confirmation ALWAYS shows. Dropping someone straight from "enter
+      // your email" into question 1 of 19 gives them no acknowledgement that
+      // their details landed, no idea how long the next bit takes, and no
+      // choice about starting it. The interview is entered deliberately, from
+      // the screen below.
       setStatus("done");
       if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
@@ -161,6 +169,17 @@ export default function UnlockForm({
   };
 
   /* ---------------- post-submit: confirmation + doors ---------------- */
+  // The interview needs a real server session to save into; a deferred/local
+  // capture has nowhere to put the answers, so it is not offered.
+  const canInterview = Boolean(
+    onContinueToInterview && sessionId && !sessionId.startsWith("local_"),
+  );
+  // The real count, from the same builder the interview runs on, so the number
+  // we promise is the number they get. It varies by sector (some carry an extra
+  // trade-specific block), and "about 20" when it is 19 is a small lie that
+  // costs trust at exactly the moment we are asking for it.
+  const interviewCount = buildInterview(sectorFromAnswers(answers)).length;
+
   if (status === "done") {
     return (
       <div className={styles.result}>
@@ -185,6 +204,44 @@ export default function UnlockForm({
             )}
           </div>
         </div>
+
+        {/* The deep interview, offered rather than imposed. This is the "continue
+            your full diagnostic" step from canon: the mini result is already
+            theirs, and this is what turns it into the full one. The ask is
+            stated honestly up front — how many questions, roughly how long, and
+            what it buys them — because the whole pitch is that we price leaks
+            from THEIR numbers, and their numbers are what these questions get. */}
+        {canInterview && (
+          <div
+            style={{
+              marginTop: 20,
+              padding: "20px 22px",
+              borderRadius: 16,
+              background: "color-mix(in srgb, var(--accent-primary) 8%, var(--bg-elevated))",
+              border: "1px solid color-mix(in srgb, var(--accent-primary) 28%, var(--border-subtle))",
+            }}
+          >
+            <h2 className="h3" style={{ margin: "0 0 8px", fontSize: 20 }}>
+              Want the numbers to be yours, not our averages?
+            </h2>
+            <p style={{ margin: "0 0 6px", fontSize: 15, lineHeight: 1.6, color: "var(--text-primary)" }}>
+              Sage can go deeper: how the work actually flows through your business, and what a job
+              is worth to you. That is what lets the report price each leak in pounds from your own
+              figures instead of a sector average.
+            </p>
+            <p style={{ margin: "0 0 16px", fontSize: 14, color: "var(--text-muted)" }}>
+              {interviewCount} short questions, mostly taps, around five minutes. Stop whenever
+              you like, your place is saved.
+            </p>
+            <button
+              type="button"
+              className="btn btn-primary btn-md"
+              onClick={() => onContinueToInterview?.(sessionId as string)}
+            >
+              Continue your full diagnostic →
+            </button>
+          </div>
+        )}
 
         {/* The baseline the visitor can rely on: the report is coming in 24h with a
             payment link, whatever they click. The doors below are optional accelerators. */}
