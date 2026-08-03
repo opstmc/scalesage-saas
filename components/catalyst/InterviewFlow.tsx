@@ -1,12 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import api from "@/lib/catalyst-api";
+import api, { type ChecksResult, type LookupMatch } from "@/lib/catalyst-api";
 import {
+  ambientEvidence,
   buildInterview,
   buildPages,
   figuresFrom,
   pageComplete,
+  type InterviewEvidence,
+  type InterviewPage,
   type InterviewStep,
 } from "@/lib/interview";
 import type { OrbState } from "./SageOrb";
@@ -29,6 +32,13 @@ import styles from "./catalyst.module.css";
  *    it, and a partial interview is still a warm lead with real answers in it.
  *  - Gates the report. Nothing releases the full report except the completion
  *    call at the end, and that call is server-side idempotent.
+ *
+ * It also asks about what the live checks found while they were on the mini
+ * (phase 2). That evidence is optional in every direction: passed in as props
+ * if the parent has it, otherwise read back out of the session the mini wrote,
+ * otherwise absent. When it is absent the interview is exactly the one that
+ * shipped in phase 1 rather than a form with holes in it, because the questions
+ * that depend on a finding are not rendered at all unless the finding exists.
  * ------------------------------------------------------------------------- */
 
 const SAVE_DEBOUNCE_MS = 900;
@@ -48,6 +58,8 @@ function usePrefersReducedMotion(): boolean {
 export default function InterviewFlow({
   sessionId,
   sector,
+  checks,
+  lookup,
   initialIdx = 0,
   initialAnswers = {},
   onComplete,
@@ -56,6 +68,11 @@ export default function InterviewFlow({
 }: {
   sessionId: string | null;
   sector: string | null;
+  /** What the mini's live checks found. Omit it and the interview falls back to
+   *  the session the mini wrote; omit that too and it simply asks less. */
+  checks?: ChecksResult | null;
+  /** The Q1 lookup match, which carries public Google review data of its own. */
+  lookup?: LookupMatch | null;
   /** Resume point, in PAGES. */
   initialIdx?: number;
   initialAnswers?: Record<string, unknown>;
@@ -64,9 +81,24 @@ export default function InterviewFlow({
   onProgress?: (fraction: number) => void;
 }) {
   const reduced = usePrefersReducedMotion();
-  const steps = useMemo(() => buildInterview(sector), [sector]);
+
+  /* The mini already ran the checks and wrote them to the session, so the
+     interview can read them back without the parent having to hand them over.
+     Read once, in a lazy initialiser, so the question set is settled before the
+     first paint: questions appearing after someone has started reading a page
+     would be worse than not asking at all. */
+  const [storedEvidence] = useState<InterviewEvidence>(ambientEvidence);
+  const evidence = useMemo<InterviewEvidence>(
+    () => ({
+      checks: checks !== undefined ? checks : (storedEvidence.checks ?? null),
+      lookup: lookup !== undefined ? lookup : (storedEvidence.lookup ?? null),
+    }),
+    [checks, lookup, storedEvidence],
+  );
+
+  const steps = useMemo(() => buildInterview(sector, evidence), [sector, evidence]);
   const pages = useMemo(() => buildPages(steps), [steps]);
-  const [pageIdx, setPageIdx] = useState(Math.min(Math.max(0, initialIdx), pages.length - 1));
+  const [pageIdx, setPageIdx] = useState(Math.max(0, initialIdx));
   const [answers, setAnswers] = useState<Record<string, unknown>>(initialAnswers);
   const [reaction, setReaction] = useState<string | null>(null);
   const [finishing, setFinishing] = useState(false);
@@ -77,16 +109,21 @@ export default function InterviewFlow({
   }, [answers]);
 
   const saveTimer = useRef<number | null>(null);
-  const page = pages[pageIdx];
+  /* Clamped at render rather than in state. Someone can resume a session that
+     was saved when the interview had a different number of pages (the checks
+     came back late, say), and a resume point past the end has to land on the
+     last page, never on nothing. */
+  const idx = Math.min(pageIdx, Math.max(0, pages.length - 1));
+  const page = pages[idx];
 
   useEffect(() => {
-    onProgress?.(pages.length ? Math.min(1, pageIdx / pages.length) : 1);
-  }, [pageIdx, pages.length, onProgress]);
+    onProgress?.(pages.length ? Math.min(1, idx / pages.length) : 1);
+  }, [idx, pages.length, onProgress]);
 
   // Persist locally on every change so a closed tab never costs them progress.
   useEffect(() => {
-    saveSession({ phase: "interview", interviewIdx: pageIdx, interviewAnswers: answers });
-  }, [pageIdx, answers]);
+    saveSession({ phase: "interview", interviewIdx: idx, interviewAnswers: answers });
+  }, [idx, answers]);
 
   /* Debounced server save. Fire-and-forget: a failed save must never block
      someone mid-question, and the next save resends the same answers because
@@ -128,7 +165,7 @@ export default function InterviewFlow({
 
   const goToNextPage = useCallback(() => {
     setReaction(null);
-    const next = pageIdx + 1;
+    const next = idx + 1;
     if (next >= pages.length) {
       void finish();
       return;
@@ -136,7 +173,7 @@ export default function InterviewFlow({
     setPageIdx(next);
     onOrb?.("listening");
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [finish, onOrb, pageIdx, pages.length]);
+  }, [finish, onOrb, idx, pages.length]);
 
   /* Sage speaks once per page rather than once per answer. A reply after every
      one of twenty questions is noise; a reply when a topic closes is a
@@ -174,7 +211,7 @@ export default function InterviewFlow({
   }
 
   const canContinue = pageComplete(page, answers);
-  const isLastPage = pageIdx === pages.length - 1;
+  const isLastPage = idx === pages.length - 1;
 
   return (
     <div className={styles.shell}>
@@ -185,7 +222,7 @@ export default function InterviewFlow({
         </div>
 
         <div className={styles.kicker}>
-          {page.title} · page {pageIdx + 1} of {pages.length}
+          {page.title} · page {idx + 1} of {pages.length}
         </div>
 
         {reaction ? (
@@ -299,11 +336,13 @@ function Question({
 
 /* Sage's line when a topic closes. Deliberately sparse: it fires on what the
  * page revealed, and stays quiet when there is nothing worth saying. */
-function replyForPage(
-  page: { steps: InterviewStep[] },
-  answers: Record<string, unknown>,
-): string | null {
-  const has = (id: string, ...values: string[]) => values.includes(String(answers[id] ?? ""));
+function replyForPage(page: InterviewPage, answers: Record<string, unknown>): string | null {
+  /* Only what THIS page asked. Reading the whole answer set meant a line could
+     fire again several pages later, so Sage repeated itself verbatim on the way
+     to the finish. */
+  const onPage = new Set(page.steps.map((s) => s.id));
+  const has = (id: string, ...values: string[]) =>
+    onPage.has(id) && values.includes(String(answers[id] ?? ""));
 
   if (has("out_of_hours", "monday", "lost") || has("where_it_is_recorded", "in_my_head", "nowhere")) {
     return "That is the gap where most of the money goes. Noted.";
@@ -313,6 +352,9 @@ function replyForPage(
   }
   if (has("no_shows", "not_tracked") || has("repeat_purchase", "not_tracked")) {
     return "If it is not counted it cannot be fixed. We will start by counting it.";
+  }
+  if (page.steps.some((s) => s.block === "evidence")) {
+    return "Thank you. Sage could only see that part from the outside.";
   }
   if (page.steps.some((s) => s.block === "numbers")) {
     return "Good. Those numbers are what let the report price this in pounds rather than guesses.";

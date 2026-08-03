@@ -1,6 +1,6 @@
 {
   "configVersion": "interview-v1",
-  "approvals": "All copy JW-approval-pending. Structure follows docs/plans/catalyst-full-interview.md (phase 1). Editing a question here never affects the 13-question mini or its scoring.",
+  "approvals": "All copy JW-approval-pending. Structure follows docs/plans/catalyst-full-interview.md (phases 1, 2 and 4). Editing a question here never affects the 13-question mini or its scoring. Question ids must be unique across the whole file: a repeated id silently overwrites an answer. lib/interview.ts validates this file when it loads, which happens during the build, so a mistake here fails the build rather than reaching a visitor.",
   "spines": {
     "A": {
       "label": "Quote-led",
@@ -102,6 +102,11 @@
         {
           "value": "nobody",
           "label": "Honestly, sometimes nobody"
+        },
+        {
+          "value": "varies",
+          "label": "It varies",
+          "escape": true
         }
       ]
     },
@@ -135,6 +140,11 @@
         {
           "value": "nowhere",
           "label": "It isn't, really"
+        },
+        {
+          "value": "not_sure",
+          "label": "Not sure",
+          "escape": true
         }
       ]
     },
@@ -159,7 +169,8 @@
         },
         {
           "value": "not_sure",
-          "label": "Not sure"
+          "label": "Not sure",
+          "escape": true
         }
       ]
     },
@@ -188,6 +199,11 @@
         {
           "value": "lost",
           "label": "It probably gets lost"
+        },
+        {
+          "value": "not_sure",
+          "label": "Not sure",
+          "escape": true
         }
       ]
     }
@@ -218,7 +234,8 @@
           },
           {
             "value": "varies",
-            "label": "It really varies"
+            "label": "It really varies",
+            "escape": true
           }
         ]
       },
@@ -246,7 +263,8 @@
           },
           {
             "value": "depends",
-            "label": "Depends how busy we are"
+            "label": "Depends how busy we are",
+            "escape": true
           }
         ]
       },
@@ -275,7 +293,8 @@
           },
           {
             "value": "no_idea",
-            "label": "We genuinely don't know"
+            "label": "We genuinely don't know",
+            "escape": true
           }
         ]
       }
@@ -325,7 +344,8 @@
           },
           {
             "value": "not_tracked",
-            "label": "We don't track it"
+            "label": "We don't track it",
+            "escape": true
           }
         ]
       },
@@ -375,7 +395,8 @@
           },
           {
             "value": "not_sure",
-            "label": "Not sure"
+            "label": "Not sure",
+            "escape": true
           }
         ]
       },
@@ -399,7 +420,8 @@
           },
           {
             "value": "not_tracked",
-            "label": "We don't measure it"
+            "label": "We don't measure it",
+            "escape": true
           }
         ]
       },
@@ -424,6 +446,11 @@
           {
             "value": "dominates",
             "label": "It dominates"
+          },
+          {
+            "value": "not_sure",
+            "label": "Hard to say",
+            "escape": true
           }
         ]
       }
@@ -817,6 +844,404 @@
       "optional": true
     }
   ],
+  "evidenceQuestions": {
+    "note": "Questions about what the live checks actually found, asked only when the check found it. Conditions read FACTS derived from the mini's background checks; an unknown fact is always false, so a check that failed, timed out or returned nothing simply removes the question. Nothing here is ever asked blind, and the interview is complete and coherent without a single one of them. Order is priority order, at most one question per group, capped at maxPerInterview.",
+    "maxPerInterview": 2,
+    "facts": {
+      "google_profile": "\"found\" or \"missing\", from the Google Business check",
+      "review_count": "number of Google reviews found",
+      "google_rating": "star rating found, if any",
+      "ranks_page_one": "true / false, whether the check saw them on page one",
+      "website_status": "\"up\" or \"down\", from the website check",
+      "website_load_seconds": "how long the site took to open for the check",
+      "click_to_call": "true / false, whether the site had a tap-to-call number",
+      "ai_listed": "true / false, whether the assistant check returned their name"
+    },
+    "questions": [
+      {
+        "id": "reviews_none",
+        "kind": "single",
+        "kicker": "What Sage found",
+        "question": "Sage found your Google profile, and no reviews on it yet. Do you ask customers for one?",
+        "hint": "Sage ran this check while you were answering the last few.",
+        "group": "reviews",
+        "when": {
+          "all": [
+            {
+              "fact": "google_profile",
+              "op": "eq",
+              "value": "found"
+            },
+            {
+              "fact": "review_count",
+              "op": "eq",
+              "value": 0
+            }
+          ]
+        },
+        "options": [
+          {
+            "value": "every_time",
+            "label": "Yes, every job"
+          },
+          {
+            "value": "sometimes",
+            "label": "Sometimes, when I remember"
+          },
+          {
+            "value": "never",
+            "label": "No, we have never asked"
+          },
+          {
+            "value": "ask_no_luck",
+            "label": "We ask, most people don't leave one"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "escape": true
+          }
+        ]
+      },
+      {
+        "id": "reviews_thin",
+        "kind": "single",
+        "kicker": "What Sage found",
+        "question": "Sage found {review_count} reviews on your Google profile. Is asking for a review part of how you finish a job?",
+        "hint": "Sage ran this check while you were answering the last few.",
+        "group": "reviews",
+        "when": {
+          "all": [
+            {
+              "fact": "google_profile",
+              "op": "eq",
+              "value": "found"
+            },
+            {
+              "fact": "review_count",
+              "op": "gte",
+              "value": 1
+            },
+            {
+              "fact": "review_count",
+              "op": "lt",
+              "value": 20
+            }
+          ]
+        },
+        "options": [
+          {
+            "value": "every_time",
+            "label": "Yes, every job"
+          },
+          {
+            "value": "sometimes",
+            "label": "Sometimes, when I remember"
+          },
+          {
+            "value": "never",
+            "label": "No, we have never asked"
+          },
+          {
+            "value": "ask_no_luck",
+            "label": "We ask, most people don't leave one"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "escape": true
+          }
+        ]
+      },
+      {
+        "id": "reviews_steady",
+        "kind": "single",
+        "kicker": "What Sage found",
+        "question": "Sage found {review_count} reviews on your Google profile. How do those come in?",
+        "hint": "Sage ran this check while you were answering the last few.",
+        "group": "reviews",
+        "when": {
+          "all": [
+            {
+              "fact": "google_profile",
+              "op": "eq",
+              "value": "found"
+            },
+            {
+              "fact": "review_count",
+              "op": "gte",
+              "value": 20
+            }
+          ]
+        },
+        "options": [
+          {
+            "value": "we_ask",
+            "label": "We ask every customer"
+          },
+          {
+            "value": "automatic",
+            "label": "Something asks for us automatically"
+          },
+          {
+            "value": "on_their_own",
+            "label": "They arrive on their own"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "escape": true
+          }
+        ]
+      },
+      {
+        "id": "google_profile_missing",
+        "kind": "single",
+        "kicker": "What Sage found",
+        "question": "Sage looked for a Google Business Profile and could not find one. Is that right?",
+        "hint": "Worth checking with you rather than taking our own word for it.",
+        "group": "google",
+        "when": {
+          "fact": "google_profile",
+          "op": "eq",
+          "value": "missing"
+        },
+        "options": [
+          {
+            "value": "correct",
+            "label": "That's right, we don't have one"
+          },
+          {
+            "value": "other_name",
+            "label": "We have one, it may be under a different name"
+          },
+          {
+            "value": "old_one",
+            "label": "Someone set one up years ago"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "escape": true
+          }
+        ]
+      },
+      {
+        "id": "not_page_one",
+        "kind": "single",
+        "kicker": "What Sage found",
+        "question": "Searching the way a customer would, Sage did not see you on the first page. When someone new gets in touch, do you find out how they found you?",
+        "group": "google",
+        "when": {
+          "all": [
+            {
+              "fact": "google_profile",
+              "op": "eq",
+              "value": "found"
+            },
+            {
+              "fact": "ranks_page_one",
+              "op": "isFalse"
+            }
+          ]
+        },
+        "options": [
+          {
+            "value": "always_ask",
+            "label": "Yes, we always ask"
+          },
+          {
+            "value": "sometimes",
+            "label": "Sometimes"
+          },
+          {
+            "value": "never_ask",
+            "label": "No, we don't ask"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "escape": true
+          }
+        ]
+      },
+      {
+        "id": "assistant_absent",
+        "kind": "single",
+        "kicker": "What Sage found",
+        "question": "Sage asked ChatGPT for a business like yours nearby and your name did not come back. Have you looked at how you show up there?",
+        "group": "assistants",
+        "when": {
+          "fact": "ai_listed",
+          "op": "isFalse"
+        },
+        "options": [
+          {
+            "value": "looked",
+            "label": "Yes, we have looked at it"
+          },
+          {
+            "value": "someone_handles",
+            "label": "Someone handles that for us"
+          },
+          {
+            "value": "new_to_me",
+            "label": "No, that's new to me"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "escape": true
+          }
+        ]
+      },
+      {
+        "id": "assistant_present",
+        "kind": "single",
+        "kicker": "What Sage found",
+        "question": "Sage asked ChatGPT for a business like yours nearby and your name came back. Was that deliberate?",
+        "group": "assistants",
+        "when": {
+          "fact": "ai_listed",
+          "op": "isTrue"
+        },
+        "options": [
+          {
+            "value": "worked_on_it",
+            "label": "Yes, we have worked on it"
+          },
+          {
+            "value": "someone_handles",
+            "label": "Someone handles that for us"
+          },
+          {
+            "value": "news_to_me",
+            "label": "No, that's news to me"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "escape": true
+          }
+        ]
+      },
+      {
+        "id": "website_down",
+        "kind": "single",
+        "kicker": "What Sage found",
+        "question": "Sage could not open your website when it checked. Is it live at the moment?",
+        "hint": "Checks get this wrong sometimes, so Sage would rather ask.",
+        "group": "website",
+        "when": {
+          "fact": "website_status",
+          "op": "eq",
+          "value": "down"
+        },
+        "options": [
+          {
+            "value": "should_be",
+            "label": "It should be, yes"
+          },
+          {
+            "value": "rebuilding",
+            "label": "It's being rebuilt"
+          },
+          {
+            "value": "no_site",
+            "label": "We don't have a website"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "escape": true
+          }
+        ]
+      },
+      {
+        "id": "no_click_to_call",
+        "kind": "single",
+        "kicker": "What Sage found",
+        "question": "Sage did not find a tap-to-call number on your site. When someone finds you on their phone, how would you rather they got hold of you?",
+        "group": "website",
+        "when": {
+          "all": [
+            {
+              "fact": "website_status",
+              "op": "eq",
+              "value": "up"
+            },
+            {
+              "fact": "click_to_call",
+              "op": "isFalse"
+            }
+          ]
+        },
+        "options": [
+          {
+            "value": "call",
+            "label": "Ring us"
+          },
+          {
+            "value": "message",
+            "label": "Message or WhatsApp"
+          },
+          {
+            "value": "form",
+            "label": "Fill in the form"
+          },
+          {
+            "value": "whichever",
+            "label": "Whichever suits them"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "escape": true
+          }
+        ]
+      },
+      {
+        "id": "site_slow",
+        "kind": "single",
+        "kicker": "What Sage found",
+        "question": "Your site took about {website_load_seconds} seconds to open when Sage checked. If you wanted something changed on it, who does that?",
+        "group": "website",
+        "when": {
+          "all": [
+            {
+              "fact": "website_status",
+              "op": "eq",
+              "value": "up"
+            },
+            {
+              "fact": "website_load_seconds",
+              "op": "gte",
+              "value": 4
+            }
+          ]
+        },
+        "options": [
+          {
+            "value": "in_house",
+            "label": "Me or someone here"
+          },
+          {
+            "value": "builder",
+            "label": "The company that built it"
+          },
+          {
+            "value": "nobody",
+            "label": "Nobody at the moment"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "escape": true
+          }
+        ]
+      }
+    ]
+  },
   "sectorOverlays": {
     "plumbers": [
       {
@@ -836,6 +1261,11 @@
           {
             "value": "mostly_planned",
             "label": "Mostly planned"
+          },
+          {
+            "value": "varies",
+            "label": "It varies",
+            "escape": true
           }
         ]
       }
@@ -858,6 +1288,340 @@
           {
             "value": "no",
             "label": "No, installs and repairs"
+          }
+        ]
+      }
+    ],
+    "gas-engineers": [
+      {
+        "id": "service_reminders",
+        "kind": "single",
+        "kicker": "Your trade",
+        "question": "When an annual service or a landlord's gas certificate is due again, how does the customer hear about it?",
+        "options": [
+          {
+            "value": "automatic",
+            "label": "A reminder goes out automatically"
+          },
+          {
+            "value": "by_hand",
+            "label": "Someone works through a list"
+          },
+          {
+            "value": "they_call",
+            "label": "They ring us when they remember"
+          },
+          {
+            "value": "no_reminders",
+            "label": "We don't send reminders"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "escape": true
+          }
+        ]
+      }
+    ],
+    "tree-surgeons": [
+      {
+        "id": "site_visit_needed",
+        "kind": "single",
+        "kicker": "Your trade",
+        "question": "Before you can price a job, how often do you have to go and look at the tree?",
+        "options": [
+          {
+            "value": "always",
+            "label": "Every time"
+          },
+          {
+            "value": "usually",
+            "label": "Usually, photos sometimes do it"
+          },
+          {
+            "value": "rarely",
+            "label": "Rarely, photos are normally enough"
+          },
+          {
+            "value": "varies",
+            "label": "It varies",
+            "escape": true
+          }
+        ]
+      }
+    ],
+    "builders": [
+      {
+        "id": "variations_agreed",
+        "kind": "single",
+        "kicker": "Your trade",
+        "question": "When a job changes on site, how do the extra costs get agreed?",
+        "options": [
+          {
+            "value": "written_first",
+            "label": "In writing before we do the work"
+          },
+          {
+            "value": "call_then_note",
+            "label": "A call or a message, written up later"
+          },
+          {
+            "value": "at_invoice",
+            "label": "Sorted at the end, on the invoice"
+          },
+          {
+            "value": "varies",
+            "label": "It varies",
+            "escape": true
+          }
+        ]
+      }
+    ],
+    "cleaning": [
+      {
+        "id": "sickness_cover",
+        "kind": "single",
+        "kicker": "Your trade",
+        "question": "When someone calls in sick, how does the cover get sorted?",
+        "options": [
+          {
+            "value": "system",
+            "label": "The rota system reassigns it"
+          },
+          {
+            "value": "one_person",
+            "label": "One person rings round"
+          },
+          {
+            "value": "group_chat",
+            "label": "The team sorts it in a group chat"
+          },
+          {
+            "value": "lands_on_me",
+            "label": "It lands on me, whatever time it is"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "escape": true
+          }
+        ]
+      }
+    ],
+    "accountants": [
+      {
+        "id": "records_chasing",
+        "kind": "single",
+        "kicker": "Your practice",
+        "question": "How do clients get chased for their records at year end?",
+        "options": [
+          {
+            "value": "automatic",
+            "label": "The software chases them for us"
+          },
+          {
+            "value": "list",
+            "label": "Someone works down a list"
+          },
+          {
+            "value": "ad_hoc",
+            "label": "Ad hoc, when we notice one is late"
+          },
+          {
+            "value": "they_send",
+            "label": "They send them without being asked"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "escape": true
+          }
+        ]
+      }
+    ],
+    "solicitors": [
+      {
+        "id": "matter_intake",
+        "kind": "single",
+        "kicker": "Your practice",
+        "question": "How does a new matter get opened and conflict-checked?",
+        "options": [
+          {
+            "value": "case_system",
+            "label": "In the case management system"
+          },
+          {
+            "value": "part_manual",
+            "label": "Partly manual"
+          },
+          {
+            "value": "manual",
+            "label": "Manually, every time"
+          }
+        ]
+      }
+    ],
+    "recruitment": [
+      {
+        "id": "candidate_goes_quiet",
+        "kind": "single",
+        "kicker": "Your agency",
+        "question": "When a candidate goes quiet part way through a process, what happens next?",
+        "options": [
+          {
+            "value": "sequence",
+            "label": "They go into a sequence that keeps in touch"
+          },
+          {
+            "value": "consultant",
+            "label": "The consultant chases when they get a minute"
+          },
+          {
+            "value": "move_on",
+            "label": "We move on to the next one"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "escape": true
+          }
+        ]
+      }
+    ],
+    "estate-agents": [
+      {
+        "id": "valuation_followup",
+        "kind": "single",
+        "kicker": "Your agency",
+        "question": "After a valuation, what happens if they don't instruct you?",
+        "options": [
+          {
+            "value": "sequence",
+            "label": "They go into a follow-up sequence"
+          },
+          {
+            "value": "occasional",
+            "label": "We call now and then"
+          },
+          {
+            "value": "nothing",
+            "label": "Nothing"
+          }
+        ]
+      }
+    ],
+    "property-mgmt": [
+      {
+        "id": "repair_dispatch",
+        "kind": "single",
+        "kicker": "Your agency",
+        "question": "When a tenant reports a repair, how does it reach a contractor?",
+        "options": [
+          {
+            "value": "system",
+            "label": "A system logs it and assigns it"
+          },
+          {
+            "value": "ring_round",
+            "label": "Someone rings round the contractors"
+          },
+          {
+            "value": "email_chase",
+            "label": "Emails and messages, then chased"
+          },
+          {
+            "value": "by_landlord",
+            "label": "It varies by landlord",
+            "escape": true
+          }
+        ]
+      }
+    ],
+    "salons": [
+      {
+        "id": "gap_filling",
+        "kind": "single",
+        "kicker": "Your salon",
+        "question": "When someone cancels on the day, how does the gap get filled?",
+        "options": [
+          {
+            "value": "waitlist",
+            "label": "A waiting list goes out automatically"
+          },
+          {
+            "value": "ring_regulars",
+            "label": "We message or ring a few regulars"
+          },
+          {
+            "value": "social_post",
+            "label": "We put it on social"
+          },
+          {
+            "value": "chair_empty",
+            "label": "The chair sits empty"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "escape": true
+          }
+        ]
+      }
+    ],
+    "pet-services": [
+      {
+        "id": "animal_records",
+        "kind": "single",
+        "kicker": "Your service",
+        "question": "Where do vaccination and health records for the animals live?",
+        "options": [
+          {
+            "value": "booking_system",
+            "label": "In the booking system, checked each time"
+          },
+          {
+            "value": "paper",
+            "label": "On paper or in a folder"
+          },
+          {
+            "value": "owner_says",
+            "label": "The owner tells us and we take their word"
+          },
+          {
+            "value": "not_needed",
+            "label": "We don't need to hold them"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "escape": true
+          }
+        ]
+      }
+    ],
+    "auto-repair": [
+      {
+        "id": "parts_wait",
+        "kind": "single",
+        "kicker": "Your garage",
+        "question": "When a job needs a part you haven't got, what happens to the booking?",
+        "options": [
+          {
+            "value": "rebook",
+            "label": "We rebook them once the part is in"
+          },
+          {
+            "value": "car_stays",
+            "label": "The car stays with us until it arrives"
+          },
+          {
+            "value": "they_wait",
+            "label": "They wait while we get it"
+          },
+          {
+            "value": "varies",
+            "label": "It varies",
+            "escape": true
           }
         ]
       }
@@ -888,46 +1652,60 @@
         ]
       }
     ],
-    "solicitors": [
+    "hospitality": [
       {
-        "id": "matter_intake",
+        "id": "third_party_share",
         "kind": "single",
-        "kicker": "Your practice",
-        "question": "How does a new matter get opened and conflict-checked?",
+        "kicker": "Your venue",
+        "question": "How much of your custom comes through booking or delivery apps rather than straight to you?",
         "options": [
           {
-            "value": "case_system",
-            "label": "In the case management system"
+            "value": "most",
+            "label": "Most of it"
           },
           {
-            "value": "part_manual",
-            "label": "Partly manual"
+            "value": "about_half",
+            "label": "About half"
           },
           {
-            "value": "manual",
-            "label": "Manually, every time"
+            "value": "a_little",
+            "label": "A little"
+          },
+          {
+            "value": "none",
+            "label": "None, it all comes direct"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "escape": true
           }
         ]
       }
     ],
-    "estate-agents": [
+    "fitness": [
       {
-        "id": "valuation_followup",
+        "id": "lapsed_members",
         "kind": "single",
-        "kicker": "Your agency",
-        "question": "After a valuation, what happens if they don't instruct you?",
+        "kicker": "Your gym",
+        "question": "When a member stops turning up, how long before anyone notices?",
         "options": [
           {
-            "value": "sequence",
-            "label": "They go into a follow-up sequence"
+            "value": "flagged",
+            "label": "It gets flagged and we get in touch"
           },
           {
-            "value": "occasional",
-            "label": "We call now and then"
+            "value": "eventually",
+            "label": "We spot it eventually"
           },
           {
-            "value": "nothing",
-            "label": "Nothing"
+            "value": "on_cancel",
+            "label": "We find out when they cancel"
+          },
+          {
+            "value": "not_sure",
+            "label": "Not sure",
+            "escape": true
           }
         ]
       }
