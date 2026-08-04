@@ -78,9 +78,21 @@ const jsonLd = {
       sameAs: [
         "https://find-and-update.company-information.service.gov.uk/company/17232390",
       ],
-      // TODO (Cy, pending verification): add `email`, `telephone`, and a
-      // PostalAddress `address` (registered office) once the public contact
-      // details and registered address are confirmed.
+      // Confirmed 4 Aug as the public contact address, and the same constant
+      // the footer prints. A schema email that differs from the one on the page
+      // is worse than none: it is the address an assistant will quote back.
+      email: "admin@scalesage.ai",
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "customer support",
+        email: "admin@scalesage.ai",
+        areaServed: ["GB", "EU"],
+        availableLanguage: "English",
+      },
+      // TODO (Cy, pending verification): add `telephone` and a PostalAddress
+      // `address` (registered office) once those are confirmed. Left absent
+      // rather than guessed: a wrong registered address in structured data is
+      // a claim about a legal entity.
     },
     {
       "@type": "Service",
