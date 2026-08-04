@@ -192,7 +192,7 @@ export default function MiniCatalyst() {
                 </p>
 
                 <p style={{ margin: "18px 0 0", fontSize: 14, color: "var(--text-muted)" }}>
-                  This is a directional estimate from three answers. The full 60-second scan checks
+                  This is a directional estimate from three answers. The full scan checks
                   your real numbers and builds your leak map.
                 </p>
 

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import styles from "./partners.module.css";
+import { COMMISSIONABLE_BOLT_ONS } from "@/lib/offer";
 
 // DRAFT: public partner-recruitment page, built from the ScaleSage Partner Pack
 // (May 2026). Copy is JW-approval-pending before it ships. The internal
@@ -29,7 +30,9 @@ const STEPS = [
   // No headline value figure on the Catalyst: it is free, and putting a price
   // on a free diagnostic is a claim we cannot source (decision D11).
   { t: "Introduce a prospect", b: "Open with the Catalyst diagnostic. It prices their leaks in pounds a month from their own data, so the diagnostic does the selling and there is no hard pitch needed." },
-  { t: "We close & deliver", b: "We handle the sales process, onboarding, build and ongoing delivery. Stay as involved as you like." },
+  // Locked 03 Aug: partners close their own deals. The old "We close & deliver"
+  // said the opposite of the programme and set an expectation we do not meet.
+  { t: "You close, we deliver", b: "You run the conversation and close the deal. We are on the call if you want us there, and we take over the moment it is signed: onboarding, build and ongoing delivery." },
   { t: "Get paid every month", b: "50% within 5 days of the client's payment, 50% at Day 90. Monthly, via Wise, GBP, EUR or USD." },
 ];
 
@@ -141,8 +144,25 @@ export default function PartnersPage() {
             <div data-reveal="" className="glass glass-hover price-card">
               <h3 className="h3">Max</h3>
               <div className="price-amount">£4,997<span>/mo</span></div>
-              <p className="small">Multi-site operators, done-for-you, a dedicated EA and founder-level strategy. +£2,497 setup.</p>
+              {/* No "dedicated EA": that line came off the Max card in the offer
+                  book (D8) and is not something we currently sell. */}
+              <p className="small">Multi-site operators, done-for-you, a named senior operator and founder-level strategy. +£2,497 setup.</p>
             </div>
+          </div>
+
+          {/* Bolt-ons earn commission too, and partners could not see which ones.
+              Read from lib/offer.ts so this list cannot drift from the pricing page. */}
+          <div data-reveal="" className="glass" style={{ marginTop: 28, padding: "22px 24px" }}>
+            <h3 className="h3" style={{ marginBottom: 6 }}>Every bolt-on is commissionable too</h3>
+            <p className="small" style={{ marginBottom: 14 }}>
+              A subscription is not the only thing you earn on. Each of these carries commission at
+              your tier rate, whether it is sold alongside a plan or on its own.
+            </p>
+            <ul style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: "8px 20px", margin: 0, paddingLeft: 18 }}>
+              {COMMISSIONABLE_BOLT_ONS.map((b) => (
+                <li key={b} className="small" style={{ lineHeight: 1.5 }}>{b}</li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>

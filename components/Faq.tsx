@@ -11,11 +11,13 @@ export const FAQS = [
   },
   {
     q: "We're a small business, is this overkill for us?",
-    a: "Starter exists for exactly this: one acute leak, plugged, with a monthly ROI report. The Catalyst diagnostic shows what your biggest leak is worth before you commit to anything.",
+    a: "Starter exists for exactly this: your one acute leak, plugged, with a monthly ROI report. It is not a cut-down version of the bigger plans, it is the acute leak and the system that closes it. The Catalyst diagnostic shows what that acute leak is worth before you commit to anything.",
   },
   {
-    q: "What happens if it doesn't work?",
-    a: `Every system has a number against it, with a baseline measured before anything goes live. The ${GUARANTEE_NAME} covers the build. We target performance, we measure it against your baseline, and we report both honestly.`,
+    // Was "What happens if it doesn't work?", which the answer never actually
+    // answered: it described how we measure, not what we do about a bad number.
+    q: "What happens if a system underperforms?",
+    a: `We find out before you do, because every system has a number against it and a baseline measured before anything goes live. If it is under that baseline we tell you at the review rather than waiting to be asked, and we rework it. The ${GUARANTEE_NAME} covers the build: getting it working is our obligation, not a change request you pay for again. What we do not do is guarantee a revenue figure, because that depends on your market and your capacity as well as our systems. We target performance, we measure it, and we report both honestly.`,
   },
   {
     q: "How quickly can you have us live?",

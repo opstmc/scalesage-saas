@@ -248,7 +248,7 @@ export function buildSnapshot(a: Answers): Snapshot {
       track: "Starter",
       price: "£597/mo plus £297 setup",
       ctaLabel: "Start the Catalyst diagnostic",
-      note: "Plug your biggest leak first: missed-call text-back, automated quote follow-up, the review system, 1,500 cold emails a month, guided onboarding and a monthly ROI report. The diagnostic shows what that leak is worth before you commit.",
+      note: "Plug your acute leak first: missed-call text-back, 1,500 cold emails a month, monthly AI visibility scan, guided onboarding and a monthly ROI report. Quote follow-up and the review system are built to how you actually quote and close, so they come as part of your plan rather than off a shelf. The diagnostic shows what that leak is worth before you commit.",
     },
     pro: {
       tierLabel: "Pro · most popular",
@@ -317,7 +317,7 @@ export const SAGE_GREETING =
 export function sageReply(q: string): string {
   const t = (q || "").toLowerCase();
   if (/diagnostic|catalyst|scan|audit|journey|form/.test(t))
-    return "This isn't a form, it's a scan. The Catalyst diagnostic checks your missed calls, follow-up speed, search and AI visibility, retention and operations drag, then shows you exactly where revenue is leaving the building, what to fix first, and what recovery looks like in numbers. About 60 seconds.";
+    return "This isn't a form, it's a scan. The Catalyst diagnostic checks your missed calls, follow-up speed, search and AI visibility, retention and operations drag, then shows you exactly where revenue is leaving the building, what to fix first, and what recovery looks like in numbers. About 2 minutes.";
   if (/price|pricing|cost|how much|fee|£|expensive|budget|tier/.test(t))
     return "Three tiers, monthly, plus a one-off setup fee: Starter £597 a month plus £297 setup, Pro £1,497 plus £747 (most popular), and Max £4,997 plus £2,497, which is waitlist only right now. Not sure which? Run the Catalyst diagnostic, it shows what your leak is worth and what to fix first.";
   if (/work|prove|proof|result|roi|guarantee|number|baseline/.test(t))

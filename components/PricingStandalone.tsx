@@ -2,6 +2,7 @@ import Link from "next/link";
 import styles from "./PricingStandalone.module.css";
 import {
   BOLT_ONS as DUAL,
+  type DualItem,
   ORBIT,
   ORBIT_ANNUAL_NOTE,
   ORBIT_WAITLIST_NOTE,
@@ -34,6 +35,7 @@ export default function PricingStandalone() {
             <thead>
               <tr>
                 <th scope="col">Build or bolt-on</th>
+                <th scope="col">In your plan?</th>
                 <th scope="col" className={styles.num}>Standalone</th>
                 <th scope="col" className={styles.num}>Subscriber</th>
                 <th scope="col" className={styles.num}>You save</th>
@@ -41,19 +43,7 @@ export default function PricingStandalone() {
             </thead>
             <tbody>
               {DUAL.map((r) => (
-                <tr key={r.item}>
-                  <td className={styles.item}>
-                    {r.item}
-                    {r.note && (
-                      <span style={{ display: "block", fontSize: 12.5, opacity: 0.7, marginTop: 3 }}>
-                        {r.note}
-                      </span>
-                    )}
-                  </td>
-                  <td className={`${styles.num} ${styles.standalonePrice}`}>{r.standalone}</td>
-                  <td className={`${styles.num} ${styles.subPrice}`}>{r.subscriber}</td>
-                  <td className={`${styles.num} ${styles.saving}`}>{r.saving}</td>
-                </tr>
+                <BoltOnRow key={r.item} row={r} />
               ))}
             </tbody>
           </table>
@@ -111,6 +101,67 @@ export default function PricingStandalone() {
   );
 }
 
+/* One row of the dual-price table.
+ *
+ * Two things the flat table could not say. First, whether a line is actually an
+ * add-on for the reader or something their plan already covers — a price with
+ * no marker reads as "extra" either way, which quietly overstates the cost of
+ * being a subscriber. Second, that some services are sold at more than one
+ * volume; LinkedIn was flattened to a single figure and the ladder was
+ * invisible.
+ *
+ * Expansion is a native <details>, so it costs no client JavaScript, survives a
+ * strict CSP, and still opens for anyone printing the page or reading it with
+ * JS disabled. */
+function BoltOnRow({ row }: { row: DualItem }) {
+  const included = row.includedAt?.length ? row.includedAt.join(", ") : null;
+
+  return (
+    <tr>
+      <td className={styles.item}>
+        {row.tiers?.length ? (
+          <details>
+            <summary style={{ cursor: "pointer", listStyle: "revert" }}>
+              {row.item}
+              <span style={{ fontSize: 12.5, opacity: 0.65, marginLeft: 8 }}>see volumes</span>
+            </summary>
+            <ul style={{ margin: "10px 0 0", paddingLeft: 18, listStyle: "disc" }}>
+              {row.tiers.map((t) => (
+                <li key={t.label} style={{ fontSize: 13, marginBottom: 8, lineHeight: 1.5 }}>
+                  <strong>{t.label}</strong>
+                  <span style={{ display: "block", opacity: 0.8 }}>
+                    {t.standalone} standalone · {t.subscriber} for subscribers
+                  </span>
+                  {t.note && (
+                    <span style={{ display: "block", fontSize: 12.5, opacity: 0.65 }}>{t.note}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </details>
+        ) : (
+          row.item
+        )}
+        {row.note && (
+          <span style={{ display: "block", fontSize: 12.5, opacity: 0.7, marginTop: 3 }}>
+            {row.note}
+          </span>
+        )}
+      </td>
+      <td style={{ fontSize: 12.5, lineHeight: 1.45 }}>
+        {included ? (
+          <span style={{ opacity: 0.85 }}>Included at {included}</span>
+        ) : (
+          <span style={{ opacity: 0.6 }}>Add-on</span>
+        )}
+      </td>
+      <td className={`${styles.num} ${styles.standalonePrice}`}>{row.standalone}</td>
+      <td className={`${styles.num} ${styles.subPrice}`}>{row.subscriber}</td>
+      <td className={`${styles.num} ${styles.saving}`}>{row.saving}</td>
+    </tr>
+  );
+}
+
 /* ============================================================
    AfterYouPayTimeline (brief 5). Calm, stepped, reduced-motion
    safe. The 90-day clock starts ONLY when systems are live and
@@ -147,7 +198,7 @@ const STEPS: Step[] = [
   {
     tag: "Active Campaign, Day 1",
     title: "The 90-day clock starts",
-    text: "It starts only when your systems are live and confirmed in writing. Not the day you paid. Not before.",
+    text: "Typically about two weeks after you pay. It starts only when your systems are live and confirmed in writing, never the day you paid, so the build time comes out of our schedule and not out of your 90 days.",
     highlight: true,
   },
   {
@@ -165,8 +216,9 @@ export function AfterYouPayTimeline() {
           <div className="eyebrow">After you pay</div>
           <h2 className="h2">Your first 14 days, and the clock that actually counts.</h2>
           <p className="lead">
-            No mystery, no meter running before anything works. Here is exactly what happens from
-            the moment you subscribe.
+            No mystery, no meter running before anything works. We spend about the first two weeks
+            building, and your 90 days do not start until the systems are live. Here is exactly what
+            happens from the moment you subscribe.
           </p>
         </div>
 

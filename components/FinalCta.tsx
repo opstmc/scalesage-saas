@@ -24,7 +24,7 @@ export default function FinalCta() {
             Find your <span className="accent-em">leak</span>.
           </h2>
           <p className="lead" style={{ maxWidth: "36em", margin: "0 0 32px" }}>
-            60 seconds with the Catalyst diagnostic shows you what&rsquo;s costing you,
+            Two minutes with the Catalyst diagnostic shows you what&rsquo;s costing you,
             what to fix first, and what the recovery looks like in numbers.
           </p>
           <div style={{ display: "flex", gap: 14, justifyContent: "flex-start", flexWrap: "wrap" }}>

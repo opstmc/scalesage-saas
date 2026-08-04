@@ -256,7 +256,7 @@ export default function IndustryModal({
             </JourneyButton>
           </span>
           <p className="ind-modal-foot-note">
-            60-second scan · no login, no payment · you get the leak map first
+            2-minute scan · no login, no payment · you get the leak map first
           </p>
         </div>
       </div>

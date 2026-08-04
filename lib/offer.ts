@@ -66,16 +66,19 @@ export const TIERS: Tier[] = [
       "Your missed calls get answered with an instant text. Every quote you send gets followed up automatically. Your reviews grow while you work. New customers find you on Google and, increasingly, in AI answers. You stop losing jobs to businesses that just pick up faster.",
     includes: [
       "Missed-call text-back, unlimited within fair use. Every genuine missed call triggers an instant, personalised SMS.",
-      "Automated quote follow-up, so leads do not go cold while you are on the next job.",
-      "Google review system. Every completed job asks, every review gets a reply in your voice.",
+      // Quote follow-up and the review system came out of the standard package
+      // (03 Aug). They are not dropped, they are built to the business: both
+      // depend on how a firm actually quotes and closes, so shipping one
+      // configuration to everyone was selling a button rather than a system.
       "Cold email outreach, 1,500 targeted emails a month.",
       "AI search visibility scan, monthly, with a prioritised improvement plan, not just a score.",
-      "Your dashboard: live lead pipeline, deliverables and a plain-numbers monthly ROI report, powered by Orbit Pro.",
+      "Your dashboard: live lead pipeline, deliverables and a plain-numbers monthly ROI report, powered by Orbit Pro, including the full ScaleSage Score.",
       "Catalyst diagnostic every quarter, re-run with a personal video walkthrough so progress is measured, not assumed.",
       "AI builds included every quarter, per your plan quota.",
       "Automated weekly brief, written from your live numbers.",
       "Guided onboarding, and 24 hour support response, 8 hours for urgent issues.",
       "1 portal seat.",
+      "Quote follow-up and the review system are built into your plan, shaped around how you actually quote and close. A system you can rely on, not a magic button.",
     ],
     founding: {
       places: 10,
@@ -102,7 +105,10 @@ export const TIERS: Tier[] = [
       "Cold email outreach, 3,000 targeted emails a month.",
       "Live visibility work: your AI and search presence monitored live, human-reviewed, fixes queued and worked every month.",
       "Catalyst diagnostic every month, with the walkthrough.",
-      "Orbit Pro included, with the full ScaleSage Score.",
+      // "Orbit Pro included, with the full ScaleSage Score" used to sit here and
+      // was wrong: Starter already includes Orbit Pro and the full Score, so
+      // listing it as a Pro line sold an upgrade that does not exist. Orbit does
+      // not change between Starter and Pro. It changes at Max, to Premium.
       "AI builds included every month, per your plan quota.",
       "Quarterly reactivation campaigns against your dormant customer list.",
       "Monthly one-on-one Score Review, 60 minutes, live, on what moved and what is next.",
@@ -149,20 +155,66 @@ export const TIERS: Tier[] = [
   },
 ];
 
-/* --- Bolt-ons: standalone price vs subscriber price ---------------------- */
+/* --- Bolt-ons: standalone price vs subscriber price ----------------------
+ *
+ * `includedAt` is the tiers where this is already part of the plan, so the
+ * table can say plainly whether a row is an add-on you pay for or something
+ * you already have. A price with no such marker used to read as "extra" even
+ * when the reader's own tier included it.
+ *
+ * `tiers` turns a row into an expandable one. LinkedIn is sold at more than one
+ * volume, and flattening those into a single price hid the actual ladder.
+ */
+export interface NestedTier {
+  label: string;
+  standalone: string;
+  subscriber: string;
+  note?: string;
+}
+
 export interface DualItem {
   item: string;
   standalone: string;
   subscriber: string;
   saving: string;
   note?: string;
+  /** Tiers where this is already included, so it is not an add-on for them. */
+  includedAt?: string[];
+  /** When present the row expands to show the ladder underneath. */
+  tiers?: NestedTier[];
 }
 
 export const BOLT_ONS: DualItem[] = [
-  { item: "LinkedIn outreach, 200 connections a month", standalone: "£397", subscriber: "£197", saving: "£200", note: "Included at Pro and Max" },
-  { item: "Voice AI agent, 500 minutes", standalone: "£397", subscriber: "£127", saving: "£270", note: "Plus £197 setup. Included at Pro and Max" },
-  { item: "Missed-call SMS bot", standalone: "£67", subscriber: "£47", saving: "£20", note: "Unlimited within fair use. Included at Starter" },
-  { item: "Multi-channel orchestration", standalone: "£597", subscriber: "£297", saving: "£300", note: "Included at Max" },
+  {
+    item: "LinkedIn outreach",
+    standalone: "from £397",
+    subscriber: "from £197",
+    saving: "£200",
+    includedAt: ["Pro", "Max"],
+    note: "Pick the volume that matches your pipeline.",
+    tiers: [
+      {
+        label: "200 connections a month",
+        standalone: "£397",
+        subscriber: "£197",
+        note: "One account. The entry volume.",
+      },
+      {
+        label: "500 connections a month",
+        standalone: "£797",
+        subscriber: "£497",
+        note: "Across multiple accounts. Included at Max.",
+      },
+      {
+        label: "Multi-channel: email, LinkedIn and pipeline as one system",
+        standalone: "£597",
+        subscriber: "£297",
+        note: "Included at Max.",
+      },
+    ],
+  },
+  { item: "Voice AI agent, 500 minutes", standalone: "£397", subscriber: "£127", saving: "£270", note: "Plus £197 setup.", includedAt: ["Pro", "Max"] },
+  { item: "Missed-call SMS bot", standalone: "£67", subscriber: "£47", saving: "£20", note: "Unlimited within fair use.", includedAt: ["Starter", "Pro", "Max"] },
   { item: "Full website build", standalone: "£1,797", subscriber: "£997", saving: "£800" },
   { item: "Landing page", standalone: "£797", subscriber: "£397", saving: "£400" },
   { item: "Explainer video", standalone: "£1,497", subscriber: "£797", saving: "£700" },
@@ -171,8 +223,12 @@ export const BOLT_ONS: DualItem[] = [
   { item: "AI build, medium", standalone: "£2,497", subscriber: "£1,297", saving: "£1,200", note: "A multi-step system" },
   { item: "AI build, large", standalone: "£4,997", subscriber: "£2,997", saving: "£2,000", note: "A business subsystem" },
   { item: "Database reactivation", standalone: "£997", subscriber: "£697", saving: "£300", note: "Plus a share of what we recover" },
-  { item: "Frontier Visibility, weekly active", standalone: "£1,397", subscriber: "£997", saving: "£400", note: "Graded and included at every tier; this is the done-for-you level" },
+  { item: "Frontier Visibility, weekly active", standalone: "£1,397", subscriber: "£997", saving: "£400", note: "Graded at every tier; this is the done-for-you level.", includedAt: ["Max"] },
 ];
+
+/** Every bolt-on a partner can earn commission on, by name. The partner page
+ *  reads this rather than restating the list, so the two cannot drift. */
+export const COMMISSIONABLE_BOLT_ONS = BOLT_ONS.map((b) => b.item);
 
 /* --- Orbit standalone ----------------------------------------------------
  * Repackaged Free / Pro / Premium; Solo is retired. The ladder is a model
