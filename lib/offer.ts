@@ -187,9 +187,12 @@ export interface DualItem {
 export const BOLT_ONS: DualItem[] = [
   {
     item: "LinkedIn outreach",
-    standalone: "from £397",
-    subscriber: "from £197",
-    saving: "£200",
+    // A range, not a "from": the row expands to three real volumes and the
+    // lowest figure alone made the ladder look cheaper than it is. The numbers
+    // are the floor and ceiling of the tiers below, so the two cannot disagree.
+    standalone: "£397 to £797",
+    subscriber: "£197 to £497",
+    saving: "£200 to £300",
     includedAt: ["Pro", "Max"],
     note: "Pick the volume that matches your pipeline.",
     tiers: [

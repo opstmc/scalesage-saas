@@ -258,7 +258,7 @@ export default function ResultScreen({
             {/* Copy JW-approval-pending */}
             <p className="lead" style={{ marginBottom: 20 }}>
               The full Catalyst swaps every directional estimate for your real figures, with the fix plan and the
-              recovery maths, inside 24 hours.
+              recovery maths, within an hour.
             </p>
             <div className={styles.ctaRow}>
               <button type="button" className="btn btn-primary btn-lg" onClick={onUnlock}>

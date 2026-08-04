@@ -26,7 +26,7 @@ export default function Hero({ background }: { background?: React.ReactNode }) {
           </div>
           <div className="hero-trust">
             <div className="small" style={{ color: "var(--text-muted)", marginBottom: 14 }}>
-              About 2 minutes · no payment to begin · directional leak map first · full roadmap within 24 hours
+              About 2 minutes · no payment to begin · directional leak map first · full roadmap within an hour
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {["Trades", "Property", "Clinics", "Hospitality"].map((s) => (

@@ -321,7 +321,7 @@ function EntryScreen({ onBegin }: { onBegin: () => void }) {
         </button>
         {/* Reassurance, verbatim from brief */}
         <p className={styles.reassure}>
-          <b>No payment to begin.</b> Directional scan first. Full roadmap within 24 hours.
+          <b>No payment to begin.</b> Directional scan first. Full roadmap within an hour.
         </p>
       </div>
     </div>

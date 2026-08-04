@@ -21,7 +21,7 @@ export const FAQS = [
   },
   {
     q: "How quickly can you have us live?",
-    a: "The Catalyst gives you your mini result in minutes and your full report inside 24 hours. Most first systems are live within days, not months. Exact timelines are set in your scope.",
+    a: "The Catalyst gives you your mini result in minutes and your full report within an hour. Most first systems are live within days, not months. Exact timelines are set in your scope.",
   },
   {
     q: "Do you require long contracts?",

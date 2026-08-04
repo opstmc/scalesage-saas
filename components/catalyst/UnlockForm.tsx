@@ -258,7 +258,7 @@ export default function UnlockForm({
         <ol style={{ margin: "18px 0 0", padding: 0, listStyle: "none", display: "grid", gap: 10 }}>
           {[
             "Sage builds your full report, checking your website, search and AI visibility, reviews, enquiry flow, follow-up and operations.",
-            "It lands within 24 hours, by email and WhatsApp, with your recommended plan and a payment link.",
+            "It lands within an hour, by email and WhatsApp, with your recommended plan and a payment link.",
             "You decide. Start the build when you're ready, or book a call to talk it through first.",
           ].map((step, i) => (
             <li
@@ -316,7 +316,7 @@ export default function UnlockForm({
                 /* No fake payment — clearly-marked when Stripe is not wired yet. JW-approval-pending. */
                 <p className={styles.doorNote}>
                   Secure checkout is being connected. Sage has flagged your build, and the team will send your payment
-                  link with the report inside 24 hours.
+                  link with the report within an hour.
                 </p>
               )}
             </div>
@@ -384,7 +384,7 @@ export default function UnlockForm({
           </h1>
           {/* Copy JW-approval-pending */}
           <p className="lead">
-            Sage keeps the leak map you just built. Add your details and the full Catalyst lands within 24 hours. No
+            Sage keeps the leak map you just built. Add your details and the full Catalyst lands within an hour. No
             payment to begin.
           </p>
         </div>
