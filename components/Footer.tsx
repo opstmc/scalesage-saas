@@ -13,7 +13,7 @@ const PARTNER_HUB = PORTAL_BASE ? `${PORTAL_BASE}/portal/login?as=partner` : nul
 // A contact route has to end somewhere a human answers. "#contact" pointed at
 // this footer, which is where the visitor already was: the dead end on the fix
 // list. Email is the honest answer until a contact page exists.
-const CONTACT_EMAIL = "hello@scalesage.ai";
+const CONTACT_EMAIL = "admin@scalesage.ai";
 
 const COLS = [
   {
