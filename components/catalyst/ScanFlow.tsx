@@ -345,14 +345,19 @@ export default function ScanFlow({
     setOrb("listening");
   }, [setOrb]);
 
-  /* ---- Sage reacts to the answer, and WAITS (instant when reduced) ----
-   * The reply types out and then STAYS on screen until the person moves on
-   * themselves. It used to clear itself and advance once the typing plus a read
-   * pause had elapsed, which meant Sage's line could vanish mid-read: the timer
-   * guesses a reading speed, and when it guesses wrong the answer is destroyed
-   * in front of someone still reading it. A diagnostic that talks to you has to
-   * let you finish. The orb still settles on its own; only the Continue button
-   * advances the scan. */
+  /* ---- Sage reacts to the answer, then waits to be read (instant when reduced)
+   * The reply types out and stays on screen. It used to clear itself once the
+   * typing plus a read pause had elapsed, which meant Sage's line could vanish
+   * mid-read: that timer started when the line started, so a long reply spent
+   * its own budget typing and left almost nothing to read in.
+   *
+   * SageReaction now owns the advance, and its window starts at the LAST
+   * character, is at least ten seconds, grows with the length of the line, and
+   * resets in full on any sign of a reader (pointer, scroll, key, focus,
+   * selection, hidden tab, bubble scrolled out of view). Under reduced motion
+   * there is no timer at all, and in practice reduced motion never reaches it:
+   * reactThenAdvance below skips the reply beat entirely. Continue still wins at
+   * any moment. The orb settles on its own, as before. */
   const reactThenAdvance = useCallback(
     (text: string | null) => {
       clearTimers();
@@ -369,7 +374,8 @@ export default function ScanFlow({
     },
     [goForward, reduced, setOrb],
   );
-  /** Dismiss the reply and move to the next question. Reader-driven, always. */
+  /** Dismiss the reply and move on. Called by Continue, and by the reading
+   *  window once it has actually elapsed unread. */
   const continueFromReaction = useCallback(() => {
     clearTimers();
     setReaction(null);

@@ -10,6 +10,7 @@
  */
 import type { ScanAnswers } from "@/lib/catalyst";
 import type { LookupMatch, ChecksResult } from "@/lib/catalyst-api";
+import { EMPTY_SELECTION, isPlanSelection, type PlanSelection } from "./recommendation";
 
 export type CatalystPhase = "entry" | "scan" | "result" | "unlock" | "interview" | "confirmed";
 
@@ -39,6 +40,11 @@ export interface CatalystSession {
   /** Set once the interview has been completed, so the flow never asks for the
    *  same details or the same answers a second time. */
   interviewDone: boolean;
+  /** The plan and add-ons the VISITOR picked, so a refresh does not make them
+   *  pick again. Only ever written from a click in PlanChoice: a recommendation
+   *  never lands here, which is what keeps "recommended" from quietly becoming
+   *  "selected" across a reload. */
+  selection: PlanSelection;
 }
 
 const KEY = "ss_catalyst_v1";
@@ -53,6 +59,7 @@ const EMPTY: CatalystSession = {
   interviewIdx: 0,
   interviewAnswers: {},
   interviewDone: false,
+  selection: { ...EMPTY_SELECTION },
 };
 
 export function loadSession(): CatalystSession {
@@ -71,6 +78,9 @@ export function loadSession(): CatalystSession {
       interviewIdx: typeof parsed.interviewIdx === "number" ? parsed.interviewIdx : 0,
       interviewAnswers: parsed.interviewAnswers ?? {},
       interviewDone: Boolean(parsed.interviewDone),
+      // Anything malformed reads back as "nothing chosen". A storage blob can
+      // never talk this UI into arriving pre-selected.
+      selection: isPlanSelection(parsed.selection) ? parsed.selection : { ...EMPTY_SELECTION },
     };
   } catch {
     return { ...EMPTY };

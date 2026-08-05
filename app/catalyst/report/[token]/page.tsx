@@ -20,6 +20,14 @@ import {
   type LeakTotal,
   type RankedLeak,
 } from "@/lib/report";
+import PlanChoice from "@/components/catalyst/PlanChoice";
+import {
+  EMPTY_SELECTION,
+  planByKey,
+  reportRecommendation,
+  type PlanSelection,
+  type Recommended,
+} from "@/components/catalyst/recommendation";
 import styles from "./report.module.css";
 
 /* ---------- small style helpers (inline, CSS-var driven, like the catalyst screens) ---------- */
@@ -494,6 +502,15 @@ function RecommendationBlock({ report }: { report: FullReport }) {
             {rec.next_step}
           </p>
         )}
+        {/* Decision 3, 04 August: Catalyst recommends, the reader decides. Said
+            out loud here so "Recommended plan" cannot be mistaken for a plan
+            already chosen on their behalf. */}
+        {rec.tier && (
+          <p style={{ margin: "12px 0 0", fontSize: 14, lineHeight: 1.6, color: "var(--text-muted)" }}>
+            This is a recommendation, not a selection. Nothing is picked or added for you: you choose
+            your plan and any add-ons below, and every plan stays open.
+          </p>
+        )}
       </div>
     </section>
   );
@@ -503,18 +520,29 @@ function RecommendationBlock({ report }: { report: FullReport }) {
 
 function Doors({
   token,
-  tier,
+  recommendation,
   bookingUrl,
 }: {
   token: string;
-  tier: string | null;
+  /** What the report recommends. Highlighted, never selected. */
+  recommendation: Recommended;
   bookingUrl: string | null;
 }) {
   const [payState, setPayState] = useState<"idle" | "opening" | "deferred">("idle");
 
+  /* Starts empty, every time. This used to send whatever tier the report had
+     recommended straight to Stripe, which meant the agent had made the plan
+     choice and the button merely confirmed it. Decision 3 of the 04 August
+     review is that the plan and the add-ons are the reader's choice, so nothing
+     is pre-selected and checkout cannot open without a choice they made. */
+  const [selection, setSelection] = useState<PlanSelection>({ ...EMPTY_SELECTION });
+  const chosen = planByKey(selection.plan);
+  const payable = selection.plan === "pro" || selection.plan === "starter";
+
   const startBuild = async () => {
+    if (!chosen || !payable) return;
     setPayState("opening");
-    const res = await payReport(token, tier ?? undefined);
+    const res = await payReport(token, chosen.name);
     if (res.checkout_url) {
       window.location.href = res.checkout_url;
       return;
@@ -525,6 +553,14 @@ function Doors({
 
   return (
     <section style={{ ...SECTION_GAP, display: "grid", gap: 16, gridTemplateColumns: "1fr" }}>
+      <PlanChoice
+        recommendedPlan={recommendation.plan}
+        reason={recommendation.reason}
+        recommendedBoltOns={recommendation.boltOns}
+        value={selection}
+        onChange={setSelection}
+      />
+
       <div
         style={{
           ...CARD,
@@ -544,11 +580,32 @@ function Doors({
           type="button"
           className="btn btn-primary btn-md"
           onClick={startBuild}
-          disabled={payState === "opening"}
+          disabled={payState === "opening" || !payable}
           style={{ justifySelf: "start" }}
         >
-          {payState === "opening" ? "Opening checkout…" : "Start the build"}
+          {payState === "opening"
+            ? "Opening checkout…"
+            : chosen && payable
+              ? `Start the build on ${chosen.name}`
+              : "Start the build"}
         </button>
+        {!selection.plan && (
+          <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5, color: "var(--text-muted)" }}>
+            Pick a plan above and this turns on. Your report is yours to keep either way.
+          </p>
+        )}
+        {selection.plan === "max" && (
+          <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5, color: "var(--text-muted)" }}>
+            Max is waitlist only at the moment, so there is nothing to pay for today. Book a call
+            below and we will add you to the list.
+          </p>
+        )}
+        {payable && selection.boltOns.length > 0 && (
+          <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5, color: "var(--text-muted)" }}>
+            Checkout covers your plan. The add-ons you ticked are confirmed and priced on your
+            kickoff call, and nothing is charged for them now.
+          </p>
+        )}
         {payState === "deferred" && (
           // No fake payment. Stripe may not be wired yet. JW-approval-pending.
           <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5, color: "var(--text-muted)" }}>
@@ -663,7 +720,15 @@ function CompleteReport({ data, token }: { data: CatalystReport; token: string }
           <RecommendationBlock report={report} />
           <Doors
             token={token}
-            tier={data.tier ?? report.recommendation?.tier ?? null}
+            /* The recommendation travels as a recommendation. `data.tier` is
+               what the backend recorded and `recommendation.tier` is what the
+               report argues for; either can highlight a card, neither selects
+               one. */
+            recommendation={reportRecommendation({
+              tier: data.tier ?? report.recommendation?.tier ?? null,
+              why: report.recommendation?.why ?? null,
+              buildPlan: report.build_plan,
+            })}
             bookingUrl={data.booking_url}
           />
         </>

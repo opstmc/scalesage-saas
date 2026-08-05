@@ -3,8 +3,14 @@
 import { useState } from "react";
 import { buildPayload, type ScanResult, type ScanAnswers } from "@/lib/catalyst";
 import api, { type ChecksResult } from "@/lib/catalyst-api";
-import { resolveTier } from "./meta";
-import { saveSession, type LookupState } from "./session";
+import PlanChoice from "./PlanChoice";
+import {
+  EMPTY_SELECTION,
+  planByKey,
+  scanRecommendation,
+  type PlanSelection,
+} from "./recommendation";
+import { loadSession, saveSession, type LookupState } from "./session";
 import { buildInterview } from "@/lib/interview";
 import styles from "./catalyst.module.css";
 
@@ -92,7 +98,36 @@ export default function UnlockForm({
   const [bookState, setBookState] = useState<"idle" | "opening" | "deferred">("idle");
 
   const set = (k: keyof FormState, v: string) => setForm((f) => ({ ...f, [k]: v }));
-  const tier = resolveTier(result.tier).label === "Pro" ? "Pro" : "Starter";
+
+  /* ---- recommendation vs. choice -------------------------------------
+   * These are two different things and the code keeps them apart.
+   *
+   * `recommendation` is what Sage suggests, read off the scan. It is rendered,
+   * badged and explained, and it is NEVER copied into `selection`.
+   *
+   * `selection` is what the visitor has picked with their own hands. It starts
+   * empty, and the only thing that fills it is a click in PlanChoice. That is
+   * decision 3 of the 04 August review: Catalyst may recommend and upsell, but
+   * the plan and the add-ons are the user's choice, never auto-selected. A
+   * pre-ticked "recommended" plan is precisely what that forbids, so the pay
+   * button below stays off until they have chosen for themselves.
+   *
+   * The initial read from the session is their OWN earlier choice coming back
+   * across a refresh, never a recommendation: loadSession validates the shape
+   * and falls back to nothing chosen. */
+  const recommendation = scanRecommendation(result, answers);
+  const [selection, setSelection] = useState<PlanSelection>(
+    () => loadSession().selection ?? { ...EMPTY_SELECTION },
+  );
+  const chooseAndRemember = (next: PlanSelection) => {
+    setSelection(next);
+    saveSession({ selection: next });
+  };
+  const chosenPlan = planByKey(selection.plan);
+  /* Only Starter and Pro can be bought from a button. Max is waitlist-only
+     (lib/offer.ts), so choosing it routes to the call rather than to Stripe. */
+  const payableTier: "Starter" | "Pro" | null =
+    selection.plan === "pro" ? "Pro" : selection.plan === "starter" ? "Starter" : null;
 
   const submit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -159,8 +194,11 @@ export default function UnlockForm({
   };
 
   const startNow = async () => {
+    // Guarded by the disabled button as well, but never take money against a
+    // tier the visitor has not picked. No selection means no charge.
+    if (!payableTier) return;
     setPayState("opening");
-    const res = await api.pay(sessionId, tier);
+    const res = await api.pay(sessionId, payableTier);
     if (res.ok && res.checkout_url) {
       window.location.href = res.checkout_url;
       return;
@@ -294,6 +332,22 @@ export default function UnlockForm({
           ))}
         </ol>
 
+        {/* The plan is chosen here, by them, and nothing arrives pre-ticked.
+            Only shown on the build route: on the no-fit route we are not
+            selling a plan at all, so a plan picker would be a nudge to buy
+            something Sage has just said they do not need. */}
+        {mode === "build" && (
+          <div style={{ marginTop: 26 }}>
+            <PlanChoice
+              recommendedPlan={recommendation.plan}
+              reason={recommendation.reason}
+              recommendedBoltOns={recommendation.boltOns}
+              value={selection}
+              onChange={chooseAndRemember}
+            />
+          </div>
+        )}
+
         <p style={{ margin: "24px 0 8px", fontSize: 14, fontWeight: 600, color: "var(--text-muted)" }}>
           Want to move sooner? Two options, both optional:
         </p>
@@ -309,9 +363,38 @@ export default function UnlockForm({
               <span className={styles.doorText}>
                 Put Sage to work on your primary leak today. We schedule your kickoff call as soon as you&rsquo;re in.
               </span>
-              <button type="button" className="btn btn-primary btn-md" onClick={startNow} disabled={payState === "opening"}>
-                {payState === "opening" ? "Opening checkout…" : "Start now"}
+              <button
+                type="button"
+                className="btn btn-primary btn-md"
+                onClick={startNow}
+                disabled={payState === "opening" || !payableTier}
+              >
+                {payState === "opening"
+                  ? "Opening checkout…"
+                  : chosenPlan && payableTier
+                    ? `Start now on ${chosenPlan.name}`
+                    : "Start now"}
               </button>
+              {/* Plain statement of what is missing, not a nudge. Choosing a
+                  different plan from the suggested one takes exactly the same
+                  single tap, and nothing here says otherwise. */}
+              {!selection.plan && (
+                <p className={styles.chooseHint}>
+                  Pick a plan above and this turns on. The report is on its way either way.
+                </p>
+              )}
+              {selection.plan === "max" && (
+                <p className={styles.chooseHint}>
+                  Max is waitlist only at the moment, so there is nothing to pay for today. Use
+                  &ldquo;Talk it through first&rdquo; and we will add you to the list.
+                </p>
+              )}
+              {selection.boltOns.length > 0 && payableTier && (
+                <p className={styles.chooseHint}>
+                  Checkout covers your plan. The add-ons you ticked are confirmed and priced on your
+                  kickoff call, and nothing is charged for them now.
+                </p>
+              )}
               {payState === "deferred" && (
                 /* No fake payment — clearly-marked when Stripe is not wired yet. JW-approval-pending. */
                 <p className={styles.doorNote}>

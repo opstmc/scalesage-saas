@@ -10,6 +10,11 @@ export default function Hero({ background }: { background?: React.ReactNode }) {
       <div className="hero-fade" />
       <div className="hero-content">
         <div data-reveal="">
+          {/* The process pipe (components/process/PipeFlow) was tried here and
+              taken out again: it restated this eyebrow's three words verbatim,
+              pushed the headline down the fold, and added a fourth looping
+              element on top of the background video and the activity panel. It
+              lives in Framework (/how-it-works) instead. */}
           <div className="eyebrow">Diagnose. Build. Prove.</div>
           <h1 className="display hero-headline">
             <span>Your business</span>

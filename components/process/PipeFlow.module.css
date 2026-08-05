@@ -1,0 +1,551 @@
+/* PipeFlow — the ScaleSage process drawn as a pipe.
+   The whole product argument is leaks: demand flows in, escapes through gaps,
+   and the three phases close them in order. So this is the argument made
+   visible, not decoration.
+
+   Implementation notes (deliberate):
+   - No SVG file, no image, no animation library. The pipe is a rounded rail,
+     the flow is one repeating-linear-gradient layer, and the leaks are eight
+     tiny spans. Nothing here loads over the network.
+   - Only `transform` and `opacity` animate. Nothing touches the layout path,
+     and every box is absolutely positioned inside a reserved-height track, so
+     mounting cannot shift the page.
+   - Linear timing on the flow only, because a seamless conveyor loop requires
+     it (same exception the GrowthSystemRail marquee takes). The drips use the
+     house var(--ease-out).
+   - Reduced motion is handled in CSS, not JS, so the component stays a server
+     component (zero client JS) and the static composition is correct on the
+     first paint. See the two reduced-motion blocks at the bottom: the flow
+     dashes stay drawn and the drips park at staggered depths under their leak
+     points, so the diagram still says "flowing, and leaking here" without a
+     single frame of movement. */
+
+.figure {
+  margin: 0;
+  --pipe-h: 18px; /* rail thickness */
+  --wall: 4px; /* pipe wall: the gap between the rail edge and the stream */
+  --node: 30px; /* phase marker diameter */
+  --tile: 44px; /* one flow cycle; the stream translates exactly this */
+  --gutter: 42px; /* reserved space under the rail for the drips to fall into */
+}
+
+/* Reserved-height stage. The pipe artwork is absolutely positioned inside it,
+   so it can never push the phase text around. */
+.track {
+  position: relative;
+  padding-bottom: var(--gutter);
+}
+
+/* ---------- the three phases (real text, above the pipe) ---------- */
+
+.stages {
+  position: relative;
+  z-index: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(14px, 3vw, 32px);
+}
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  text-align: center;
+}
+
+.stageText {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Phase blurbs wrap to different line counts, which leaves the titles ragged
+   when each column is bottom-aligned on its own. Subgrid pins number, title,
+   blurb and marker to shared rows. Falls back to the bottom-aligned flex
+   layout above wherever subgrid is missing. */
+@media (min-width: 761px) {
+  @supports (grid-template-rows: subgrid) {
+    .stages {
+      grid-template-rows: auto auto auto auto;
+      row-gap: 4px;
+    }
+
+    .stage {
+      display: grid;
+      grid-row: span 4;
+      grid-template-rows: subgrid;
+      justify-items: center;
+    }
+
+    .stageText {
+      display: contents;
+    }
+  }
+}
+
+.stageNum {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.stageTitle {
+  font-size: clamp(16px, 2vw, 19px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-headline);
+}
+
+.stageLine {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  max-width: 22em;
+}
+
+/* The phase marker sits ON the rail; an opaque fill makes the pipe read as if
+   it passes behind the marker. */
+.node {
+  margin-top: 18px;
+  flex: none;
+  width: var(--node);
+  height: var(--node);
+  border-radius: 50%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nodeCore {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  box-shadow: 0 0 10px -1px var(--accent-primary);
+}
+
+/* Build is where the seal happens, so it gets a collar. */
+.nodeSeal {
+  border-color: color-mix(in srgb, var(--accent-primary) 55%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 12%, transparent);
+}
+
+/* ---------- the pipe artwork (aria-hidden; the text above and the caption
+              below carry every bit of meaning it shows) ---------- */
+
+.pipe {
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  right: 0;
+  bottom: var(--gutter);
+  height: var(--node);
+}
+
+.rail {
+  position: absolute;
+  left: 0;
+  right: 16px;
+  top: calc((var(--node) - var(--pipe-h)) / 2);
+  height: var(--pipe-h);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 20%, var(--border-hair));
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.1),
+      rgba(255, 255, 255, 0.02) 40%,
+      rgba(0, 0, 0, 0.3)
+    ),
+    var(--bg-elevated-2);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -3px 7px -3px rgba(0, 0, 0, 0.7);
+}
+
+/* The standing body of liquid, inset so the pipe walls stay visible. */
+.stream {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--wall);
+  bottom: var(--wall);
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-primary) 24%, transparent),
+    color-mix(in srgb, var(--accent-deep) 14%, transparent)
+  );
+}
+
+/* One layer, one animation: soft-edged highlights on a tile the width of one
+   flow cycle, translated by exactly one tile so the loop is seamless. */
+.flow {
+  position: absolute;
+  top: var(--wall);
+  bottom: var(--wall);
+  left: calc(var(--tile) * -1);
+  width: calc(100% + var(--tile));
+  border-radius: 999px;
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--accent-glow) 62%, transparent) 24%,
+    color-mix(in srgb, var(--accent-glow) 62%, transparent) 36%,
+    transparent 60%
+  );
+  background-size: var(--tile) 100%;
+  background-repeat: repeat;
+  animation: ssPipeFlow 2.2s linear infinite;
+  will-change: transform;
+}
+
+@keyframes ssPipeFlow {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(var(--tile), 0, 0);
+  }
+}
+
+/* The sealed run, from Build onward. Deliberately a tint and a seam line, not
+   a brightening: a brighter downstream would imply a gain we have not measured. */
+.seal {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  right: 0;
+  border-left: 1px solid color-mix(in srgb, var(--accent-primary) 45%, transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--accent-primary) 14%, transparent)
+  );
+}
+
+.cap {
+  position: absolute;
+  left: 0;
+  top: calc((var(--node) - 24px) / 2);
+  width: 5px;
+  height: 24px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent-primary) 55%, transparent);
+}
+
+.arrow {
+  position: absolute;
+  right: 0;
+  top: calc((var(--node) - 14px) / 2);
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 12px solid color-mix(in srgb, var(--accent-primary) 70%, transparent);
+}
+
+/* ---------- the leaks ---------- */
+
+.drips {
+  position: absolute;
+  left: 0;
+  right: 16px;
+  top: calc((var(--node) - var(--pipe-h)) / 2 + var(--pipe-h));
+  height: var(--gutter);
+}
+
+.leak {
+  position: absolute;
+  left: var(--x);
+  top: 0;
+}
+
+/* A bite out of the underside of the pipe. This is the load-bearing detail:
+   upstream of Build the wall is broken, downstream it is continuous. */
+.notch {
+  position: absolute;
+  left: -5px;
+  top: -7px;
+  width: 10px;
+  height: 7px;
+  border-radius: 0 0 6px 6px;
+  background: var(--bg-primary);
+  box-shadow: inset 0 2px 3px -1px rgba(0, 0, 0, 0.8);
+}
+
+.drip {
+  position: absolute;
+  left: -4px;
+  top: -2px;
+  width: 8px;
+  height: 10px;
+  border-radius: 50% 50% 60% 60% / 38% 38% 62% 62%;
+  background: linear-gradient(180deg, var(--accent-glow), var(--accent-deep));
+  box-shadow: 0 0 9px -1px color-mix(in srgb, var(--accent-primary) 70%, transparent);
+  animation: ssPipeDrip 3.4s var(--ease-out) infinite;
+  animation-delay: calc(var(--i) * 0.62s);
+}
+
+@keyframes ssPipeDrip {
+  0% {
+    transform: translate3d(0, -4px, 0) scale(0.5);
+    opacity: 0;
+  }
+  18% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate3d(0, 32px, 0) scale(0.7);
+    opacity: 0;
+  }
+}
+
+/* ---------- what goes in, what comes through ---------- */
+
+.ends {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(16px, 3vw, 40px);
+  margin-top: 20px;
+}
+
+.end {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.endLabel {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.endLabelOn {
+  color: var(--accent-primary);
+}
+
+.caption {
+  margin: 18px 0 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-faint);
+  max-width: 68em;
+}
+
+/* ---------- narrow screens: the same pipe, stood on end ---------- */
+
+@media (max-width: 760px) {
+  /* room in the left gutter for the drips to escape into */
+  .figure {
+    padding-left: 22px;
+  }
+
+  .track {
+    padding-bottom: 0;
+  }
+
+  .stages {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    /* an inlet run above the first phase, so the pipe enters the diagram
+       rather than starting at Diagnose (the horizontal layout gets this for
+       free from the first column's offset) */
+    padding-top: 30px;
+  }
+
+  .stage {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+    gap: 14px;
+  }
+
+  .stageText {
+    align-items: flex-start;
+  }
+
+  .node {
+    margin-top: 0;
+    order: -1;
+  }
+
+  .pipe {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: auto;
+    width: var(--node);
+    height: auto;
+  }
+
+  .rail {
+    left: calc((var(--node) - var(--pipe-h)) / 2);
+    right: auto;
+    width: var(--pipe-h);
+    top: 0;
+    bottom: 16px;
+    height: auto;
+  }
+
+  .stream {
+    left: var(--wall);
+    right: var(--wall);
+    top: 0;
+    bottom: 0;
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--accent-primary) 24%, transparent),
+      color-mix(in srgb, var(--accent-deep) 14%, transparent)
+    );
+  }
+
+  .flow {
+    top: calc(var(--tile) * -1);
+    bottom: auto;
+    left: var(--wall);
+    right: var(--wall);
+    width: auto;
+    height: calc(100% + var(--tile));
+    background-image: linear-gradient(
+      180deg,
+      transparent 0%,
+      color-mix(in srgb, var(--accent-glow) 62%, transparent) 24%,
+      color-mix(in srgb, var(--accent-glow) 62%, transparent) 36%,
+      transparent 60%
+    );
+    background-size: 100% var(--tile);
+    animation-name: ssPipeFlowV;
+  }
+
+  /* The vertical run's midpoint does not land on Build reliably (phase text
+     wraps differently at every width), so the seal is carried by the Build
+     collar alone rather than a tint that could sit in the wrong place. */
+  .seal {
+    display: none;
+  }
+
+  .cap {
+    left: calc((var(--node) - 24px) / 2);
+    top: 0;
+    width: 24px;
+    height: 5px;
+  }
+
+  .arrow {
+    left: calc((var(--node) - 14px) / 2);
+    right: auto;
+    top: auto;
+    bottom: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 12px solid color-mix(in srgb, var(--accent-primary) 70%, transparent);
+    border-bottom: none;
+  }
+
+  .drips {
+    top: 0;
+    bottom: 0;
+    left: calc((var(--node) - var(--pipe-h)) / 2 - 20px);
+    right: auto;
+    width: 20px;
+    height: auto;
+  }
+
+  .leak {
+    top: var(--x);
+    left: auto;
+    right: 0;
+  }
+
+  .notch {
+    left: auto;
+    right: -7px;
+    top: -5px;
+    width: 7px;
+    height: 10px;
+    border-radius: 6px 0 0 6px;
+    box-shadow: inset 2px 0 3px -1px rgba(0, 0, 0, 0.8);
+  }
+
+  .drip {
+    left: auto;
+    right: -2px;
+    top: -4px;
+    animation-name: ssPipeDripH;
+  }
+
+  .ends {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+@keyframes ssPipeFlowV {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, var(--tile), 0);
+  }
+}
+
+@keyframes ssPipeDripH {
+  0% {
+    transform: translate3d(4px, 0, 0) scale(0.5);
+    opacity: 0;
+  }
+  18% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate3d(-18px, 0, 0) scale(0.7);
+    opacity: 0;
+  }
+}
+
+/* ---------- reduced motion: a static composition that says the same thing ----------
+   Not "animation paused" (that would freeze a drip mid-air at an arbitrary
+   opacity) and not "elements hidden". The conveyor keeps its dashes, and each
+   drop parks at a different depth under its leak point, which is exactly how
+   you would draw this diagram by hand. */
+
+@media (prefers-reduced-motion: reduce) {
+  .flow {
+    animation: none;
+    transform: none;
+    will-change: auto;
+  }
+
+  .drip {
+    animation: none;
+    opacity: 0.75;
+    transform: translate3d(0, calc(4px + var(--i) * 6px), 0) scale(0.94);
+  }
+}
+
+@media (max-width: 760px) and (prefers-reduced-motion: reduce) {
+  .drip {
+    transform: translate3d(calc(-3px - var(--i) * 4px), 0, 0) scale(0.94);
+  }
+}

@@ -18,6 +18,7 @@ import {
   type ChipTone,
 } from "./meta";
 import type { LookupState } from "./session";
+import { scanRecommendation } from "./recommendation";
 import styles from "./catalyst.module.css";
 
 /** Guard a contract call so an unexpected throw never blanks the result. */
@@ -127,6 +128,14 @@ export default function ResultScreen({
   const facts = safe(() => liveFacts(checks, lookup?.match ?? null), []);
 
   const systemBlurb = system?.blurb || (system ? SYSTEM_BLURB[system.key.toLowerCase()] ?? "" : "");
+  /* What Sage suggests, and why. A suggestion only: this screen has no plan
+     picker and picks nothing on the visitor's behalf. The choice is made by
+     them, by hand, on the screen after the details form. */
+  const recommendation = safe(() => scanRecommendation(result, answers), {
+    plan: null,
+    reason: null,
+    boltOns: [],
+  });
 
   return (
     <div className={styles.result}>
@@ -223,9 +232,26 @@ export default function ResultScreen({
               <div className={styles.blockLabel}>Fix this first</div>
               <div className={styles.fixRow}>
                 <span className={styles.fixName}>{system.label}</span>
-                <span className={styles.tierChip}>Tier match · {tier.label}</span>
+                {/* "Tier match" read as a decision already taken. It is a
+                    suggestion, and it is labelled as one. */}
+                <span className={styles.tierChip}>Sage suggests · {tier.label}</span>
               </div>
               {systemBlurb && <p className={styles.fixBlurb}>{systemBlurb}</p>}
+
+              {/* The recommendation, framed as a recommendation. Nothing on this
+                  screen is selected, and the plan is picked by hand later. */}
+              <div className={styles.recNote}>
+                {recommendation.reason && (
+                  <p className={styles.recNoteWhy}>
+                    <span className={styles.recReasonLabel}>Why {tier.label}: </span>
+                    {recommendation.reason}
+                  </p>
+                )}
+                <p className={styles.recNoteChoice}>
+                  That is a suggestion, not a selection. Nothing is picked for you: you choose your
+                  plan and any add-ons yourself, and every plan stays open whatever Sage suggests.
+                </p>
+              </div>
 
               {showVisibility && (
                 <div className={styles.frontier}>

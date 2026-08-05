@@ -1,3 +1,5 @@
+import PipeFlow from "@/components/process/PipeFlow";
+
 function DiagnoseIcon() {
   return (
     <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="var(--accent-primary)" strokeWidth="1.5" aria-hidden="true">
@@ -41,6 +43,12 @@ export default function Framework() {
         <div className="eyebrow">The method</div>
         <h1 className="h2">Diagnose. Build. Prove.</h1>
         <p className="lead">An actual process, not guesswork. Three phases, every one accountable to a number.</p>
+      </div>
+      {/* The three phases as a pipe, ahead of the three phases as prose. The
+          cards below remain the full explanation; this is the same content
+          shown, never the only place it is stated. */}
+      <div data-reveal="" style={{ marginBottom: 48 }}>
+        <PipeFlow />
       </div>
       <div className="grid-3">
         {CARDS.map(({ n, title, Icon, body }) => (
