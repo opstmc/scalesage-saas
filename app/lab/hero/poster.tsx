@@ -7,13 +7,13 @@
  * into the server-rendered HTML, so it costs one request less than the current
  * particles-poster.jpg as well.
  *
- * `rich` gates the filtered version. The cheap variant is the placeholder shown
- * for the few hundred ms before the canvas arrives, where paying for a
- * full-viewport feDisplacementMap rasterisation would be a bad trade.
+ * It is server-rendered and `rich` by default, so the fallback needs no
+ * JavaScript to exist. `rich={false}` drops it to flat navy, which is what the
+ * shell does once the canvas is live and the still is just a wasted layer.
  */
 import s from "./lab.module.css";
 
-export default function Poster({ rich = false }: { rich?: boolean }) {
+export default function Poster({ rich = true }: { rich?: boolean }) {
   return (
     <div className={s.poster} aria-hidden="true">
       {rich ? (
@@ -27,12 +27,12 @@ export default function Poster({ rich = false }: { rich?: boolean }) {
             <filter id="labWarp" x="-20%" y="-20%" width="140%" height="140%">
               <feTurbulence
                 type="fractalNoise"
-                baseFrequency="0.0022 0.0016"
-                numOctaves="3"
+                baseFrequency="0.0042 0.0034"
+                numOctaves="4"
                 seed="7"
                 result="n"
               />
-              <feDisplacementMap in="SourceGraphic" in2="n" scale="150" xChannelSelector="R" yChannelSelector="G" />
+              <feDisplacementMap in="SourceGraphic" in2="n" scale="280" xChannelSelector="R" yChannelSelector="G" />
             </filter>
             <radialGradient id="labVig" cx="62%" cy="46%" r="72%">
               <stop offset="0%" stopColor="#0A1628" stopOpacity="0" />
@@ -49,14 +49,14 @@ export default function Poster({ rich = false }: { rich?: boolean }) {
           {/* Iso-contours: evenly spaced hairlines pushed around by the same
               kind of fractal noise the shader integrates. */}
           <g filter="url(#labWarp)" stroke="#3DD9D0" fill="none" strokeWidth="1.15" opacity="0.24">
-            {Array.from({ length: 15 }, (_, i) => (
-              <path key={i} d={`M -240 ${40 + i * 62} H 1840`} />
+            {Array.from({ length: 19 }, (_, i) => (
+              <path key={i} d={`M -320 ${20 + i * 52} H 1920`} />
             ))}
           </g>
 
           {/* The signal, at rest in the locus, with the tail it came in on. */}
           <path
-            d="M 1298 330 C 1236 396 1168 462 1120 504"
+            d="M 1252 392 C 1214 430 1160 476 1120 504"
             stroke="#5EEFE6"
             strokeWidth="1.6"
             fill="none"

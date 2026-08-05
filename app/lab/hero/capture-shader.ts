@@ -156,7 +156,7 @@ export const fragmentShader = /* glsl */ `
     vec2 q = warped * 1.55 + vec2(uSeed * 7.31, uSeed * 3.17);
     float f = fbm(q + flow(q * 0.62, uTime) * 0.26, uTime);
 
-    float bandPhase = f * 2.55 + uTime * 0.016;
+    float bandPhase = f * 3.30 + uTime * 0.016;
     float band = abs(fract(bandPhase) - 0.5);
     float w = fwidth(bandPhase) * 1.35 + 0.004;
     float filament = smoothstep(w, 0.0, band);
@@ -172,37 +172,39 @@ export const fragmentShader = /* glsl */ `
 
     float d = length(st - pos);
     float core = exp(-pow(d / 0.0062, 2.0));
-    float halo = exp(-pow(d / 0.052, 2.0));
+    float halo = exp(-pow(d / 0.030, 2.0));
 
-    // Short motion trail: five samples back along the same parametric path.
+    // Short motion trail: samples back along the same parametric path. Spacing
+    // is tight enough that the gaussians overlap into a streak — at wider
+    // spacing it reads as a string of beads, which looks like a particle system.
     float trail = 0.0;
-    for (int k = 1; k <= 5; k++) {
-      float uu = u - float(k) * 0.0055;
+    for (int k = 1; k <= 9; k++) {
+      float uu = u - float(k) * 0.0026;
       if (uu < 0.0) break;
       vec2 tp = pathAt(uu, uSeed, uAspect);
-      float tw = 1.0 - float(k) / 6.0;
-      trail += exp(-pow(length(st - tp) / (0.0075 + 0.0022 * float(k)), 2.0)) * tw * 0.34;
+      float tw = 1.0 - float(k) / 10.0;
+      trail += exp(-pow(length(st - tp) / (0.0062 + 0.0013 * float(k)), 2.0)) * tw * 0.20;
     }
 
     // ---- the locus and its latch -------------------------------------------
     float dl = length(st - locus);
     float anchorLum = (0.09 + 0.91 * smoothstep(0.54, 0.63, u)) * (1.0 - smoothstep(0.945, 1.0, u));
-    float anchor = exp(-pow(dl / 0.0105, 2.0)) * anchorLum;
-    float anchorRing = smoothstep(aa, 0.0, abs(dl - 0.026) - 0.0008) * 0.22 * anchorLum;
+    float anchor = exp(-pow(dl / 0.0072, 2.0)) * anchorLum;
+    float anchorRing = smoothstep(aa, 0.0, abs(dl - 0.024) - 0.0006) * 0.30 * anchorLum;
 
     float rt = gate(u, 0.585, 0.760);
-    float rr = 0.014 + easeOut(rt) * 0.092;
+    float rr = 0.012 + easeOut(rt) * 0.062;
     float latch = (u > 0.585)
-      ? exp(-pow((dl - rr) / 0.0055, 2.0)) * (1.0 - rt) * (1.0 - rt)
+      ? exp(-pow((dl - rr) / 0.0032, 2.0)) * (1.0 - rt) * (1.0 - rt)
       : 0.0;
 
     // ---- composite ----------------------------------------------------------
     vec3 col = uBg;
-    col += uAccent * filament * 0.115;
+    col += uAccent * filament * 0.105;
     col += uAccent * haze * 0.055;
-    col += uAccent * (anchor * 0.75 + anchorRing);
-    col += uGlow * (core * 1.15 + halo * 0.20 + trail) * lum;
-    col += uGlow * latch * 0.85;
+    col += uAccent * (anchor * 0.55 + anchorRing);
+    col += uGlow * (core * 1.05 + halo * 0.10 + trail) * lum;
+    col += uGlow * latch * 0.50;
 
     // Vignette, then a hard left-side darkening so the headline always sits on
     // near-solid navy no matter what the field is doing.

@@ -9,21 +9,33 @@
  * canvas.
  *
  * Responsibilities, in order of importance:
- *  1. Never block or delay the headline. It renders a fixed-size absolutely
- *     positioned layer behind text that is already painted.
+ *  1. Never block or delay the headline. It renders an absolutely positioned
+ *     layer behind text that is already painted and already laid out.
  *  2. Decide whether WebGL is worth attempting at all.
  *  3. Wait for first contentful paint, then idle, then fetch the canvas chunk.
- *  4. Survive the canvas failing, at any stage, with the poster still up.
+ *  4. Survive the canvas failing, at any stage, with the still still up.
  *
  * Query flags, for measuring (all default off):
  *   ?canvas=off  — never load the canvas. Proves the page stands without it.
  *   ?hud=1       — frame-time readout.
- *   ?rm=canvas   — force the frozen-canvas path instead of the poster under
+ *   ?rm=canvas   — force the frozen-canvas path instead of the still under
  *                  prefers-reduced-motion.
+ *   ?loop=0..1   — freeze the beat at one position, to review a single frame.
+ *   ?dpr=N       — force the pixel count, for the fill-rate sweep.
+ *   ?adapt=0     — pin quality and DPR so a sweep measures the shader rather
+ *                  than the degrade ladder reacting to it.
  */
 
 import dynamic from "next/dynamic";
-import { Component, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  Component,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import Poster from "./poster";
 import s from "./lab.module.css";
 import { HOTSPOT_LABEL, LOCUS } from "./lab-constants";
@@ -34,15 +46,56 @@ const CaptureCanvas = dynamic(() => import("./capture-canvas"), {
   loading: () => null,
 });
 
-/** Cheap capability probe. A throwaway context is ~1 ms and avoids shipping 500 KB to a device that cannot use it. */
-function webglAvailable(): boolean {
+/**
+ * One-shot facts about this client: URL flags, the motion preference, and
+ * whether WebGL exists at all. Read through useSyncExternalStore rather than an
+ * effect plus setState, so the first client render already knows the answer
+ * instead of rendering once and immediately re-rendering.
+ */
+type Env = {
+  hud: boolean;
+  reduced: boolean;
+  canvasOff: boolean;
+  rmCanvas: boolean;
+  webgl: boolean;
+};
+
+/** What the server assumes: no WebGL, so SSR emits the static still. */
+const SERVER_ENV: Env = {
+  hud: false,
+  reduced: false,
+  canvasOff: false,
+  rmCanvas: false,
+  webgl: false,
+};
+
+let cachedEnv: Env | null = null;
+
+function readEnv(): Env {
+  // Cached because getSnapshot must return a referentially stable value.
+  if (cachedEnv) return cachedEnv;
+  const q = new URLSearchParams(window.location.search);
+  let webgl = false;
   try {
+    // A throwaway context costs about a millisecond, and saves shipping half a
+    // megabyte to a device that cannot use a byte of it.
     const c = document.createElement("canvas");
-    return !!(c.getContext("webgl2") ?? c.getContext("webgl"));
+    webgl = !!(c.getContext("webgl2") ?? c.getContext("webgl"));
   } catch {
-    return false;
+    webgl = false;
   }
+  cachedEnv = {
+    hud: q.get("hud") === "1",
+    reduced: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    canvasOff: q.get("canvas") === "off",
+    rmCanvas: q.get("rm") === "canvas",
+    webgl,
+  };
+  return cachedEnv;
 }
+
+/** None of the above changes within a page view, so there is nothing to subscribe to. */
+const subscribeEnv = () => () => {};
 
 /** Resolves on first contentful paint, or immediately if it has already happened. */
 function afterFirstContentfulPaint(): Promise<void> {
@@ -51,10 +104,10 @@ function afterFirstContentfulPaint(): Promise<void> {
       setTimeout(resolve, 200);
       return;
     }
-    const done = performance
+    const painted = performance
       .getEntriesByType("paint")
       .some((e) => e.name === "first-contentful-paint");
-    if (done) {
+    if (painted) {
       resolve();
       return;
     }
@@ -70,7 +123,8 @@ function afterFirstContentfulPaint(): Promise<void> {
       setTimeout(resolve, 200);
       return;
     }
-    // Belt and braces: a tab that is never painted (backgrounded) must still settle.
+    // Belt and braces: a tab opened in the background never paints, and must
+    // still settle rather than wait forever on a paint that is not coming.
     setTimeout(() => {
       po.disconnect();
       resolve();
@@ -94,39 +148,32 @@ class CanvasBoundary extends Component<{ onError: () => void; children: ReactNod
 type Mode = "poster" | "poster-final" | "canvas";
 
 export default function CaptureFieldShell() {
-  const [mode, setMode] = useState<Mode>("poster");
-  const [reduced, setReduced] = useState(false);
+  const env = useSyncExternalStore(subscribeEnv, readEnv, () => SERVER_ENV);
+
+  const [canvasUp, setCanvasUp] = useState(false);
+  const [failed, setFailed] = useState(false);
   const [caught, setCaught] = useState(false);
   const [paused, setPaused] = useState(false);
   const [stats, setStats] = useState<LabStats | null>(null);
-  const [hud, setHud] = useState(false);
   const hostRef = useRef<HTMLDivElement>(null);
 
+  // Reduced motion holds the still and downloads nothing. Shipping half a
+  // megabyte of WebGL to draw one frozen frame would be absurd.
+  const wantsCanvas =
+    env.webgl && !env.canvasOff && !failed && (!env.reduced || env.rmCanvas);
+
+  const mode: Mode = !wantsCanvas ? "poster-final" : canvasUp ? "canvas" : "poster";
+
   useEffect(() => {
-    const q = new URLSearchParams(window.location.search);
-    setHud(q.get("hud") === "1");
-
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const rm = mq.matches;
-    setReduced(rm);
-
-    if (q.get("canvas") === "off" || !webglAvailable()) {
-      setMode("poster-final");
-      return;
-    }
-    // Reduced motion: hold the still and download nothing. Shipping half a
-    // megabyte of WebGL to draw one frozen frame would be absurd.
-    if (rm && q.get("rm") !== "canvas") {
-      setMode("poster-final");
-      return;
-    }
-
+    if (!wantsCanvas) return;
     let cancelled = false;
     afterFirstContentfulPaint().then(() => {
       if (cancelled) return;
-      const go = () => !cancelled && setMode("canvas");
+      const go = () => {
+        if (!cancelled) setCanvasUp(true);
+      };
       if ("requestIdleCallback" in window) {
-        (window as Window & typeof globalThis).requestIdleCallback(go, { timeout: 1200 });
+        window.requestIdleCallback(go, { timeout: 1200 });
       } else {
         setTimeout(go, 120);
       }
@@ -134,7 +181,7 @@ export default function CaptureFieldShell() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [wantsCanvas]);
 
   // Stop rendering once the hero has scrolled away.
   useEffect(() => {
@@ -147,20 +194,22 @@ export default function CaptureFieldShell() {
     return () => io.disconnect();
   }, [mode]);
 
-  const onError = useCallback(() => setMode("poster-final"), []);
+  const onError = useCallback(() => setFailed(true), []);
   const onPhase = useCallback((p: "seeking" | "caught") => setCaught(p === "caught"), []);
 
   return (
     <div className={s.field} ref={hostRef}>
-      {/* The still stays mounted underneath the canvas: no flash if WebGL dies
-          mid-session (context loss on a phone waking from sleep is routine). */}
-      <Poster rich={mode === "poster-final"} />
+      {/* Server-rendered, so the still exists in the HTML and needs no JS at
+          all: a visitor with WebGL blocked, JS broken, or a hydration failure
+          still gets the composed frame rather than flat navy. It unmounts only
+          once the canvas is actually up. */}
+      <Poster rich={mode !== "canvas"} />
 
       {mode === "canvas" ? (
         <CanvasBoundary onError={onError}>
           <CaptureCanvas
             onPhase={onPhase}
-            reduced={reduced}
+            reduced={env.reduced}
             paused={paused}
             onStats={setStats}
           />
@@ -178,13 +227,15 @@ export default function CaptureFieldShell() {
         <span className={s.hotspotText}>{HOTSPOT_LABEL}</span>
       </div>
 
-      {hud ? (
+      {env.hud ? (
         <div className={s.hud}>
           <div>mode {mode}</div>
           {stats ? (
             <>
               <div>{stats.fps} fps (median)</div>
-              <div>med {stats.medianFrameMs} ms · p95 {stats.p95FrameMs} ms</div>
+              <div>
+                med {stats.medianFrameMs} ms · p95 {stats.p95FrameMs} ms
+              </div>
               <div>
                 dpr {stats.dpr} · q{stats.quality} · {(stats.pixels / 1e6).toFixed(2)} Mpx
               </div>

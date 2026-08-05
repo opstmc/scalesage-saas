@@ -11,6 +11,7 @@
  */
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import type { ShaderMaterial } from "three";
 import { PerformanceMonitor } from "@react-three/drei";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CAUGHT_AT, LOOP_SECONDS, PALETTE, RELEASED_AT } from "./lab-constants";
@@ -41,6 +42,15 @@ type Uniforms = Record<string, { value: unknown }>;
 
 /** Loop position held on the frozen frame: just after the latch, label showing. */
 const REDUCED_FRAME = 0.68;
+
+/** ?loop=0..1 freezes the beat at one position, so a specific frame can be reviewed. */
+function frozenAt(): number | null {
+  if (typeof window === "undefined") return null;
+  const v = new URLSearchParams(window.location.search).get("loop");
+  if (v === null) return null;
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 && n <= 1 ? n : null;
+}
 
 function CaptureField(props: CaptureCanvasProps & { quality: number }) {
   const [src, setSrc] = useState<{ vert: string; frag: string } | null>(null);
@@ -74,37 +84,59 @@ function CapturePass({
 }: CaptureCanvasProps & { src: { vert: string; frag: string }; quality: number }) {
   const { size, gl, invalidate } = useThree();
 
+  const frozen = useMemo(() => frozenAt(), []);
+
+  // R3F does NOT keep the uniforms object you hand it: applyProps copies each
+  // entry into the material's own `uniforms` ({ ...uniform }, fiber's events
+  // bundle ~L435). Mutating the object below therefore does nothing once the
+  // material exists — every write has to go through the material ref. The
+  // symptom is a hero that renders one correct frame and then never moves.
+  const mat = useRef<ShaderMaterial>(null);
+
   const uniforms = useMemo<Uniforms>(
     () => ({
       uTime: { value: 0 },
-      uLoop: { value: reduced ? REDUCED_FRAME : 0 },
-      uSeed: { value: Math.random() * 100 },
+      uLoop: { value: frozen ?? (reduced ? REDUCED_FRAME : 0) },
+      // Seeded on mount, not here: Math.random() during render is impure and
+      // would differ between the render pass and any replay of it.
+      uSeed: { value: 0 },
       uAspect: { value: 1 },
       uQuality: { value: 1 },
-      uReveal: { value: reduced ? 1 : 0 },
+      // A frozen frame has no chance to fade itself in.
+      uReveal: { value: reduced || frozen !== null ? 1 : 0 },
       uBg: { value: PALETTE.bg },
       uAccent: { value: PALETTE.accent },
       uGlow: { value: PALETTE.glow },
     }),
-    [reduced],
+    [reduced, frozen],
   );
+
+  // First seed, once the material exists. Every later loop reseeds in useFrame.
+  useEffect(() => {
+    if (!mat.current) return;
+    mat.current.uniforms.uSeed.value = Math.random() * 100;
+    invalidate();
+  }, [invalidate]);
 
   // Aspect tracks the drawing buffer, not a camera: the vertex shader writes
   // clip space directly, so a resize needs no camera bookkeeping.
   useEffect(() => {
-    uniforms.uAspect.value = size.width / Math.max(size.height, 1);
+    if (!mat.current) return;
+    mat.current.uniforms.uAspect.value = size.width / Math.max(size.height, 1);
     invalidate();
-  }, [size.width, size.height, uniforms, invalidate]);
+  }, [size.width, size.height, invalidate]);
 
   useEffect(() => {
-    uniforms.uQuality.value = quality;
+    if (!mat.current) return;
+    mat.current.uniforms.uQuality.value = quality;
     invalidate();
-  }, [quality, uniforms, invalidate]);
+  }, [quality, invalidate]);
 
-  // The frozen frame is already the caught frame, so say so once.
+  // A frozen frame never crosses a phase boundary, so announce it once.
   useEffect(() => {
-    if (reduced) onPhase("caught");
-  }, [reduced, onPhase]);
+    const at = frozen ?? (reduced ? REDUCED_FRAME : null);
+    if (at !== null) onPhase(at >= CAUGHT_AT && at < RELEASED_AT ? "caught" : "seeking");
+  }, [reduced, frozen, onPhase]);
 
   const phaseRef = useRef<Phase>("seeking");
   const clock = useRef(0);
@@ -115,19 +147,21 @@ function CapturePass({
   const reportedAt = useRef(0);
 
   useFrame((state, delta) => {
-    if (reduced) return;
+    const m = mat.current;
+    if (!m || reduced || frozen !== null) return;
+    const U = m.uniforms;
 
     clock.current += Math.min(delta, 0.1); // a backgrounded tab must not jump the beat
     const u = (clock.current % LOOP_SECONDS) / LOOP_SECONDS;
 
-    if (u < (uniforms.uLoop.value as number)) {
+    if (u < (U.uLoop.value as number)) {
       // Loop wrapped: reseed, so no two passes share a substrate.
-      uniforms.uSeed.value = Math.random() * 100;
+      U.uSeed.value = Math.random() * 100;
     }
 
-    uniforms.uTime.value = clock.current;
-    uniforms.uLoop.value = u;
-    uniforms.uReveal.value = Math.min(1, (uniforms.uReveal.value as number) + delta * 1.1);
+    U.uTime.value = clock.current;
+    U.uLoop.value = u;
+    U.uReveal.value = Math.min(1, (U.uReveal.value as number) + delta * 1.1);
 
     const next: Phase = u >= CAUGHT_AT && u < RELEASED_AT ? "caught" : "seeking";
     if (next !== phaseRef.current) {
@@ -167,6 +201,7 @@ function CapturePass({
     <mesh frustumCulled={false}>
       <planeGeometry args={[2, 2]} />
       <shaderMaterial
+        ref={mat}
         vertexShader={src.vert}
         fragmentShader={src.frag}
         uniforms={uniforms}
@@ -180,8 +215,18 @@ function CapturePass({
 
 export default function CaptureCanvas(props: CaptureCanvasProps) {
   const [quality, setQuality] = useState(1);
+  // ?adapt=0 pins quality and DPR, so a fill-rate sweep measures the shader
+  // rather than the degrade ladder reacting to it.
+  const adapt =
+    typeof window === "undefined" ||
+    new URLSearchParams(window.location.search).get("adapt") !== "0";
   const [dpr, setDpr] = useState<number>(() => {
     if (typeof window === "undefined") return 1;
+    // ?dpr=N forces the pixel count, to find the fill-rate ceiling. Measurement
+    // scaffolding: CPU throttling in devtools does not touch the GPU, so the
+    // only way to size the fragment cost is to make the GPU do more of it.
+    const forced = Number(new URLSearchParams(window.location.search).get("dpr"));
+    if (forced > 0) return forced;
     // Phones ship dpr 3 with a fraction of the fill rate. Cap hard.
     const coarse = window.matchMedia("(pointer: coarse)").matches;
     return Math.min(window.devicePixelRatio || 1, coarse ? 1.25 : 1.75);
@@ -196,7 +241,7 @@ export default function CaptureCanvas(props: CaptureCanvasProps) {
     });
   }, []);
 
-  const frameloop = props.reduced || props.paused ? "demand" : "always";
+  const frameloop = props.reduced || props.paused || frozenAt() !== null ? "demand" : "always";
 
   return (
     <Canvas
@@ -214,15 +259,17 @@ export default function CaptureCanvas(props: CaptureCanvasProps) {
       style={{ position: "absolute", inset: 0, display: "block" }}
       aria-hidden="true"
     >
-      <PerformanceMonitor
-        onDecline={onDecline}
-        onIncline={() => setQuality(1)}
-        flipflops={3}
-        onFallback={() => {
-          setQuality(0);
-          setDpr(0.7);
-        }}
-      />
+      {adapt ? (
+        <PerformanceMonitor
+          onDecline={onDecline}
+          onIncline={() => setQuality(1)}
+          flipflops={3}
+          onFallback={() => {
+            setQuality(0);
+            setDpr(0.7);
+          }}
+        />
+      ) : null}
       <CaptureField {...props} quality={quality} />
     </Canvas>
   );
