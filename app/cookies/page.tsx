@@ -1,14 +1,14 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 
 // DRAFT: plain-English cookie summary. Requires JW + legal sign-off before
 // anyone relies on this copy. Grounded only in stated facts; not legal advice.
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/cookies",
   title: "Cookies",
   description:
     "The cookies this site uses and how to control them. Consent is required before any non-essential or analytics cookie fires.",
-  alternates: { canonical: "/cookies" },
-};
+});
 
 const TYPES = [
   {

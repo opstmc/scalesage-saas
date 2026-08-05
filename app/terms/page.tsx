@@ -1,14 +1,14 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 
 // DRAFT: plain-English terms summary. Requires JW + legal sign-off before
 // anyone relies on this copy. Grounded only in stated facts; not legal advice.
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/terms",
   title: "Terms",
   description:
     "The ScaleSage founding-client terms, shown openly: 20% lifetime discount, 50% off setup, 12-month founding minimum, months 4 to 12 buyout, cancel with 30 days' notice.",
-  alternates: { canonical: "/terms" },
-};
+});
 
 const SECTIONS = [
   {

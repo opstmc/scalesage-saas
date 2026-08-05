@@ -9,6 +9,15 @@ import ProofCards from "@/components/home/ProofCards";
 import DiagnoseBuildProveJourney from "@/components/home/DiagnoseBuildProveJourney";
 import FitSection from "@/components/home/FitSection";
 import ImproveStrip from "@/components/home/ImproveStrip";
+import { DEFAULT_DESCRIPTION, DEFAULT_SOCIAL_DESCRIPTION, pageMetadata } from "@/lib/seo";
+
+// No `title`: the homepage keeps the root layout's untemplated default title
+// rather than picking up the "%s · ScaleSage" suffix.
+export const generateMetadata = pageMetadata({
+  path: "/",
+  description: DEFAULT_DESCRIPTION,
+  socialDescription: DEFAULT_SOCIAL_DESCRIPTION,
+});
 
 export default function Home() {
   return (

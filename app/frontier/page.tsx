@@ -1,14 +1,14 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import JourneyButton from "@/components/JourneyButton";
 import FinalCta from "@/components/FinalCta";
 
 // COPY: JW to approve.
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/frontier",
   title: "Frontier Visibility",
   description:
     "Get found when buyers ask AI, not just Google. Frontier is the whole visibility layer: crawlability, structured data, authority, answer-first content, reviews, local proof, AI-search testing and reporting. Not AI SEO. Not a one-file trick.",
-  alternates: { canonical: "/frontier" },
-};
+});
 
 // The four layers of the visibility stack. Each maps to the parts named in the brief.
 const LAYERS = [

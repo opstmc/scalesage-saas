@@ -4,12 +4,16 @@ import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
+import {
+  DEFAULT_DESCRIPTION,
+  DEFAULT_SOCIAL_DESCRIPTION,
+  DEFAULT_TITLE,
+  SITE_URL,
+} from "@/lib/seo";
 
 // Self-hosted at build by next/font — no runtime request to Google (faster
 // first paint + no visitor-IP leak before consent, keeping the GDPR promise).
 const inter = Inter({ subsets: ["latin"], display: "swap", variable: "--font-inter" });
-
-const SITE_URL = "https://scalesage.ai";
 
 export const viewport: Viewport = {
   themeColor: "#0A1628",
@@ -18,11 +22,10 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "ScaleSage, Diagnose. Build. Prove.",
+    default: DEFAULT_TITLE,
     template: "%s · ScaleSage",
   },
-  description:
-    "Your business is leaking. We find it, fix it, and prove it. ScaleSage is the business doctor for growing SMEs, we diagnose the leak, install the systems that restore your execution bandwidth, and prove the result in numbers.",
+  description: DEFAULT_DESCRIPTION,
   applicationName: "ScaleSage",
   keywords: [
     "business doctor",
@@ -36,19 +39,26 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "ScaleSage" }],
   alternates: { canonical: "/" },
+  // NOTE: deliberately NO `openGraph.url` here.
+  //
+  // Next.js merges metadata between segments shallowly, so any page that does
+  // not export its own `openGraph` inherits THIS object entire. When this
+  // carried `url: SITE_URL`, /how-it-works, /pricing, /partners and /industries
+  // each inherited it and announced `og:url = homepage` while their canonical
+  // said otherwise. Every page now builds its own via `pageMetadata()` in
+  // `lib/seo.ts`, which derives canonical and og:url from one `path`. Do not
+  // reintroduce a `url` on this object: it is the fault that page-level fixes
+  // keep re-inheriting.
   openGraph: {
     type: "website",
-    url: SITE_URL,
     siteName: "ScaleSage",
-    title: "ScaleSage, Diagnose. Build. Prove.",
-    description:
-      "Your business is leaking. We find it, fix it, and prove it. The operating system for growing SMEs.",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_SOCIAL_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: "ScaleSage, Diagnose. Build. Prove.",
-    description:
-      "Your business is leaking. We find it, fix it, and prove it. The operating system for growing SMEs.",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_SOCIAL_DESCRIPTION,
   },
   robots: { index: true, follow: true },
 };

@@ -5,11 +5,11 @@
 This file is a routing aid for AI and search crawlers. It is a signpost to the pages that matter, not a ranking claim.
 
 ## Key pages
-- [Home](https://scalesage.ai/): what ScaleSage is, and the Diagnose, Build, Prove method.
-- [How it works](https://scalesage.ai/how-it-works): the method in three phases, each accountable to a number.
-- [Industries](https://scalesage.ai/industries): leak maps across SME sectors.
-- [Pricing](https://scalesage.ai/pricing): public monthly pricing and straight-answer FAQs.
-- [About](https://scalesage.ai/about): why ScaleSage is not a normal AI agency.
-- [Frontier Visibility](https://scalesage.ai/frontier): the whole AI and search visibility layer.
-- [Stack Updates](https://scalesage.ai/stack-updates): dated public changelog of what shipped.
-- [Catalyst diagnostic](https://scalesage.ai/how-it-works#catalyst): our scan that finds where revenue is leaking, no payment to begin.
+- [Home](https://www.scalesage.ai/): what ScaleSage is, and the Diagnose, Build, Prove method.
+- [How it works](https://www.scalesage.ai/how-it-works): the method in three phases, each accountable to a number.
+- [Industries](https://www.scalesage.ai/industries): leak maps across SME sectors.
+- [Pricing](https://www.scalesage.ai/pricing): public monthly pricing and straight-answer FAQs.
+- [About](https://www.scalesage.ai/about): why ScaleSage is not a normal AI agency.
+- [Frontier Visibility](https://www.scalesage.ai/frontier): the whole AI and search visibility layer.
+- [Stack Updates](https://www.scalesage.ai/stack-updates): dated public changelog of what shipped.
+- [Catalyst diagnostic](https://www.scalesage.ai/catalyst): our scan that finds where revenue is leaking, no payment to begin.

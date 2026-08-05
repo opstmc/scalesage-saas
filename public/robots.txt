@@ -24,4 +24,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://scalesage.ai/sitemap.xml
+Sitemap: https://www.scalesage.ai/sitemap.xml

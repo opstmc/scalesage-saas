@@ -1,6 +1,10 @@
 import type { MetadataRoute } from "next";
+import { SITE_URL } from "@/lib/seo";
 
-const SITE = "https://scalesage.ai";
+// Same canonical host as every <link rel="canonical"> and og:url on the site —
+// see lib/seo.ts. A sitemap listing a host that 308-redirects makes every entry
+// a redirect hop.
+const SITE = SITE_URL;
 
 // priority by role: home + the scan highest, primary pages next, legal lowest.
 const ROUTES: { path: string; priority: number }[] = [

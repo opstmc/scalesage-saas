@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import styles from "./partners.module.css";
 import { COMMISSIONABLE_BOLT_ONS } from "@/lib/offer";
 
@@ -7,12 +7,12 @@ import { COMMISSIONABLE_BOLT_ONS } from "@/lib/offer";
 // cost-comparison / bolt-on wholesale tables from the confidential pack are
 // deliberately NOT reproduced here — this page leads with the earning story.
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/partners",
   title: "Partners",
   description:
     "Earn recurring commission on every client you introduce to ScaleSage, 20–25% in Year 1, a lifetime trail from Year 4 for Gold and Platinum partners, full support from day one. No technical expertise required.",
-  alternates: { canonical: "/partners" },
-};
+});
 
 const PARTNER_EMAIL = "admin@scalesage.ai";
 const APPLY = `mailto:${PARTNER_EMAIL}?subject=${encodeURIComponent("Partner application")}`;

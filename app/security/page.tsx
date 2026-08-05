@@ -1,14 +1,14 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 
 // DRAFT: plain-English security summary. Requires JW + legal sign-off before
 // anyone relies on this copy. Honest and general; no invented certifications.
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/security",
   title: "Security",
   description:
     "How ScaleSage keeps your data and systems safe. GDPR-compliant by design, a Safety Pack per engagement, DPA on request, data held in the EU and UK.",
-  alternates: { canonical: "/security" },
-};
+});
 
 const SECTIONS = [
   {

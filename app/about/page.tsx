@@ -1,14 +1,14 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import WhyNotAgency from "@/components/WhyNotAgency";
 import Proof from "@/components/Proof";
 import FinalCta from "@/components/FinalCta";
 
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/about",
   title: "About",
   description:
     "Why ScaleSage isn't a normal AI agency, we don't sell tools or promise outcomes, we prove them. The difference, and the founding-client proof discipline.",
-  alternates: { canonical: "/about" },
-};
+});
 
 export default function AboutPage() {
   return (

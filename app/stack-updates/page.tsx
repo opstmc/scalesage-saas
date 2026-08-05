@@ -1,14 +1,14 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import FinalCta from "@/components/FinalCta";
 import { ENTRIES } from "./entries";
 
 // COPY: JW to approve.
-export const metadata: Metadata = {
+export const generateMetadata = pageMetadata({
+  path: "/stack-updates",
   title: "Stack Updates",
   description:
     "A plain, dated record of what ScaleSage shipped and upgraded. The proof artifact behind the Improve promise. Real entries only, no roadmap theatre.",
-  alternates: { canonical: "/stack-updates" },
-};
+});
 
 function Diamond() {
   return (
