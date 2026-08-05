@@ -3,18 +3,25 @@
 /**
  * SPIKE — /lab/hero. Throwaway. Not wired into the homepage.
  *
- * The WebGL half. This module is *only* reached through a dynamic import in
- * capture-field.tsx, and that import is not started until after first
- * contentful paint. Nothing here is on the critical path; if this chunk 404s,
- * fails to parse, or throws, capture-field keeps the poster on screen and the
- * page above the fold is unchanged.
+ * The WebGL half, now hand rolled. Reached only through a dynamic import in
+ * capture-field.tsx which is not started until after first contentful paint.
+ * Nothing here is on the critical path: if this chunk 404s, fails to parse or
+ * throws, the shell keeps the poster and the page above the fold is unchanged.
+ *
+ * This replaced three, React Three Fiber and drei. The spike measured them at
+ * 191.6 KB brotli to run one fullscreen fragment pass with no scene graph, no
+ * geometry, no loaders and no lights, and estimated a hand rolled equivalent at
+ * around 4 KB. This is that equivalent, built to do everything the R3F version
+ * did rather than the flattering subset: DPR handling, resize, visibility
+ * pause, context loss recovery and a degrade ladder.
+ *
+ * The props and the LabStats shape are unchanged, so capture-field.tsx and the
+ * measurement harness did not have to move with it.
  */
 
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import type { ShaderMaterial } from "three";
-import { PerformanceMonitor } from "@react-three/drei";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CAUGHT_AT, LOOP_SECONDS, PALETTE, RELEASED_AT } from "./lab-constants";
+import { createRenderer, type GLHandle } from "./gl";
 
 type Phase = "seeking" | "caught";
 
@@ -38,8 +45,6 @@ export type CaptureCanvasProps = {
   onStats?: (stats: LabStats) => void;
 };
 
-type Uniforms = Record<string, { value: unknown }>;
-
 /** Loop position held on the frozen frame: just after the latch, label showing. */
 const REDUCED_FRAME = 0.68;
 
@@ -52,225 +57,216 @@ function frozenAt(): number | null {
   return Number.isFinite(n) && n >= 0 && n <= 1 ? n : null;
 }
 
-function CaptureField(props: CaptureCanvasProps & { quality: number }) {
-  const [src, setSrc] = useState<{ vert: string; frag: string } | null>(null);
+function initialDpr(): number {
+  if (typeof window === "undefined") return 1;
+  const forced = Number(new URLSearchParams(window.location.search).get("dpr"));
+  if (forced > 0) return forced;
+  // Phones ship dpr 3 with a fraction of the fill rate. Cap hard.
+  const coarse = window.matchMedia("(pointer: coarse)").matches;
+  return Math.min(window.devicePixelRatio || 1, coarse ? 1.25 : 1.75);
+}
 
-  // Second lazy hop: the GLSL lands in its own chunk so it can be weighed
-  // separately from three/R3F/drei in the network trace.
+export default function CaptureCanvas({ onPhase, reduced, paused, onStats }: CaptureCanvasProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [ready, setReady] = useState(false);
+  const frozen = useMemo(() => frozenAt(), []);
+
+  // Everything the frame loop touches lives in refs. A uniform write must never
+  // cost a React render: at 60fps that would be 60 reconciliations a second to
+  // move one float, which is part of the overhead this rewrite removes.
+  const gl = useRef<GLHandle | null>(null);
+  const clock = useRef(0);
+  // Seeded on mount, not here: Math.random() during render is impure, so a
+  // replay of the render pass would produce a different substrate.
+  const seed = useRef(0);
+  const reveal = useRef(reduced || frozen !== null ? 1 : 0);
+  const loop = useRef(frozen ?? (reduced ? REDUCED_FRAME : 0));
+  const phase = useRef<Phase>("seeking");
+  const quality = useRef(1);
+  const dpr = useRef(1);
+
+  const onPhaseRef = useRef(onPhase);
+  const onStatsRef = useRef(onStats);
   useEffect(() => {
+    onPhaseRef.current = onPhase;
+    onStatsRef.current = onStats;
+  }, [onPhase, onStats]);
+
+  const pausedRef = useRef(paused);
+  const reducedRef = useRef(reduced);
+  useEffect(() => {
+    pausedRef.current = paused;
+    reducedRef.current = reduced;
+  }, [paused, reduced]);
+
+  // ?adapt=0 pins quality and DPR so a fill-rate sweep measures the shader
+  // rather than the degrade ladder reacting to it.
+  const adapt = useMemo(
+    () =>
+      typeof window === "undefined" ||
+      new URLSearchParams(window.location.search).get("adapt") !== "0",
+    [],
+  );
+
+  const paint = useCallback((handle: GLHandle) => {
+    handle.setFloat("uTime", clock.current);
+    handle.setFloat("uLoop", loop.current);
+    handle.setFloat("uSeed", seed.current);
+    handle.setFloat("uQuality", quality.current);
+    handle.setFloat("uReveal", reveal.current);
+    const { width, height } = handle.size();
+    handle.setFloat("uAspect", width / Math.max(height, 1));
+    handle.draw();
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    let handle: GLHandle | null = null;
+    let raf = 0;
     let alive = true;
+    let last = 0;
+    let painted = false;
+
+    // Frame times, for the HUD and the degrade ladder. Same shape the R3F
+    // version reported, so the measurement harness is unchanged.
+    const samples: number[] = [];
+    let reportedAt = 0;
+    let declines = 0;
+
+    // Second lazy hop: the GLSL lands in its own chunk so it can be weighed
+    // separately from the renderer in the network trace.
     import("./capture-shader")
-      .then((m) => {
-        if (alive) setSrc({ vert: m.vertexShader, frag: m.fragmentShader });
+      .then((mod) => {
+        if (!alive) return;
+        seed.current = Math.random() * 100;
+        dpr.current = initialDpr();
+        handle = createRenderer(canvas, mod.fragmentShader, dpr.current);
+        if (!handle) return; // no WebGL, or the shader would not compile
+        gl.current = handle;
+
+        handle.setVec3("uBg", PALETTE.bg);
+        handle.setVec3("uAccent", PALETTE.accent);
+        handle.setVec3("uGlow", PALETTE.glow);
+        setReady(true);
+
+        // A frozen frame never crosses a phase boundary, so announce it once.
+        const at = frozen ?? (reducedRef.current ? REDUCED_FRAME : null);
+        if (at !== null) {
+          onPhaseRef.current(at >= CAUGHT_AT && at < RELEASED_AT ? "caught" : "seeking");
+        }
+
+        const frame = (now: number) => {
+          if (!alive || !handle) return;
+          raf = requestAnimationFrame(frame);
+
+          const still = reducedRef.current || frozen !== null;
+
+          // A paused, hidden or lost canvas keeps the rAF alive so it notices
+          // when it is un-paused, but advances nothing and draws nothing.
+          // Resetting `last` is what stops the beat jumping forward on return.
+          if (pausedRef.current || document.hidden || handle.isLost()) {
+            last = 0;
+            return;
+          }
+
+          if (still) {
+            if (!painted) {
+              paint(handle);
+              painted = true;
+            }
+            return;
+          }
+
+          const delta = last ? Math.min((now - last) / 1000, 0.1) : 0;
+          last = now;
+          clock.current += delta;
+
+          const u = (clock.current % LOOP_SECONDS) / LOOP_SECONDS;
+          // Loop wrapped: reseed, so no two passes share a substrate.
+          if (u < loop.current) seed.current = Math.random() * 100;
+          loop.current = u;
+          reveal.current = Math.min(1, reveal.current + delta * 1.1);
+
+          const next: Phase = u >= CAUGHT_AT && u < RELEASED_AT ? "caught" : "seeking";
+          if (next !== phase.current) {
+            phase.current = next;
+            onPhaseRef.current(next);
+          }
+
+          paint(handle);
+
+          if (delta > 0) {
+            const ms = delta * 1000;
+            if (ms < 500) samples.push(ms);
+            if (samples.length > 900) samples.shift();
+          }
+
+          if (now - reportedAt > 1000 && samples.length > 20) {
+            reportedAt = now;
+            const sorted = [...samples].sort((a, b) => a - b);
+            const median = sorted[Math.floor(sorted.length / 2)];
+            const { width, height, dpr: ratio } = handle.size();
+            const stats: LabStats = {
+              fps: Math.round(1000 / median),
+              medianFrameMs: Math.round(median * 100) / 100,
+              p95FrameMs: Math.round(sorted[Math.floor(sorted.length * 0.95)] * 100) / 100,
+              samples: sorted.length,
+              dpr: Math.round(ratio * 100) / 100,
+              quality: quality.current,
+              pixels: width * height,
+            };
+            (window as unknown as { __lab?: LabStats }).__lab = stats;
+            onStatsRef.current?.(stats);
+
+            // The degrade ladder drei's PerformanceMonitor used to run. Two
+            // steps down before giving up: shader octaves first, then pixels.
+            // Three consecutive bad seconds are required, so one stutter caused
+            // by something else on the page cannot permanently downgrade it.
+            if (adapt) {
+              if (median > 20) {
+                declines += 1;
+                if (declines >= 3) {
+                  declines = 0;
+                  if (quality.current > 0) {
+                    quality.current = 0;
+                  } else {
+                    dpr.current = Math.max(0.7, Math.round(dpr.current * 0.8 * 100) / 100);
+                    handle.setDpr(dpr.current);
+                  }
+                }
+              } else {
+                declines = 0;
+              }
+            }
+          }
+        };
+        raf = requestAnimationFrame(frame);
       })
       .catch(() => {
         /* the shell keeps the poster up; nothing to recover here */
       });
+
     return () => {
       alive = false;
+      cancelAnimationFrame(raf);
+      handle?.dispose();
+      gl.current = null;
     };
-  }, []);
+  }, [adapt, frozen, paint]);
 
-  if (!src) return null;
-  return <CapturePass {...props} src={src} />;
-}
-
-function CapturePass({
-  src,
-  onPhase,
-  reduced,
-  onStats,
-  quality,
-}: CaptureCanvasProps & { src: { vert: string; frag: string }; quality: number }) {
-  const { size, gl, invalidate } = useThree();
-
-  const frozen = useMemo(() => frozenAt(), []);
-
-  // R3F does NOT keep the uniforms object you hand it: applyProps copies each
-  // entry into the material's own `uniforms` ({ ...uniform }, fiber's events
-  // bundle ~L435). Mutating the object below therefore does nothing once the
-  // material exists — every write has to go through the material ref. The
-  // symptom is a hero that renders one correct frame and then never moves.
-  const mat = useRef<ShaderMaterial>(null);
-
-  const uniforms = useMemo<Uniforms>(
-    () => ({
-      uTime: { value: 0 },
-      uLoop: { value: frozen ?? (reduced ? REDUCED_FRAME : 0) },
-      // Seeded on mount, not here: Math.random() during render is impure and
-      // would differ between the render pass and any replay of it.
-      uSeed: { value: 0 },
-      uAspect: { value: 1 },
-      uQuality: { value: 1 },
-      // A frozen frame has no chance to fade itself in.
-      uReveal: { value: reduced || frozen !== null ? 1 : 0 },
-      uBg: { value: PALETTE.bg },
-      uAccent: { value: PALETTE.accent },
-      uGlow: { value: PALETTE.glow },
-    }),
-    [reduced, frozen],
-  );
-
-  // First seed, once the material exists. Every later loop reseeds in useFrame.
+  // Redraw the still frame when reduced motion changes, since the loop is not
+  // running to do it.
   useEffect(() => {
-    if (!mat.current) return;
-    mat.current.uniforms.uSeed.value = Math.random() * 100;
-    invalidate();
-  }, [invalidate]);
-
-  // Aspect tracks the drawing buffer, not a camera: the vertex shader writes
-  // clip space directly, so a resize needs no camera bookkeeping.
-  useEffect(() => {
-    if (!mat.current) return;
-    mat.current.uniforms.uAspect.value = size.width / Math.max(size.height, 1);
-    invalidate();
-  }, [size.width, size.height, invalidate]);
-
-  useEffect(() => {
-    if (!mat.current) return;
-    mat.current.uniforms.uQuality.value = quality;
-    invalidate();
-  }, [quality, invalidate]);
-
-  // A frozen frame never crosses a phase boundary, so announce it once.
-  useEffect(() => {
-    const at = frozen ?? (reduced ? REDUCED_FRAME : null);
-    if (at !== null) onPhase(at >= CAUGHT_AT && at < RELEASED_AT ? "caught" : "seeking");
-  }, [reduced, frozen, onPhase]);
-
-  const phaseRef = useRef<Phase>("seeking");
-  const clock = useRef(0);
-
-  // --- telemetry (measurement scaffolding; goes when the route goes) --------
-  const samples = useRef<number[]>([]);
-  const lastAt = useRef(0);
-  const reportedAt = useRef(0);
-
-  useFrame((state, delta) => {
-    const m = mat.current;
-    if (!m || reduced || frozen !== null) return;
-    const U = m.uniforms;
-
-    clock.current += Math.min(delta, 0.1); // a backgrounded tab must not jump the beat
-    const u = (clock.current % LOOP_SECONDS) / LOOP_SECONDS;
-
-    if (u < (U.uLoop.value as number)) {
-      // Loop wrapped: reseed, so no two passes share a substrate.
-      U.uSeed.value = Math.random() * 100;
-    }
-
-    U.uTime.value = clock.current;
-    U.uLoop.value = u;
-    U.uReveal.value = Math.min(1, (U.uReveal.value as number) + delta * 1.1);
-
-    const next: Phase = u >= CAUGHT_AT && u < RELEASED_AT ? "caught" : "seeking";
-    if (next !== phaseRef.current) {
-      phaseRef.current = next;
-      onPhase(next);
-    }
-
-    const now = state.clock.elapsedTime;
-    if (lastAt.current) {
-      const ms = (now - lastAt.current) * 1000;
-      if (ms > 0 && ms < 500) samples.current.push(ms);
-      if (samples.current.length > 900) samples.current.shift();
-    }
-    lastAt.current = now;
-
-    if (now - reportedAt.current > 1) {
-      reportedAt.current = now;
-      const arr = [...samples.current].sort((a, b) => a - b);
-      if (arr.length > 20) {
-        const dpr = gl.getPixelRatio();
-        const stats: LabStats = {
-          fps: Math.round(1000 / arr[Math.floor(arr.length / 2)]),
-          medianFrameMs: Math.round(arr[Math.floor(arr.length / 2)] * 100) / 100,
-          p95FrameMs: Math.round(arr[Math.floor(arr.length * 0.95)] * 100) / 100,
-          samples: arr.length,
-          dpr: Math.round(dpr * 100) / 100,
-          quality,
-          pixels: Math.round(size.width * dpr * size.height * dpr),
-        };
-        (window as unknown as { __lab?: LabStats }).__lab = stats;
-        onStats?.(stats);
-      }
-    }
-  });
+    if (ready && gl.current && (reduced || frozen !== null)) paint(gl.current);
+  }, [ready, reduced, frozen, paint]);
 
   return (
-    <mesh frustumCulled={false}>
-      <planeGeometry args={[2, 2]} />
-      <shaderMaterial
-        ref={mat}
-        vertexShader={src.vert}
-        fragmentShader={src.frag}
-        uniforms={uniforms}
-        depthTest={false}
-        depthWrite={false}
-        toneMapped={false}
-      />
-    </mesh>
-  );
-}
-
-export default function CaptureCanvas(props: CaptureCanvasProps) {
-  const [quality, setQuality] = useState(1);
-  // ?adapt=0 pins quality and DPR, so a fill-rate sweep measures the shader
-  // rather than the degrade ladder reacting to it.
-  const adapt =
-    typeof window === "undefined" ||
-    new URLSearchParams(window.location.search).get("adapt") !== "0";
-  const [dpr, setDpr] = useState<number>(() => {
-    if (typeof window === "undefined") return 1;
-    // ?dpr=N forces the pixel count, to find the fill-rate ceiling. Measurement
-    // scaffolding: CPU throttling in devtools does not touch the GPU, so the
-    // only way to size the fragment cost is to make the GPU do more of it.
-    const forced = Number(new URLSearchParams(window.location.search).get("dpr"));
-    if (forced > 0) return forced;
-    // Phones ship dpr 3 with a fraction of the fill rate. Cap hard.
-    const coarse = window.matchMedia("(pointer: coarse)").matches;
-    return Math.min(window.devicePixelRatio || 1, coarse ? 1.25 : 1.75);
-  });
-
-  // Two steps down before giving up: shader octaves first, then pixels.
-  const onDecline = useCallback(() => {
-    setQuality((q) => {
-      if (q > 0) return 0;
-      setDpr((d) => Math.max(0.7, Math.round(d * 0.8 * 100) / 100));
-      return 0;
-    });
-  }, []);
-
-  const frameloop = props.reduced || props.paused || frozenAt() !== null ? "demand" : "always";
-
-  return (
-    <Canvas
-      // A fullscreen fragment pass needs no MSAA, no alpha, no depth, no stencil.
-      gl={{
-        antialias: false,
-        alpha: false,
-        depth: false,
-        stencil: false,
-        powerPreference: "high-performance",
-      }}
-      dpr={dpr}
-      frameloop={frameloop}
-      resize={{ scroll: false, debounce: { scroll: 50, resize: 120 } }}
-      style={{ position: "absolute", inset: 0, display: "block" }}
+    <canvas
+      ref={canvasRef}
       aria-hidden="true"
-    >
-      {adapt ? (
-        <PerformanceMonitor
-          onDecline={onDecline}
-          onIncline={() => setQuality(1)}
-          flipflops={3}
-          onFallback={() => {
-            setQuality(0);
-            setDpr(0.7);
-          }}
-        />
-      ) : null}
-      <CaptureField {...props} quality={quality} />
-    </Canvas>
+      style={{ position: "absolute", inset: 0, display: "block", width: "100%", height: "100%" }}
+    />
   );
 }
