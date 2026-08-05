@@ -28,7 +28,30 @@ import type { NextConfig } from "next";
  */
 const PREVIEW_HOST = "(?:.*\\.)?vercel\\.app";
 
+/* The unsubscribe endpoint lives on the API, but the link in a cold email has to
+ * be on the brand domain: a recipient who is already annoyed enough to opt out
+ * should not be sent to a hostname they have never seen, and a link that looks
+ * unrelated to the sender reads as phishing.
+ *
+ * So /u/* is proxied rather than reimplemented. The endpoint returns a complete
+ * self-contained page and its form posts to a relative path, so both the GET and
+ * the POST land back here and forward correctly. Reimplementing it on this side
+ * would put a second copy of a legal mechanism in a second repo, and the two
+ * would drift.
+ *
+ * A rewrite, not a redirect: RFC 8058 one-click sends a POST, and a 30x would
+ * turn it into a GET on most clients, which the endpoint deliberately treats as
+ * non-destructive. The unsubscribe would silently do nothing.
+ */
+const API_ORIGIN = (
+  process.env.NEXT_PUBLIC_SAGE_API_BASE ?? "https://api.scalesage.ai"
+).replace(/\/+$/, "");
+
 const nextConfig: NextConfig = {
+  async rewrites() {
+    return [{ source: "/u/:prospectId", destination: `${API_ORIGIN}/u/:prospectId` }];
+  },
+
   async headers() {
     return [
       {
