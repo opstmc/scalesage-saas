@@ -93,6 +93,29 @@ export const fragmentShader = /* glsl */ `
 
   float easeOut(float x) { return 1.0 - pow(1.0 - x, 3.0); }
   float gate(float u, float a, float b) { return clamp((u - a) / (b - a), 0.0, 1.0); }
+  float hash21(vec2 p) {
+    p = fract(p * vec2(123.34, 456.21));
+    p += dot(p, p + 45.32);
+    return fract(p.x * p.y);
+  }
+
+  // A handful of deliberately sparse fragments gives the field depth without
+  // ever reading as a particle-system backdrop. They bend towards the locus
+  // as the incoming signal is captured.
+  float fragments(vec2 st, vec2 locus, float t, float pull) {
+    float sparks = 0.0;
+    for (int i = 0; i < 12; i++) {
+      float fi = float(i);
+      float h = hash21(vec2(fi, 9.17));
+      float a = h * 6.2831853 + t * (0.055 + h * 0.05) * (h > 0.5 ? 1.0 : -1.0);
+      float r = 0.16 + fract(h * 5.71) * 0.48;
+      vec2 p = locus + vec2(cos(a), sin(a) * 0.72) * r;
+      p = mix(p, locus + (p - locus) * 0.72, pull);
+      float d = length(st - p);
+      sparks += exp(-pow(d / (0.0012 + h * 0.0018), 2.0)) * (0.18 + 0.35 * h);
+    }
+    return sparks;
+  }
 
   // ---- the Capture beat -----------------------------------------------------
   // All of this branches on uLoop, which is a uniform, so every branch is
@@ -164,6 +187,13 @@ export const fragmentShader = /* glsl */ `
 
     float haze = smoothstep(-0.65, 0.95, f);
 
+    // A second, much broader ribbon moves through the contours. Its glow is
+    // quiet in the opening beat, then folds into the capture well with the
+    // signal. This makes the whole frame participate in the action.
+    float ribbonNoise = snoise(warped * 1.10 + flow(warped * 0.46, uTime) * 0.48 + vec2(4.2, -2.7));
+    float ribbon = exp(-pow((ribbonNoise + st.y * 0.72 - 0.10 * sin(st.x * 2.4 + uTime * 0.16)) / 0.13, 2.0));
+    ribbon *= 0.20 + 0.80 * smoothstep(0.44, 0.68, u);
+
     // ---- the signal ---------------------------------------------------------
     float lum = smoothstep(0.02, 0.10, u);
     lum *= mix(1.0, 0.26, smoothstep(0.30, 0.47, u));   // dims as it slips
@@ -198,13 +228,27 @@ export const fragmentShader = /* glsl */ `
       ? exp(-pow((dl - rr) / 0.0032, 2.0)) * (1.0 - rt) * (1.0 - rt)
       : 0.0;
 
+    // The capture well: a restrained halo at rest, then two expanding shock
+    // fronts at the latch. The subtle angular breaks keep it from becoming a
+    // generic HUD circle.
+    float held = smoothstep(0.54, 0.67, u) * (1.0 - smoothstep(0.945, 1.0, u));
+    float angle = atan(st.y - locus.y, st.x - locus.x);
+    float broken = 0.56 + 0.44 * smoothstep(-0.25, 0.75, sin(angle * 5.0 + uTime * 0.42));
+    float wellGlow = exp(-pow(dl / 0.125, 2.0)) * held * 0.11;
+    float orbit = exp(-pow((dl - 0.072) / 0.0015, 2.0)) * broken * held * 0.42;
+    float pulseAge = gate(u, 0.59, 0.84);
+    float pulseRadius = 0.025 + pulseAge * 0.25;
+    float pulse = exp(-pow((dl - pulseRadius) / 0.0034, 2.0)) * (1.0 - pulseAge) * (1.0 - pulseAge);
+    float spark = fragments(st, locus, uTime, held);
+
     // ---- composite ----------------------------------------------------------
     vec3 col = uBg;
     col += uAccent * filament * 0.105;
     col += uAccent * haze * 0.055;
-    col += uAccent * (anchor * 0.55 + anchorRing);
-    col += uGlow * (core * 1.05 + halo * 0.10 + trail) * lum;
-    col += uGlow * latch * 0.50;
+    col += uAccent * ribbon * 0.075;
+    col += uAccent * (anchor * 0.55 + anchorRing + orbit + wellGlow);
+    col += uGlow * (core * 1.16 + halo * 0.16 + trail) * lum;
+    col += uGlow * (latch * 0.72 + pulse * 0.62 + spark);
 
     // Vignette, then a hard left-side darkening so the headline always sits on
     // near-solid navy no matter what the field is doing.
