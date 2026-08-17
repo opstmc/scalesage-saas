@@ -198,7 +198,10 @@ export const fragmentShader = /* glsl */ `
     // signal. This makes the whole frame participate in the action.
     float ribbonNoise = snoise(warped * 1.10 + flow(warped * 0.46, uTime) * 0.48 + vec2(4.2, -2.7));
     float ribbon = exp(-pow((ribbonNoise + st.y * 0.72 - 0.10 * sin(st.x * 2.4 + uTime * 0.16)) / 0.13, 2.0));
-    ribbon *= 0.20 + 0.80 * smoothstep(0.44, 0.68, u);
+    // Fade the event layer back to its opening value before the clock wraps.
+    // Without this matching tail, the ribbon flashed once per cycle.
+    float eventFade = smoothstep(0.44, 0.68, u) * (1.0 - smoothstep(0.80, 0.98, u));
+    ribbon *= 0.20 + 0.80 * eventFade;
 
     // ---- the signal ---------------------------------------------------------
     float lum = 0.42 + 0.58 * smoothstep(0.02, 0.10, u);
@@ -222,6 +225,9 @@ export const fragmentShader = /* glsl */ `
       float tw = 1.0 - float(k) / 10.0;
       trail += exp(-pow(length(st - tp) / (0.0062 + 0.0013 * float(k)), 2.0)) * tw * 0.20;
     }
+    // A trail only has a history in the outgoing passage. Dissolving it before
+    // the seam prevents a bright, one-frame white streak when u returns to 0.
+    trail *= 1.0 - smoothstep(0.80, 0.96, u);
 
     // ---- the locus and its latch -------------------------------------------
     float dl = length(st - locus);
