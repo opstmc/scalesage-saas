@@ -38,7 +38,7 @@ import {
 } from "react";
 import Poster from "./poster";
 import s from "./lab.module.css";
-import { HOTSPOT_LABEL, LOCUS } from "./lab-constants";
+import { HOTSPOT_LABELS, LOCUS } from "./lab-constants";
 import type { LabStats } from "./capture-canvas";
 
 const CaptureCanvas = dynamic(() => import("./capture-canvas"), {
@@ -153,6 +153,7 @@ export default function CaptureFieldShell() {
   const [canvasUp, setCanvasUp] = useState(false);
   const [failed, setFailed] = useState(false);
   const [caught, setCaught] = useState(false);
+  const [outcomeIndex, setOutcomeIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [stats, setStats] = useState<LabStats | null>(null);
   const hostRef = useRef<HTMLDivElement>(null);
@@ -195,7 +196,12 @@ export default function CaptureFieldShell() {
   }, [mode]);
 
   const onError = useCallback(() => setFailed(true), []);
-  const onPhase = useCallback((p: "seeking" | "caught") => setCaught(p === "caught"), []);
+  const onPhase = useCallback((p: "seeking" | "caught") => {
+    setCaught(p === "caught");
+    if (p === "caught") {
+      setOutcomeIndex((current) => (current + 1) % HOTSPOT_LABELS.length);
+    }
+  }, []);
 
   return (
     <div className={s.field} ref={hostRef}>
@@ -224,7 +230,7 @@ export default function CaptureFieldShell() {
         style={{ left: `${LOCUS.leftPct}%`, top: `${LOCUS.topPct}%` }}
       >
         <span className={s.hotspotStem} />
-        <span className={s.hotspotText}>{HOTSPOT_LABEL}</span>
+        <span className={s.hotspotText}>{HOTSPOT_LABELS[outcomeIndex]}</span>
       </div>
 
       {env.hud ? (

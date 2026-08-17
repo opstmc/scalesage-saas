@@ -105,10 +105,24 @@ const jsonLd = {
       // a claim about a legal entity.
     },
     {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: "ScaleSage",
+      description: DEFAULT_DESCRIPTION,
+      publisher: { "@id": `${SITE_URL}/#organization` },
+      inLanguage: "en-GB",
+    },
+    {
       "@type": "Service",
+      "@id": `${SITE_URL}/#service`,
+      name: "AI systems and automation for growing SMEs",
       serviceType: "AI systems & automation for SMEs",
       provider: { "@id": `${SITE_URL}/#organization` },
       areaServed: ["GB", "EU"],
+      url: `${SITE_URL}/how-it-works`,
+      description:
+        "ScaleSage diagnoses revenue and operational leaks, builds the AI systems that address them, and measures the result.",
     },
   ],
 };

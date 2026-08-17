@@ -4,6 +4,19 @@
 
 This file is a routing aid for AI and search crawlers. It is a signpost to the pages that matter, not a ranking claim.
 
+## Core facts
+- ScaleSage is an AI systems and automation partner for growing SMEs in the UK and EU.
+- The method is Diagnose, Build, Prove: identify the leak, install the relevant system, and measure the result against a baseline.
+- ScaleSage does not promise guaranteed revenue, invented results, spam, or fake reviews.
+- Public contact: admin@scalesage.ai.
+
+## Systems ScaleSage builds
+- Lead capture and missed-call recovery.
+- Quote follow-up, customer reactivation, and booking automation.
+- Review-request systems after jobs close.
+- AI and search visibility foundations, including structured data, authority, answer-first content, and testing.
+- Reporting and ongoing optimisation through the ScaleSage operating stack.
+
 ## Key pages
 - [Home](https://www.scalesage.ai/): what ScaleSage is, and the Diagnose, Build, Prove method.
 - [How it works](https://www.scalesage.ai/how-it-works): the method in three phases, each accountable to a number.
@@ -13,3 +26,9 @@ This file is a routing aid for AI and search crawlers. It is a signpost to the p
 - [Frontier Visibility](https://www.scalesage.ai/frontier): the whole AI and search visibility layer.
 - [Stack Updates](https://www.scalesage.ai/stack-updates): dated public changelog of what shipped.
 - [Catalyst diagnostic](https://www.scalesage.ai/catalyst): our scan that finds where revenue is leaking, no payment to begin.
+
+## Policies and sources
+- [Privacy](https://www.scalesage.ai/privacy): privacy commitments and data handling.
+- [Security](https://www.scalesage.ai/security): security information.
+- [Terms](https://www.scalesage.ai/terms): terms of service.
+- [Companies House record](https://find-and-update.company-information.service.gov.uk/company/17232390): legal-entity record for ScaleSage Ai Limited.

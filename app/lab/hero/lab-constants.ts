@@ -9,16 +9,31 @@
  */
 export const LOCUS = { leftPct: 70, topPct: 56 } as const;
 
-/** Seconds per Capture loop. */
-export const LOOP_SECONDS = 9.2;
+/**
+ * One complete capture-and-release passage. The signal's end position and
+ * brightness match its start position, so the next pass is a continuation,
+ * not a visible reset.
+ */
+export const LOOP_SECONDS = 14.5;
 
 /** Loop position at which the signal is latched — when the hotspot label earns its place. */
 export const CAUGHT_AT = 0.6;
 /** Loop position at which the label is released again. */
-export const RELEASED_AT = 0.945;
+export const RELEASED_AT = 0.84;
 
-/** The one legible claim on screen. Plain English, no figure. */
-export const HOTSPOT_LABEL = "Missed call caught";
+/**
+ * The scene is an illustration of the whole operating system, not only call
+ * handling. One outcome is shown per completed capture so the message matches
+ * the systems visitors meet elsewhere on the site.
+ */
+export const HOTSPOT_LABELS = [
+  "New lead captured",
+  "Quote followed up",
+  "Booking confirmed",
+  "Review request sent",
+  "Customer reactivated",
+  "Visibility gap found",
+] as const;
 
 /** Locked brand tokens, duplicated as numbers because GLSL cannot read CSS vars. */
 export const PALETTE = {

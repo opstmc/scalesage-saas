@@ -63,7 +63,7 @@ export default function LabHeroPage() {
           <strong style={{ color: "var(--text-primary)" }}>Spike, not a feature.</strong> One of
           five states, built to find out what a procedural hero costs before anyone commits to
           the other four. No video, no image sequence, no frame captured in advance — the field
-          is noise-seeded and reseeds every loop, so no two passes are identical.
+          is noise-seeded once per visit and evolves continuously, so it never visibly resets.
           <br />
           <br />
           Flags: <code>?canvas=off</code> renders the page with the canvas never loaded ·{" "}

@@ -33,7 +33,7 @@ export const fragmentShader = /* glsl */ `
 
   uniform float uTime;    // seconds since mount (continuous)
   uniform float uLoop;    // 0..1 position within the Capture loop
-  uniform float uSeed;    // re-randomised every loop -> no two loops identical
+  uniform float uSeed;    // seeded once per visit; continuous time keeps the field alive
   uniform float uAspect;  // width / height
   uniform float uQuality; // 1.0 = 3 fbm octaves, 0.0 = 2 (degrade path)
   uniform float uReveal;  // 0..1 mount fade-in
@@ -126,8 +126,9 @@ export const fragmentShader = /* glsl */ `
   //  .38-.50  slows, dims, drifts back out — nearly slips away
   //  .50-.60  caught: pulled along a curve into the locus
   //  .60-.72  latch: one ring, one settle
-  //  .72-.94  held
-  //  .94-1.0  released; the loop reseeds
+  //  .72-.84  held
+  //  .84-1.0  released back to the exact start point: the next pass joins
+  //            without a jump, while the field itself keeps drifting.
   const vec2 LOCUS_N = vec2(0.20, -0.06); // normalised; x is scaled by aspect
 
   vec2 pathAt(float u, float seed, float aspect) {
@@ -151,6 +152,11 @@ export const fragmentShader = /* glsl */ `
       // Settles: a small damped overshoot, then dead still.
       float s = gate(u, 0.60, 0.70);
       pos = locus + vec2(0.0, 0.004) * cos(s * 12.0) * (1.0 - s);
+    }
+    if (u > 0.84) {
+      // The entry point is also the position at u=0. Matching the two endpoints
+      // removes the obvious jump that made the previous loop readable.
+      pos = mix(locus, enter, smoothstep(0.84, 1.0, u));
     }
     return pos;
   }
@@ -195,10 +201,11 @@ export const fragmentShader = /* glsl */ `
     ribbon *= 0.20 + 0.80 * smoothstep(0.44, 0.68, u);
 
     // ---- the signal ---------------------------------------------------------
-    float lum = smoothstep(0.02, 0.10, u);
+    float lum = 0.42 + 0.58 * smoothstep(0.02, 0.10, u);
     lum *= mix(1.0, 0.26, smoothstep(0.30, 0.47, u));   // dims as it slips
     if (u > 0.50) lum = mix(0.26, 1.0, easeOut(gate(u, 0.50, 0.62)));
-    lum *= 1.0 - smoothstep(0.945, 1.0, u);
+    // The release returns to the same quiet brightness it has at u=0.
+    lum = mix(lum, 0.42, smoothstep(0.84, 1.0, u));
 
     float d = length(st - pos);
     float core = exp(-pow(d / 0.0062, 2.0));
@@ -218,7 +225,7 @@ export const fragmentShader = /* glsl */ `
 
     // ---- the locus and its latch -------------------------------------------
     float dl = length(st - locus);
-    float anchorLum = (0.09 + 0.91 * smoothstep(0.54, 0.63, u)) * (1.0 - smoothstep(0.945, 1.0, u));
+    float anchorLum = 0.09 + 0.91 * smoothstep(0.54, 0.63, u) * (1.0 - smoothstep(0.84, 1.0, u));
     float anchor = exp(-pow(dl / 0.0072, 2.0)) * anchorLum;
     float anchorRing = smoothstep(aa, 0.0, abs(dl - 0.024) - 0.0006) * 0.30 * anchorLum;
 
@@ -231,7 +238,7 @@ export const fragmentShader = /* glsl */ `
     // The capture well: a restrained halo at rest, then two expanding shock
     // fronts at the latch. The subtle angular breaks keep it from becoming a
     // generic HUD circle.
-    float held = smoothstep(0.54, 0.67, u) * (1.0 - smoothstep(0.945, 1.0, u));
+    float held = smoothstep(0.54, 0.67, u) * (1.0 - smoothstep(0.84, 1.0, u));
     float angle = atan(st.y - locus.y, st.x - locus.x);
     float broken = 0.56 + 0.44 * smoothstep(-0.25, 0.75, sin(angle * 5.0 + uTime * 0.42));
     float wellGlow = exp(-pow(dl / 0.125, 2.0)) * held * 0.11;

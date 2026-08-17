@@ -184,8 +184,9 @@ export default function CaptureCanvas({ onPhase, reduced, paused, onStats }: Cap
           clock.current += delta;
 
           const u = (clock.current % LOOP_SECONDS) / LOOP_SECONDS;
-          // Loop wrapped: reseed, so no two passes share a substrate.
-          if (u < loop.current) seed.current = Math.random() * 100;
+          // The substrate is driven by continuous time, not reset at the
+          // cycle boundary. Keeping the seed stable is what makes the next
+          // passage feel like the field continued moving rather than replayed.
           loop.current = u;
           reveal.current = Math.min(1, reveal.current + delta * 1.1);
 
