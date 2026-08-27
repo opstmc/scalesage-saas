@@ -92,17 +92,20 @@ const jsonLd = {
       // the footer prints. A schema email that differs from the one on the page
       // is worse than none: it is the address an assistant will quote back.
       email: "admin@scalesage.ai",
+      // E.164, same number the footer prints. Confirmed as the public line.
+      telephone: "+447464366145",
       contactPoint: {
         "@type": "ContactPoint",
         contactType: "customer support",
         email: "admin@scalesage.ai",
+        telephone: "+447464366145",
         areaServed: ["GB", "EU"],
         availableLanguage: "English",
       },
-      // TODO (Cy, pending verification): add `telephone` and a PostalAddress
-      // `address` (registered office) once those are confirmed. Left absent
-      // rather than guessed: a wrong registered address in structured data is
-      // a claim about a legal entity.
+      // TODO (Cy, pending verification): add a PostalAddress `address`
+      // (registered office) once confirmed. Left absent rather than guessed:
+      // a wrong registered address in structured data is a claim about a
+      // legal entity.
     },
     {
       "@type": "WebSite",

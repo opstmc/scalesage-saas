@@ -14,6 +14,10 @@ const PARTNER_HUB = PORTAL_BASE ? `${PORTAL_BASE}/portal/login?as=partner` : nul
 // this footer, which is where the visitor already was: the dead end on the fix
 // list. Email is the honest answer until a contact page exists.
 const CONTACT_EMAIL = "admin@scalesage.ai";
+// The fastest route to a human, and the one a visitor in a hurry wants. Two
+// forms on purpose: E.164 for the dial, spaced UK format for reading.
+const CONTACT_PHONE = "+447464366145";
+const CONTACT_PHONE_DISPLAY = "+44 7464 366145";
 
 const COLS = [
   {
@@ -33,6 +37,7 @@ const COLS = [
       ...(CLIENT_PORTAL ? [{ href: CLIENT_PORTAL, label: "Client Portal" }] : []),
       ...(PARTNER_HUB ? [{ href: PARTNER_HUB, label: "Partner Hub" }] : []),
       { href: `mailto:${CONTACT_EMAIL}`, label: "Contact" },
+      { href: `tel:${CONTACT_PHONE}`, label: "Call us" },
     ],
   },
   {
@@ -60,13 +65,22 @@ export default function Footer() {
               The business doctor for growing SMEs. We diagnose the leak, build the systems that close it, and prove the result in numbers.
             </p>
             {/* The footer carries #contact, so it has to actually answer it. */}
-            <a
-              href={`mailto:${CONTACT_EMAIL}`}
-              className="footer-link"
-              style={{ display: "inline-block", marginTop: 14, fontSize: 15 }}
-            >
-              {CONTACT_EMAIL}
-            </a>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 14 }}>
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className="footer-link"
+                style={{ fontSize: 15 }}
+              >
+                {CONTACT_EMAIL}
+              </a>
+              <a
+                href={`tel:${CONTACT_PHONE}`}
+                className="footer-link"
+                style={{ fontSize: 15 }}
+              >
+                {CONTACT_PHONE_DISPLAY}
+              </a>
+            </div>
           </div>
           {COLS.map((c) => (
             <div key={c.title}>
