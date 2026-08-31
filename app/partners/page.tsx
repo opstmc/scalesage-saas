@@ -72,7 +72,7 @@ const TERMS = [
   // advertised while the option itself is not on sale.
   ["Annual prepay", "Available at standard pricing after the founding cohort closes, at 10% off, and it does not stack with any other discount. Commission on a prepaid year is paid monthly-equivalent."],
   ["Eligible clients", "UK and Ireland registered businesses. You can operate from anywhere in the world, only the client's business location matters."],
-  ["Tier permanence", "Once you reach Gold or Platinum, you keep that tier permanently, even if your close volume dips in a future 12-month window."],
+  ["Tier retention", "Once you reach Gold or Platinum you keep that tier for a rolling 12 months from the promotion date, subject to maintaining the minimum threshold activity. Falling below the threshold at the annual check reverts you to the tier your trailing 12-month activity supports. A tier change affects future referrals only, commission on customers already closed is unaffected."],
   ["90-day retention rule", "Commission is split 50/50. If a client cancels before Day 90, the 50% already paid is clawed back. It protects quality on both sides."],
   ["Termination", "30 days' written notice by either side. Trail commissions on clients already closed keep paying, termination doesn't kill earned income."],
   ["Minimum payout", "£100 / €120 / $120. Anything below the threshold rolls forward to the following month's payment."],
@@ -215,7 +215,7 @@ export default function PartnersPage() {
           <div className={styles.founding} data-reveal="">
             <div className="eyebrow">★ Founding Partner, first 10 only</div>
             <div className={styles.foundingTitle}>Gold economics from close number one.</div>
-            <p className="lead" style={{ margin: 0 }}>The first 10 partners earn 25% commission from their very first client, no threshold, no waiting. Once 10 Founding Partners are signed, this closes permanently.</p>
+            <p className="lead" style={{ margin: 0 }}>Founding Partner status goes to the first 10 partners to close a paying Qualifying Referral, not the first 10 to sign. They earn 25% commission from that very first client, no threshold, no waiting. Once the 10th qualifying close lands, this closes permanently.</p>
             <div className={styles.foundingList}>
               <div className={styles.foundingItem}><strong>100% first commission, instantly</strong>Your very first close pays 100% of the first month&rsquo;s commission within 5 business days. Not split.</div>
               <div className={styles.foundingItem}><strong>Lifetime priority access to the founder</strong>A direct line with a 2-hour response during UK business hours, for life while you&rsquo;re active.</div>
