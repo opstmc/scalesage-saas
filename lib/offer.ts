@@ -70,7 +70,7 @@ export const TIERS: Tier[] = [
       // (03 Aug). They are not dropped, they are built to the business: both
       // depend on how a firm actually quotes and closes, so shipping one
       // configuration to everyone was selling a button rather than a system.
-      "Cold email outreach, 1,500 targeted emails a month.",
+      "Cold email outreach, up to 1,500 targeted emails a month.",
       "AI search visibility scan, monthly, with a prioritised improvement plan, not just a score.",
       "Your dashboard: live lead pipeline, deliverables and a plain-numbers monthly ROI report, powered by Orbit Pro, including the full ScaleSage Score.",
       "Catalyst diagnostic every quarter, re-run with a personal video walkthrough so progress is measured, not assumed.",
@@ -102,7 +102,7 @@ export const TIERS: Tier[] = [
       "Everything in Starter, plus the full system upgrade below.",
       "Full Voice AI agent, 750 minutes a month. Answers every call, qualifies the enquiry, books the job into your calendar.",
       "LinkedIn outreach included, 100 personalised connections a month with the follow-up sequence.",
-      "Cold email outreach, 3,000 targeted emails a month.",
+      "Cold email outreach, up to 4,000 targeted emails a month.",
       "Live visibility work: your AI and search presence monitored live, human-reviewed, fixes queued and worked every month.",
       "Catalyst diagnostic every month, with the walkthrough.",
       // "Orbit Pro included, with the full ScaleSage Score" used to sit here and
@@ -137,7 +137,7 @@ export const TIERS: Tier[] = [
       "Everything in Pro.",
       "Full Voice AI, done for you, 1,500 minutes a month.",
       "LinkedIn outreach included, 500 connections a month across multiple accounts.",
-      "Cold email outreach, 6,000+ a month across safely managed sending inboxes.",
+      "Cold email outreach, up to 10,000 a month across safely managed sending inboxes.",
       "Multi-channel orchestration: email, LinkedIn and your pipeline running as one system.",
       "Weekly AI visibility work, and we do the work that moves it: content, citations, entity fixes.",
       "Catalyst diagnostic monthly, plus a quarterly deep dive.",

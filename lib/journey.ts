@@ -248,21 +248,21 @@ export function buildSnapshot(a: Answers): Snapshot {
       track: "Starter",
       price: "£597/mo plus £297 setup",
       ctaLabel: "Start the Catalyst diagnostic",
-      note: "Plug your acute leak first: missed-call text-back, 1,500 cold emails a month, monthly AI visibility scan, guided onboarding and a monthly ROI report. Quote follow-up and the review system are built to how you actually quote and close, so they come as part of your plan rather than off a shelf. The diagnostic shows what that leak is worth before you commit.",
+      note: "Plug your acute leak first: missed-call text-back, up to 1,500 cold emails a month, monthly AI visibility scan, guided onboarding and a monthly ROI report. Quote follow-up and the review system are built to how you actually quote and close, so they come as part of your plan rather than off a shelf. The diagnostic shows what that leak is worth before you commit.",
     },
     pro: {
       tierLabel: "Pro · most popular",
       track: "Pro",
       price: "£1,497/mo plus £747 setup",
       ctaLabel: "Start the Catalyst diagnostic",
-      note: "The full engine: Voice AI answering every call with 750 minutes a month, 100 LinkedIn connections, 3,000 cold emails, live visibility work, and a monthly one-on-one Score Review with our operations lead.",
+      note: "The full engine: Voice AI answering every call with 750 minutes a month, 100 LinkedIn connections, up to 4,000 cold emails a month, live visibility work, and a monthly one-on-one Score Review with our operations lead.",
     },
     max: {
       tierLabel: "Max",
       track: "Max",
       price: "£4,997/mo plus £2,497 setup, waitlist",
       ctaLabel: "Talk to us first",
-      note: "Done for you, end to end: a named senior operator with daily oversight, 1,500 voice minutes, 500 LinkedIn connections across multiple accounts, weekly visibility work and quarterly strategy with the founder. Max is waitlist only right now.",
+      note: "Done for you, end to end: a named senior operator with daily oversight, 1,500 voice minutes, up to 10,000 cold emails a month, 500 LinkedIn connections across multiple accounts, weekly visibility work and quarterly strategy with the founder. Max is waitlist only right now.",
     },
   }[tier];
   const indLabel = (STEPS[0].options!.find((o) => o.value === a.industry) || ({} as ChooseOption)).label || "business";
