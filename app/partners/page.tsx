@@ -11,7 +11,7 @@ export const generateMetadata = pageMetadata({
   path: "/partners",
   title: "Partners",
   description:
-    "Earn recurring commission on every client you introduce to ScaleSage, 20–25% in Year 1, a lifetime trail from Year 4 for Gold and Platinum partners, full support from day one. No technical expertise required.",
+    "Earn recurring commission on every client you introduce to ScaleSage, 20-25% in Year 1, a lifetime trail from Year 4 for Gold and Platinum partners, full support from day one. No technical expertise required.",
 });
 
 const PARTNER_EMAIL = "admin@scalesage.ai";
@@ -33,13 +33,13 @@ const STEPS = [
   // Locked 03 Aug: partners close their own deals. The old "We close & deliver"
   // said the opposite of the programme and set an expectation we do not meet.
   { t: "You close, we deliver", b: "You run the conversation and close the deal. We are on the call if you want us there, and we take over the moment it is signed: onboarding, build and ongoing delivery." },
-  { t: "Get paid every month", b: "50% within 5 days of the client's payment, 50% at Day 90. Monthly, via Wise, GBP, EUR or USD." },
+  { t: "Get paid every month", b: "100% of each month's commission within 5 business days of the client's payment clearing, from your very first referral. No holdback. Via Wise, in GBP, EUR or USD." },
 ];
 
 const TIERS = [
   { name: "Silver", when: "From your first close", rate: "20%", sub: "of monthly subscription · Year 1", trail: [["Y2", "5%"], ["Y3", "3%"], ["Y4", "Stops"]], note: "For partners getting started. No threshold, you earn from your very first introduction." },
   { name: "Gold", when: "5+ closes in 12 months", rate: "25%", sub: "of monthly subscription · Year 1", trail: [["Y2", "8%"], ["Y3", "5%"], ["Y4", "4% ∞"]], note: "For serious partners building recurring income. A lifetime trail from Year 4 that never stops.", featured: true },
-  { name: "Platinum", when: "15+ closes in 12 months", rate: "25% +10%", sub: "Year 1 + a 10% retention bonus", trail: [["Y2", "12%"], ["Y3", "8%"], ["Y4", "5% ∞"]], note: "For top partners building a portfolio. The retention bonus pays an extra 10% when a client hits 12 months." },
+  { name: "Platinum", when: "15+ closes in 12 months", rate: "25% +5%", sub: "Year 1 + a 5% retention bonus", trail: [["Y2", "12%"], ["Y3", "8%"], ["Y4", "5% ∞"]], note: "For top partners building a portfolio. A one-time 5% of the client's first 12 months of subscription revenue, paid at the 12-month mark if they are still active, on clients closed after you reached Platinum." },
 ];
 
 const GETS = [
@@ -49,7 +49,7 @@ const GETS = [
   ["One-page sales deck", "Who ScaleSage is for, what each tier includes, pricing and the Catalyst Diagnostic. Clean and updated quarterly."],
   ["The Catalyst diagnostic, free to offer", "A diagnostic you can put in front of every prospect. It runs live checks while they answer and prices their leaks in pounds a month, which is the best door-opener in the market."],
   ["Direct WhatsApp to Partner Success", "Got a live prospect? Message Cy directly. Warm lead handoff, real humans, 4-business-hour response."],
-  ["Co-selling support", "For Pro prospects, Cy joins your call. For Max, the founder joins personally. Close rates jump to 30–50%."],
+  ["Co-selling support", "For Pro prospects, Cy joins your call. For Max, the founder joins personally. Close rates jump to 30-50%."],
   ["Co-branded materials", "A one-pager with your name and logo alongside ScaleSage, and optionally your own landing page."],
   ["Monthly partner scorecard", "Sent on the 1st: leads referred, diagnostics booked, calls held, clients closed and commission paid. Full visibility."],
   ["Quarterly office hours with the founder", "A 30-minute open Q&A, product roadmap previews, ICP insights and what's working. Gold+ get monthly access."],
@@ -64,16 +64,12 @@ const INDUSTRIES = [
 ];
 
 const TERMS = [
-  ["Commission payment", "50% within 5 days of the client's payment, 50% at the Day-90 retention milestone. Monthly, by the 10th, via Wise in GBP, EUR or USD."],
-  ["First-close bonus", "Your very first standard client earns 100% of the first month's commission, paid immediately and not split. Once per partner."],
-  // Annual prepay is deferred, not live: it returns at standard pricing once
-  // the founding cohort closes, at 10%, and it never stacks with another
-  // discount (decision D1). The old lump-sum commission mechanic is not
-  // advertised while the option itself is not on sale.
-  ["Annual prepay", "Available at standard pricing after the founding cohort closes, at 10% off, and it does not stack with any other discount. Commission on a prepaid year is paid monthly-equivalent."],
+  ["Commission payment", "100% of each month's commission, paid within 5 business days of the client's payment clearing, from your first qualifying referral onward. There is no holdback. Via Wise in GBP, EUR or USD."],
+  ["Founding Cohort bonus", "Founding Cohort referrals earn a flat £150 per customer, paid after the 90-day retention milestone, instead of standard percentage commission. It protects the margin on founding-cohort pricing."],
+  ["Annual prepay", "Available at standard pricing after the founding cohort closes, at 10% off, and it does not stack with any other discount. Commission on an annual prepay is paid as a single lump sum within 5 business days of the prepayment clearing, at your tier rate on the close date. The prepaid term is non-cancellable, so no forfeiture or clawback applies."],
   ["Eligible clients", "UK and Ireland registered businesses. You can operate from anywhere in the world, only the client's business location matters."],
   ["Tier retention", "Once you reach Gold or Platinum you keep that tier for a rolling 12 months from the promotion date, subject to maintaining the minimum threshold activity. Falling below the threshold at the annual check reverts you to the tier your trailing 12-month activity supports. A tier change affects future referrals only, commission on customers already closed is unaffected."],
-  ["90-day retention rule", "Commission is split 50/50. If a client cancels before Day 90, the 50% already paid is clawed back. It protects quality on both sides."],
+  ["90-day retention rule", "If a client cancels before the 90-day retention milestone, commission already paid on that client is clawed back from your next payment. That is the only downside protection, there is no split and no holdback."],
   ["Termination", "30 days' written notice by either side. Trail commissions on clients already closed keep paying, termination doesn't kill earned income."],
   ["Minimum payout", "£100 / €120 / $120. Anything below the threshold rolls forward to the following month's payment."],
   ["Tax & exclusivity", "Commission is paid gross; you handle your local tax. Non-exclusive, the only rule is no competing AI service to the same prospect at once."],
@@ -173,7 +169,7 @@ export default function PartnersPage() {
           <div className="section-head" data-reveal="">
             <div className="eyebrow">What you earn</div>
             <h2 className="h2">Commission that trails into Year 4 and beyond.</h2>
-            <p className="lead">Earn 20–25% of every subscription in Year 1. Gold and Platinum partners earn a lifetime trail that never stops, ongoing income even if you stop actively selling.</p>
+            <p className="lead">Earn 20-25% of every subscription in Year 1. Gold and Platinum partners earn a lifetime trail that never stops, ongoing income even if you stop actively selling.</p>
           </div>
           <div className="grid-3">
             {TIERS.map((t) => (
@@ -204,7 +200,7 @@ export default function PartnersPage() {
             <div className={styles.calcRow}><span className={styles.calcLabel}>Year 2 trail (5% × £1,497 × 12)</span><span className={styles.calcVal}>£898</span></div>
             <div className={styles.calcRow}><span className={styles.calcLabel}>Year 3 trail (3% × £1,497 × 12)</span><span className={styles.calcVal}>£539</span></div>
             <div className={styles.calcTotal}><span className={styles.calcTotalLabel}>Total from one client, 3 years</span><span className={styles.calcTotalVal}>£5,030</span></div>
-            <p className={styles.calcFoot}>At Gold tier: about £8,264 from the same client over 5 years, including the lifetime trail. Annual-prepay closes pay the full Year-1 commission as a lump sum within 30 days.</p>
+            <p className={styles.calcFoot}>At Gold tier: about £8,264 from the same client over 5 years, including the lifetime trail. Annual-prepay closes pay the full Year-1 commission as a lump sum within 5 business days of the prepayment clearing.</p>
           </div>
         </div>
       </section>
@@ -217,7 +213,7 @@ export default function PartnersPage() {
             <div className={styles.foundingTitle}>Gold economics from close number one.</div>
             <p className="lead" style={{ margin: 0 }}>Founding Partner status goes to the first 10 partners to close a paying Qualifying Referral, not the first 10 to sign. They earn 25% commission from that very first client, no threshold, no waiting. Once the 10th qualifying close lands, this closes permanently.</p>
             <div className={styles.foundingList}>
-              <div className={styles.foundingItem}><strong>100% first commission, instantly</strong>Your very first close pays 100% of the first month&rsquo;s commission within 5 business days. Not split.</div>
+              <div className={styles.foundingItem}><strong>&pound;150 per founding referral</strong>Founding Cohort referrals earn a flat &pound;150 per customer, paid after the 90-day retention milestone, in place of standard percentage commission.</div>
               <div className={styles.foundingItem}><strong>Lifetime priority access to the founder</strong>A direct line with a 2-hour response during UK business hours, for life while you&rsquo;re active.</div>
               <div className={styles.foundingItem}><strong>First-look product access</strong>New launches and roadmap previews before any general announcement, plus annual Founding Partner summits.</div>
             </div>
