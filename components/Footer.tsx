@@ -97,8 +97,14 @@ export default function Footer() {
             </div>
           ))}
         </div>
-        <div style={{ borderTop: "1px solid var(--border-hair)", paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 13.5, color: "var(--text-faint)" }}>© 2026 ScaleSage. UK-registered · GDPR-compliant by design.</span>
+        <div style={{ borderTop: "1px solid var(--border-hair)", paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 13.5, color: "var(--text-faint)", lineHeight: 1.6 }}>
+            © 2026 ScaleSage. GDPR-compliant by design.
+            <br />
+            Scalesage Ai Limited, registered in England and Wales, company number 17232390.
+            <br />
+            Registered office: 71-75 Shelton Street, Covent Garden, London WC2H 9JQ.
+          </span>
           <span style={{ fontSize: 13, color: "var(--text-faint)" }}>Founding client programme, open now.</span>
         </div>
       </div>
