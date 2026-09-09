@@ -669,11 +669,11 @@ function PaymentBanner({ kind }: { kind: "success" | "cancel" | null }) {
       </span>
       <div>
         <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary)" }}>
-          {success ? "Payment received — we’re on it." : "Payment cancelled — no charge was made."}
+          {success ? "Payment received, we’re on it." : "Payment cancelled, no charge was made."}
         </p>
         <p style={{ margin: "4px 0 0", fontSize: 14, color: "var(--text-muted)" }}>
           {success
-            ? "Thanks — your build is booked. We’ll be in touch shortly to schedule your kickoff."
+            ? "Thanks, your build is booked. We’ll be in touch shortly to schedule your kickoff."
             : "No problem. You can start the build whenever you’re ready, using the button below."}
         </p>
       </div>

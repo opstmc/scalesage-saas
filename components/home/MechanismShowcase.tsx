@@ -26,16 +26,16 @@ export default function MechanismShowcase() {
         <div className="grid-3" style={{ alignItems: "stretch" }}>
           <BlueprintFrame
             label="SEC.01"
-            fig="FIG.A — OUTREACH"
+            fig="FIG.A · OUTREACH"
             title="Outreach that reaches a booked call"
-            caption="Every lead is captured, answered, and moved toward a booked call — step by step, no drop-off."
+            caption="Every lead is captured, answered, and moved toward a booked call, step by step, no drop-off."
           >
             <MechanismDemo variant="pipeline" />
           </BlueprintFrame>
 
           <BlueprintFrame
             label="SEC.02"
-            fig="FIG.B — AUTOMATION"
+            fig="FIG.B · AUTOMATION"
             title="Agents that hand off cleanly"
             caption="Specialised agents pass each task down the line, so work keeps moving and nothing stalls between hands."
           >
@@ -44,7 +44,7 @@ export default function MechanismShowcase() {
 
           <BlueprintFrame
             label="SEC.03"
-            fig="FIG.C — BUILDS"
+            fig="FIG.C · BUILDS"
             title="Builds that prove themselves"
             caption="Every system ships with its checks passing before it goes live, so you see it working, not just promised."
           >

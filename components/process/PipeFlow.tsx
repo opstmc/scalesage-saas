@@ -90,7 +90,7 @@ export default function PipeFlow({ className }: { className?: string }) {
       <div className={styles.ends}>
         <p className={styles.end}>
           <span className={styles.endLabel}>In</span>
-          Calls, enquiries, quotes and past customers arrive — and slip out through
+          Calls, enquiries, quotes and past customers arrive, and slip out through
           whatever gaps are open.
         </p>
         <p className={styles.end}>
