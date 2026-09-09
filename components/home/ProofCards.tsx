@@ -22,7 +22,7 @@ const CARDS = [
     body: "Customers ask ChatGPT, Google and Perplexity who to use. If you are not the answer, the lead never even reaches you.",
   },
   {
-    label: "Fix first",
+    label: "Fix First",
     title: "We close the biggest leak first.",
     body: "No twenty tool rollout. We fix the leak that costs you most, prove the recovery in numbers, then move to the next one.",
   },

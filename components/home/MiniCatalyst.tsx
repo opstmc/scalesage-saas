@@ -193,7 +193,7 @@ export default function MiniCatalyst() {
 
                 <p style={{ margin: "18px 0 0", fontSize: 14, color: "var(--text-muted)" }}>
                   This is a directional estimate from three answers. The full scan checks
-                  your real numbers and builds your leak map.
+                  your real numbers and builds your Leak Map.
                 </p>
 
                 <div
@@ -206,7 +206,7 @@ export default function MiniCatalyst() {
                   }}
                 >
                   <Link href="/catalyst" className="btn btn-primary btn-lg">
-                    See my full leak map →
+                    See my full Leak Map →
                   </Link>
                   <button
                     type="button"
@@ -230,7 +230,7 @@ export default function MiniCatalyst() {
         </div>
 
         <p style={{ marginTop: 14, fontSize: 13, color: "var(--text-muted)" }}>
-          No login, no payment. You get the leak map first.
+          No login, no payment. You get the Leak Map first.
         </p>
       </div>
     </section>

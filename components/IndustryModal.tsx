@@ -113,7 +113,7 @@ export default function IndustryModal({
         <div className="ind-modal-head">
           <div>
             <div className="eyebrow" style={{ marginBottom: 8 }}>
-              Leak map
+              Leak Map
             </div>
             <h3 id={headingId} className="h3" style={{ fontSize: 25, letterSpacing: "-.02em" }}>
               {industry.name}
@@ -124,7 +124,7 @@ export default function IndustryModal({
             type="button"
             className="icon-btn"
             onClick={onClose}
-            aria-label={`Close the ${industry.name} leak map`}
+            aria-label={`Close the ${industry.name} Leak Map`}
             style={{ flex: "none" }}
           >
             ×
@@ -256,7 +256,7 @@ export default function IndustryModal({
             </JourneyButton>
           </span>
           <p className="ind-modal-foot-note">
-            2-minute scan · no login, no payment · you get the leak map first
+            2-minute scan · no login, no payment · you get the Leak Map first
           </p>
         </div>
       </div>

@@ -41,7 +41,7 @@ function CatalystPreview() {
       <div style={{ position: "relative", overflow: "hidden", margin: "8px 18px 18px", padding: 16, borderRadius: 12, background: "rgba(10,22,40,.5)", border: "1px solid var(--border-subtle)" }}>
         <span className="scanline" />
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <span className="eyebrow" style={{ margin: 0, fontSize: 10.5 }}>Leak map</span>
+          <span className="eyebrow" style={{ margin: 0, fontSize: 10.5 }}>Leak Map</span>
           <span style={{ fontSize: 10.5, color: "var(--text-faint)" }}>Illustrative scan output</span>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
@@ -51,7 +51,7 @@ function CatalystPreview() {
           <ScanBar label="Reviews" pct={44} />
         </div>
         <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--border-hair)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Fix first: <span className="accent" style={{ fontWeight: 600 }}>Voice AI</span></span>
+          <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Fix First: <span className="accent" style={{ fontWeight: 600 }}>Voice AI</span></span>
           <span style={{ fontSize: 12, color: "var(--accent-primary)", border: "1px solid var(--border-subtle)", borderRadius: 16, padding: "3px 10px" }}>Tier match · Pro</span>
         </div>
       </div>

@@ -9,9 +9,9 @@ export const generateMetadata = pageMetadata({
   path: "/catalyst",
   title: "Catalyst scan",
   description:
-    "Sage is ready to scan your business. A short tap-first scan and a directional leak map in minutes. No payment to begin, full roadmap within an hour.",
+    "Sage is ready to scan your business. A short tap-first scan and a directional Leak Map in minutes. No payment to begin, full roadmap within an hour.",
   socialDescription:
-    "Sage is ready to scan your business. A directional leak map in minutes. No payment to begin.",
+    "Sage is ready to scan your business. A directional Leak Map in minutes. No payment to begin.",
 });
 
 export default function CatalystPage() {

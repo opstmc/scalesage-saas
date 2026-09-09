@@ -115,6 +115,9 @@ export default function InterviewFlow({
   const [reaction, setReaction] = useState<string | null>(null);
   const [finishing, setFinishing] = useState(false);
 
+  const cardRef = useRef<HTMLDivElement>(null);
+  const firstPage = useRef(true);
+
   const answersRef = useRef(answers);
   useEffect(() => {
     answersRef.current = answers;
@@ -149,6 +152,23 @@ export default function InterviewFlow({
   useEffect(() => {
     onProgress?.(pages.length ? Math.min(1, idx / pages.length) : 1);
   }, [idx, pages.length, onProgress]);
+
+  /* Move the page, and move the reader with it. Scrolling alone leaves a
+   * keyboard or screen-reader user still parked on the button they just
+   * pressed, hearing nothing about the questions that replaced it. Keyed on
+   * `idx` rather than fired from the Next handler so Back is carried too, and
+   * skipped on first paint so arriving at the interview does not yank the page.
+   * Mirrors ScanFlow.tsx:244-253; the two phases should behave identically. */
+  useEffect(() => {
+    if (firstPage.current) {
+      firstPage.current = false;
+      return;
+    }
+    const el = cardRef.current;
+    if (!el) return;
+    el.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+    el.focus({ preventScroll: true });
+  }, [idx, reduced]);
 
   // Persist locally on every change so a closed tab never costs them progress.
   useEffect(() => {
@@ -203,7 +223,7 @@ export default function InterviewFlow({
     // Re-anchor as we move, from the page list as it stands right now.
     setPosition({ idx: next, anchor: pages[next]?.steps[0]?.id ?? null });
     onOrb?.("listening");
-    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+    // Scroll and focus are handled by the effect on `idx`, which also covers Back.
   }, [finish, onOrb, idx, pages]);
 
   /* Sage speaks once per page rather than once per answer. A reply after every
@@ -246,7 +266,7 @@ export default function InterviewFlow({
 
   return (
     <div className={styles.shell}>
-      <div className={styles.card}>
+      <div ref={cardRef} tabIndex={-1} className={styles.card}>
         <div className={styles.sageAsk} aria-hidden="true">
           <span className={styles.sageAskDot} />
           <span>Sage</span>

@@ -17,7 +17,7 @@ const TEASERS = [
     href: "/industries",
     kicker: "Industries",
     title: "18 SME sectors, mapped.",
-    body: "Find yours and open its full leak map, the three biggest leaks, what’s really happening, and the one we’d fix first.",
+    body: "Find yours and open its full Leak Map, the three biggest leaks, what’s really happening, and the one we’d fix first.",
     cta: "Find your sector",
   },
   {

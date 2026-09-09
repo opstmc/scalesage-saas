@@ -212,7 +212,7 @@ export default function Industries() {
           <div className="eyebrow">Industries</div>
           <h1 className="h2">We&rsquo;ve mapped the leak patterns across 18 SME industries.</h1>
           <p className="lead">
-            Find yours and open its leak map: what it feels like, where the money leaks, the question Sage
+            Find yours and open its Leak Map: what it feels like, where the money leaks, the question Sage
             asks, what we install, and what you get back.
           </p>
         </div>
@@ -225,7 +225,7 @@ export default function Industries() {
               className="glass glass-hover ind-card"
               onClick={(e) => openModal(ind, e.currentTarget)}
               aria-haspopup="dialog"
-              aria-label={`${ind.name}: view the full leak map`}
+              aria-label={`${ind.name}: view the full Leak Map`}
             >
               <div>
                 <div className="ind-name">{ind.name}</div>
@@ -238,7 +238,7 @@ export default function Industries() {
                   ))}
                 </div>
               </div>
-              <span className="ind-card-cta">View the full leak map →</span>
+              <span className="ind-card-cta">View the full Leak Map →</span>
             </button>
           ))}
           <JourneyButton className="glass glass-hover ind-card card-link">

@@ -21,7 +21,7 @@ type Card = {
 
 // Copy: JW to approve.
 const CARDS: Card[] = [
-  { name: "Catalyst", status: "Scan complete", meta: "Leak map generated" },
+  { name: "Catalyst", status: "Scan complete", meta: "Leak Map generated" },
   { name: "Missed-call bot", status: "Active", meta: "Answering calls 24/7" },
   { name: "Quote follow-up", status: "Running", meta: "Day 1 · 3 · 7 sequence" },
   { name: "Review requests", status: "Queued", meta: "Sent after each job closes" },
