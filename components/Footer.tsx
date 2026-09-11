@@ -104,6 +104,8 @@ export default function Footer() {
             Scalesage Ai Limited, registered in England and Wales, company number 17232390.
             <br />
             Registered office: 71-75 Shelton Street, Covent Garden, London WC2H 9JQ.
+            <br />
+            ICO registration ZC164375.
           </span>
           <span style={{ fontSize: 13, color: "var(--text-faint)" }}>Founding client programme, open now.</span>
         </div>
