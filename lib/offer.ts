@@ -81,10 +81,10 @@ export const TIERS: Tier[] = [
       "Quote follow-up and the review system are built into your plan, shaped around how you actually quote and close. A system you can rely on, not a magic button.",
     ],
     founding: {
-      places: 10,
+      places: 15,
       monthly: "£478",
       setup: "£148.50",
-      note: "First 10 founding clients, 20 percent off for life, 12 month minimum term.",
+      note: "Part of a flat 15-place founding cohort shared across Starter and Pro. 20 percent off for life, 12 month minimum term.",
     },
     upgradeNote:
       "Want calls answered 24/7 by a full AI agent, not just a text-back? That is the key upgrade to Pro.",
@@ -118,10 +118,10 @@ export const TIERS: Tier[] = [
     badge: "Most popular",
     featured: true,
     founding: {
-      places: 5,
+      places: 15,
       monthly: "£1,198",
       setup: "£373.50",
-      note: "First 5 founding clients, 20 percent off for life, 12 month minimum term.",
+      note: "Part of a flat 15-place founding cohort shared across Starter and Pro. 20 percent off for life, 12 month minimum term.",
     },
   },
   {
