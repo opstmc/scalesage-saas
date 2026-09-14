@@ -1,45 +1,47 @@
 import { pageMetadata } from "@/lib/seo";
 
-// DRAFT: plain-English cookie summary. Requires JW + legal sign-off before
-// anyone relies on this copy. Grounded only in stated facts; not legal advice.
-
 export const generateMetadata = pageMetadata({
   path: "/cookies",
-  title: "Cookies",
+  title: "Cookie Policy",
   description:
-    "The cookies this site uses and how to control them. Consent is required before any non-essential or analytics cookie fires.",
+    "How ScaleSage uses essential and analytics cookies, and how to control them.",
 });
 
 const TYPES = [
   {
-    h: "Essential cookies",
-    body:
-      "Needed for the site to work. They keep pages functioning and remember basic session state. These are always on because the site cannot run without them.",
+    h: "Essential",
+    body: "Required for the site to function, including security and session management. Consent is not required.",
   },
   {
-    h: "Consent cookies",
-    body:
-      "Remember the cookie choice you make, so we do not ask you again on every visit.",
-  },
-  {
-    h: "Analytics cookies",
-    body:
-      "Help us understand how the site is used, in aggregate. They measure page activity, not individual people, and they only run once you have agreed.",
+    h: "Analytics",
+    body: "Help us understand how visitors use the site, such as pages visited and time on site. They only run with consent and do not build advertising profiles.",
   },
 ];
 
 const SECTIONS = [
   {
-    h: "Consent comes first",
+    h: "What are cookies?",
     body: [
-      "Non-essential and analytics cookies do not fire until you consent. Nothing beyond essential cookies runs before you say yes.",
+      "Cookies are small text files placed on your device when you visit a website. They help websites remember preferences and understand how the site is used.",
     ],
   },
   {
-    h: "Changing your mind",
+    h: "What we do not use",
     body: [
-      "You can change or withdraw your consent at any time. Clear this site's cookies in your browser and you will be asked again on your next visit.",
-      "If you would like us to confirm or action anything, email support@scalesage.ai.",
+      "We do not use advertising or retargeting cookies, third-party tracking cookies, or social media tracking pixels.",
+    ],
+  },
+  {
+    h: "How to control cookies",
+    body: [
+      "You can manage or disable cookies through your browser settings. Disabling essential cookies may affect how the site functions. You can update your consent preferences at any time by clicking Cookie Settings in the footer.",
+    ],
+  },
+  {
+    h: "Changes and contact",
+    body: [
+      "We may update this Cookie Policy as our use of cookies changes. Check this page periodically for updates.",
+      "ScaleSage Ai Limited, 71-75 Shelton Street, Covent Garden, London WC2H 9JQ. Contact: privacy@scalesage.ai.",
     ],
   },
 ];
@@ -53,16 +55,7 @@ export default function CookiesPage() {
             <div className="eyebrow">Legal</div>
             <h1 className="h1">Cookies</h1>
             <p className="lead" style={{ marginTop: 18 }}>
-              The cookies this site uses, and how to control them. Plain English, no dark patterns.
-            </p>
-          </div>
-          <div
-            className="glass"
-            style={{ padding: 22, borderLeft: "2px solid var(--accent-primary)", maxWidth: "46em" }}
-          >
-            <p style={{ fontSize: 15, color: "var(--text-muted)", margin: 0, lineHeight: 1.6 }}>
-              This is a plain-English summary. The formal Cookie Policy is available on request while we finalise the
-              published version. Email <span className="accent">support@scalesage.ai</span>.
+              The cookies this site uses, and how to control them.
             </p>
           </div>
         </div>
@@ -81,7 +74,7 @@ export default function CookiesPage() {
                 className="glass"
                 style={{ padding: 26, display: "flex", flexDirection: "column" }}
               >
-                <h3 className="h3 teal-underline" style={{ fontSize: 19, marginBottom: 12 }}>{t.h}</h3>
+                <h3 className="h3 teal-underline" style={{ fontSize: 19, marginBottom: 12 }}>{t.h} cookies</h3>
                 <p style={{ fontSize: 14.5, color: "var(--text-muted)", margin: 0, lineHeight: 1.6 }}>{t.body}</p>
               </div>
             ))}

@@ -191,7 +191,7 @@ export const BOLT_ONS: DualItem[] = [
     // lowest figure alone made the ladder look cheaper than it is. The numbers
     // are the floor and ceiling of the tiers below, so the two cannot disagree.
     standalone: "£397 to £797",
-    subscriber: "£197 to £497",
+    subscriber: "£197 to £397",
     saving: "£200 to £300",
     includedAt: ["Pro", "Max"],
     note: "Pick the volume that matches your pipeline.",
@@ -204,8 +204,8 @@ export const BOLT_ONS: DualItem[] = [
       },
       {
         label: "500 connections a month",
-        standalone: "£797",
-        subscriber: "£497",
+        standalone: "£697",
+        subscriber: "£397",
         note: "Across multiple accounts. Included at Max.",
       },
       {
@@ -220,13 +220,18 @@ export const BOLT_ONS: DualItem[] = [
   { item: "Missed-call SMS bot", standalone: "£67", subscriber: "£47", saving: "£20", note: "Unlimited within fair use.", includedAt: ["Starter", "Pro", "Max"] },
   { item: "Full website build", standalone: "£1,797", subscriber: "£997", saving: "£800" },
   { item: "Landing page", standalone: "£797", subscriber: "£397", saving: "£400" },
+  { item: "Website redesign", standalone: "£1,497", subscriber: "£797", saving: "£700" },
   { item: "Explainer video", standalone: "£1,497", subscriber: "£797", saving: "£700" },
+  { item: "3D walkthrough (per property)", standalone: "£1,497", subscriber: "£897", saving: "£600" },
+  { item: "Hero imagery batch (20 images)", standalone: "£597", subscriber: "£297", saving: "£300" },
   { item: "Pitch deck", standalone: "£897", subscriber: "£497", saving: "£400" },
+  { item: "One-pager", standalone: "£397", subscriber: "£197", saving: "£200" },
   { item: "AI build, small", standalone: "£1,197", subscriber: "£597", saving: "£600", note: "One complete working automation" },
   { item: "AI build, medium", standalone: "£2,497", subscriber: "£1,297", saving: "£1,200", note: "A multi-step system" },
   { item: "AI build, large", standalone: "£4,997", subscriber: "£2,997", saving: "£2,000", note: "A business subsystem" },
   { item: "Database reactivation", standalone: "£997", subscriber: "£697", saving: "£300", note: "Plus a share of what we recover" },
   { item: "Frontier Visibility, weekly active", standalone: "£1,397", subscriber: "£997", saving: "£400", note: "Graded at every tier; this is the done-for-you level.", includedAt: ["Max"] },
+  { item: "Minute top-ups (200 / 500 / 1,000)", standalone: "£29 / £67 / £127", subscriber: "£29 / £67 / £127", saving: "£0" },
 ];
 
 /** Every bolt-on a partner can earn commission on, by name. The partner page

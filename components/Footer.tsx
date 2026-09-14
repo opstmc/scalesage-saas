@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 /* Two doors for two audiences, labelled once and consistently (fix list A6,
@@ -50,6 +52,15 @@ const COLS = [
     ],
   },
 ];
+
+function reopenCookieSettings() {
+  try {
+    localStorage.removeItem("scalesage_cookie_consent");
+    window.dispatchEvent(new Event("scalesage-cookie-settings"));
+  } catch {
+    /* browser privacy settings may block storage */
+  }
+}
 
 export default function Footer() {
   return (
@@ -109,6 +120,9 @@ export default function Footer() {
           </span>
           <span style={{ fontSize: 13, color: "var(--text-faint)" }}>Founding client programme, open now.</span>
         </div>
+        <button type="button" className="footer-link" onClick={reopenCookieSettings} style={{ marginTop: 18, background: "none", border: 0, padding: 0, cursor: "pointer" }}>
+          Cookie Settings
+        </button>
       </div>
     </footer>
   );

@@ -5,6 +5,14 @@ import { GUARANTEE_NAME } from "@/lib/offer";
  * same answer is two chances to be wrong, and search engines get shown the one
  * that drifts. */
 export const FAQS = [
+  { q: "What's Catalyst?", a: "Catalyst is our free interactive diagnostic. It takes a few minutes and identifies gaps in how your business captures and follows up on leads. There is no obligation." },
+  { q: "What's my Score?", a: "Your Score is the plain-numbers performance score Catalyst produces across the areas that drive revenue: how well your current systems capture and convert leads." },
+  { q: "What's AEO?", a: "AEO means Answer Engine Optimisation: getting chosen as the direct answer inside AI-powered search features such as Google AI Overviews or Bing Chat." },
+  { q: "What's GEO?", a: "GEO means Generative Engine Optimisation: making sure your business is cited as a source when AI tools generate answers from multiple sources." },
+  { q: "What's LLMO?", a: "LLMO means Large Language Model Optimisation: getting recommended when someone asks ChatGPT, Claude, Gemini, or another AI assistant for a business like yours." },
+  { q: "What are Builds?", a: "Builds are your monthly allowance of AI-powered build credits. Use them for new automations, pages, or system changes beyond your initial setup." },
+  { q: "What's Frontier?", a: "Frontier is our visibility monitoring service. It tracks whether and how your business appears across AI search and recommendation surfaces." },
+  { q: "What's Orbit?", a: "Orbit is our reporting and dashboard product, with Free, Pro, and Premium tiers. It is separate from the core service and shows your performance data and Score over time." },
   {
     q: "How is this different from buying a £99 AI receptionist tool?",
     a: "A tool is a part. We diagnose which leak is costing you the most, install the system that closes it, monitor it, and prove it moved your numbers. You buy the outcome, not the part.",

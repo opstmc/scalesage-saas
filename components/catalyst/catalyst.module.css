@@ -1026,6 +1026,45 @@
 .diagramPanel {
   display: block;
 }
+.scanStatus {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 25%, var(--border-hair));
+  border-radius: var(--r-card);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 10%, var(--bg-elevated)), var(--bg-elevated));
+}
+.scanRadar {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 55%, transparent);
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent-primary) 38%, transparent) 0 2px, transparent 3px), repeating-radial-gradient(circle, transparent 0 10px, color-mix(in srgb, var(--accent-primary) 18%, transparent) 11px 12px);
+  overflow: hidden;
+}
+.scanRadar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(from 0deg, transparent 0 65%, color-mix(in srgb, var(--accent-primary) 55%, transparent) 72%, transparent 80%);
+  animation: scanSweep 2.8s linear infinite;
+}
+.scanRadar span { position: absolute; width: 5px; height: 5px; left: 24px; top: 24px; border-radius: 50%; background: var(--accent-glow); box-shadow: 0 0 9px var(--accent-primary); z-index: 1; }
+@keyframes scanSweep { to { transform: rotate(360deg); } }
+.scanStatusCopy { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.scanStatusKicker { color: var(--accent-primary); font-size: 9px; letter-spacing: .15em; text-transform: uppercase; font-weight: 700; }
+.scanStatusTitle { color: var(--text-headline); font-size: 13px; font-weight: 600; }
+.scanChecklist { display: flex; flex-wrap: wrap; gap: 5px 10px; margin-top: 3px; }
+.scanCheck { color: var(--text-faint); font-size: 10px; white-space: nowrap; transition: color .25s ease; }
+.scanCheck i { font-style: normal; display: inline-block; width: 13px; color: var(--text-faint); }
+.scanCheckDone { color: var(--text-primary); }
+.scanCheckDone i { color: var(--accent-primary); }
+.scanCheckStatic, .scanCheckStatic i { transition: none; }
+@media (prefers-reduced-motion: reduce) { .scanRadar::after { animation: none; } }
 /* mobile toggle bar (hidden on desktop) */
 .mapToggle {
   display: none;

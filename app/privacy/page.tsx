@@ -27,7 +27,7 @@ const SECTIONS = [
   {
     h: "You own your data",
     body: [
-      "Your data is yours. You can ask what we hold, ask for a copy, or ask us to delete it. Email support@scalesage.ai and we will action your request.",
+      "Your data is yours. You can ask what we hold, ask for a copy, or ask us to delete it. Email privacy@scalesage.ai and we will action your request.",
     ],
   },
   {
@@ -51,7 +51,7 @@ const SECTIONS = [
   {
     h: "How to reach us",
     body: [
-      "Questions about privacy, or a request about your own data, go to support@scalesage.ai.",
+      "Questions about privacy, or a request about your own data, go to privacy@scalesage.ai.",
     ],
   },
 ];
@@ -74,7 +74,7 @@ export default function PrivacyPage() {
           >
             <p style={{ fontSize: 15, color: "var(--text-muted)", margin: 0, lineHeight: 1.6 }}>
               This is a plain-English summary. The formal Privacy Policy is available on request while we finalise the
-              published version. Email <span className="accent">support@scalesage.ai</span>.
+              published version. Email <span className="accent">privacy@scalesage.ai</span>.
             </p>
           </div>
         </div>

@@ -644,6 +644,7 @@ export default function ScanFlow({
 
           <div className={`${styles.diagramPanel} ${mapOpen ? styles.diagramPanelOpen : ""}`}>
             <div className={styles.diagramSticky}>
+              <ScanChecklist answers={answers} reduced={reduced} />
               <LiveDiagram answers={answers} activeStepId={activeStepId} nodes={nodes} reducedMotion={reduced} />
               {checkState !== "idle" && (
                 <p className={styles.checkNote} aria-live="polite">
@@ -656,6 +657,35 @@ export default function ScanFlow({
               )}
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ScanChecklist({ answers, reduced }: { answers: ScanAnswers; reduced: boolean }) {
+  const answered = (ids: string[]) => ids.some((id) => {
+    const value = answers[id];
+    return Array.isArray(value) ? value.length > 0 : typeof value === "string" && value.trim().length > 0;
+  });
+  const items = [
+    ["Lead capture", ["channels", "capture"]],
+    ["Response speed", ["channels", "convert"]],
+    ["Conversion path", ["convert", "relief"]],
+    ["Follow-up", ["reviews", "return"]],
+    ["Visibility", ["findable"]],
+  ] as const;
+  return (
+    <div className={styles.scanStatus} aria-label="Scan progress">
+      <div className={styles.scanRadar} aria-hidden="true"><span /></div>
+      <div className={styles.scanStatusCopy}>
+        <span className={styles.scanStatusKicker}>System scan</span>
+        <span className={styles.scanStatusTitle}>Reading your growth system</span>
+        <div className={styles.scanChecklist}>
+          {items.map(([label, ids]) => {
+            const done = answered([...ids]);
+            return <span key={label} className={`${styles.scanCheck} ${done ? styles.scanCheckDone : ""} ${reduced ? styles.scanCheckStatic : ""}`}><i aria-hidden="true">{done ? "✓" : "○"}</i>{label}</span>;
+          })}
         </div>
       </div>
     </div>

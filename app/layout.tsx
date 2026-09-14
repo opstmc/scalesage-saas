@@ -4,6 +4,7 @@ import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
+import CookieBanner from "@/components/CookieBanner";
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_SOCIAL_DESCRIPTION,
@@ -148,6 +149,7 @@ export default function RootLayout({
         <Nav />
         {children}
         <Footer />
+        <CookieBanner />
         <ScrollReveal />
       </body>
     </html>
