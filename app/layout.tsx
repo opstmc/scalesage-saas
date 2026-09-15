@@ -103,10 +103,14 @@ const jsonLd = {
         areaServed: ["GB", "EU"],
         availableLanguage: "English",
       },
-      // TODO (Cy, pending verification): add a PostalAddress `address`
-      // (registered office) once confirmed. Left absent rather than guessed:
-      // a wrong registered address in structured data is a claim about a
-      // legal entity.
+      // Registered office, the same address the footer prints.
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "71-75 Shelton Street, Covent Garden",
+        addressLocality: "London",
+        postalCode: "WC2H 9JQ",
+        addressCountry: "GB",
+      },
     },
     {
       "@type": "WebSite",
