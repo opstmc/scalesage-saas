@@ -169,10 +169,12 @@ export default function UnlockForm({
     // interview: true tells the backend a deep interview follows, so it starts
     // the scrape now (overlapping the questions) and holds the report until the
     // interview completes. Without it the server takes the old one-shot path.
+    const researchId = loadSession().researchId;
     const body = {
       ...(payload as Record<string, unknown>),
       checks: checks ?? null,
       interview: true,
+      ...(researchId ? { research_id: researchId } : {}),
     };
 
     const res = await api.unlock(body); // never throws; local-persists on failure

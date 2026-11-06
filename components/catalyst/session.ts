@@ -33,6 +33,9 @@ export interface CatalystSession {
    *  the deep interview after a refresh — without it the answers have nowhere
    *  to go. Not personal data: an unguessable id, not a contact detail. */
   sessionId: string | null;
+  /** The research run started at Q1, sent with unlock so the server attaches
+   *  it to the lead instead of measuring the business a second time. */
+  researchId: string | null;
   /** How far into the deep interview, and what has been answered so far. The
    *  interview is long, so an abandoned one has to survive a closed tab. */
   interviewIdx: number;
@@ -56,6 +59,7 @@ const EMPTY: CatalystSession = {
   lookup: null,
   checks: null,
   sessionId: null,
+  researchId: null,
   interviewIdx: 0,
   interviewAnswers: {},
   interviewDone: false,
@@ -75,6 +79,7 @@ export function loadSession(): CatalystSession {
       lookup: parsed.lookup ?? null,
       checks: parsed.checks ?? null,
       sessionId: parsed.sessionId ?? null,
+      researchId: typeof parsed.researchId === "string" ? parsed.researchId : null,
       interviewIdx: typeof parsed.interviewIdx === "number" ? parsed.interviewIdx : 0,
       interviewAnswers: parsed.interviewAnswers ?? {},
       interviewDone: Boolean(parsed.interviewDone),

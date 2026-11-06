@@ -462,15 +462,21 @@ export default function ScanFlow({
       const ctrl = new AbortController();
       checksAbort.current = ctrl;
       void (async () => {
-        await api.checksWithRetry(
+        await api.researchWithChecks(
           {
             business_name: businessName,
             website: websiteOf(match),
             sector: match?.sector ?? (typeof A.sector === "string" ? (A.sector as string) : null),
             location: match?.location ?? null,
+            place_id: match?.place_id ?? null,
+            company_number: match?.company_number ?? null,
+            rating: match?.rating ?? null,
+            review_count: match?.review_count ?? null,
+            incorporated_year: match?.incorporated_year ?? null,
           },
           {
             signal: ctrl.signal,
+            onRun: (runId) => saveSession({ researchId: runId }),
             onResult: (res) => {
               setChecks(res);
               onChecks?.(res);

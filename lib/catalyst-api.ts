@@ -45,6 +45,10 @@ export interface LookupMatch {
   /** The business's own site, when Google knows it. Optional: the field is new
    *  and an older backend simply omits it. */
   website?: string | null;
+  /** Google's id for the place and the Companies House number, when known, so
+   *  the research run starts from the business the visitor confirmed. */
+  place_id?: string | null;
+  company_number?: string | null;
   source: "companies_house" | "places" | "both" | string;
   confidence: number;
 }
@@ -341,6 +345,78 @@ export async function checksWithRetry(
   return best;
 }
 
+/* ---------- 2a. research: the agentic scan that replaces the fixed checks ---------- */
+
+export interface ResearchInput extends ChecksInput {
+  place_id?: string | null;
+  company_number?: string | null;
+  rating?: number | null;
+  review_count?: number | null;
+  incorporated_year?: number | null;
+}
+
+export interface ResearchOptions extends PollOptions {
+  /** Fired once with the run id, so a refresh can carry it to unlock. */
+  onRun?: (runId: string) => void;
+}
+
+const RESEARCH_POLL_MS = 4000;
+const RESEARCH_POLL_LIMIT_MS = 120000;
+
+function researchBody(input: ResearchInput): Record<string, unknown> {
+  const body: Record<string, unknown> = {
+    name: input.business_name,
+    town: input.location ?? null,
+    website: input.website ?? null,
+    sector: input.sector ?? null,
+    place_id: input.place_id ?? null,
+    company_number: input.company_number ?? null,
+    rating: input.rating ?? null,
+    review_count: input.review_count ?? null,
+    incorporated_year: input.incorporated_year ?? null,
+  };
+  return Object.fromEntries(Object.entries(body).filter(([, v]) => v !== null && v !== undefined && v !== ""));
+}
+
+/** Start a research run for the confirmed business. null when there is no
+ *  backend, or it refused (rate limit, an older backend without the route). */
+export async function startResearch(input: ResearchInput): Promise<string | null> {
+  if (!input?.business_name?.trim() || !API_BASE) return null;
+  const json = await post<{ run_id?: string }>("/research", researchBody(input), 9000);
+  return typeof json?.run_id === "string" ? json.run_id : null;
+}
+
+/** What the run has measured so far, in the same shape the checks returned. */
+export async function research(runId: string): Promise<ChecksResult | null> {
+  return normaliseChecks(await get<Partial<ChecksResult>>(`/research/${encodeURIComponent(runId)}`, 9000));
+}
+
+/**
+ * Start the research and poll it until the measurements are complete or the
+ * poll limit passes. Falls back to the fixed checks when no run could start,
+ * so an older backend still fills the live diagram.
+ */
+export async function researchWithChecks(input: ResearchInput, opts: ResearchOptions = {}): Promise<ChecksResult> {
+  const runId = await startResearch(input);
+  if (!runId) return checksWithRetry(input, opts);
+  opts.onRun?.(runId);
+
+  let best: ChecksResult = DEFERRED_CHECKS;
+  const deadline = Date.now() + RESEARCH_POLL_LIMIT_MS;
+  while (Date.now() < deadline) {
+    if (await sleep(RESEARCH_POLL_MS, opts.signal)) break;
+    const next = await research(runId);
+    if (!next) continue;
+    const merged = mergeChecks(best, next);
+    if (!sameChecks(merged, best)) {
+      best = merged;
+      opts.onResult?.(best);
+    }
+    if (best.status === "complete") break;
+  }
+  return best;
+}
+
 /* ---------- 2b. evidence — the same findings, asked for again ---------- */
 
 /**
@@ -511,6 +587,9 @@ export const api = {
   lookup,
   checks,
   checksWithRetry,
+  startResearch,
+  research,
+  researchWithChecks,
   evidence,
   pollEvidence,
   mergeChecks,
