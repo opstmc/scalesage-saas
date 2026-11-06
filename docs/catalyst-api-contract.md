@@ -21,6 +21,9 @@ Fired (debounced) as the visitor types their business name. Companies House + Go
     "location": "Leeds" | null,           // Places
     "review_count": 37 | null,            // Places
     "rating": 4.6 | null,                 // Places
+    "website": "https://..." | null,      // Places
+    "place_id": "ChIJ..." | null,         // Places, passed to research
+    "company_number": "13472582" | null,  // Companies House, passed to research
     "source": "companies_house" | "places" | "both",
     "confidence": 0.0                     // 0..1, for ranking candidates
   }]
@@ -28,7 +31,21 @@ Fired (debounced) as the visitor types their business name. Companies House + Go
 ```
 No key / no match → `{ "status": "no_match", "matches": [] }`. Frontend falls back to manual sector select. Never a dead end.
 
-## 2. `POST /catalyst/checks` — live background checks (non-blocking)
+## 2a. `POST /catalyst/research` — start the research run (replaces `/checks`)
+Fired the moment Q1 locks, with the confirmed match. The backend measures the business (the same fixed checks and evidence sections as before) and then runs the research agent, which reads the site, reviews, directories and AI answers and records findings that each quote a source it opened. Capped at 10 starts per address per hour.
+```jsonc
+// req: only `name` is required; send what the match carried
+{ "name": "...", "town": "Leeds", "website": "https://...", "sector": "plumber",
+  "place_id": "ChIJ...", "company_number": "...", "rating": 4.6, "review_count": 37, "incorporated_year": 2014 }
+// res
+{ "run_id": "uuid" }
+```
+A website that is not a public web address is refused with 422. 429 when the per-address cap is hit; the site then falls back to `/checks`.
+
+## 2b. `GET /catalyst/research/{run_id}` — progress, polled every few seconds
+Returns exactly the `/checks` result shape below. The fixed checks land within seconds; the deeper measurements follow. An unknown id answers `deferred`, like `/evidence`. Only unlinked scan runs are served: once a run belongs to a client it is no longer readable here.
+
+## 2. `POST /catalyst/checks` — live background checks (non-blocking, kept as the fallback for `research`)
 Fired the moment Q1 locks; runs while they tap through Q2–Q13. Tight budget (single-digit seconds).
 ```jsonc
 // req
@@ -59,12 +76,14 @@ Called once, at unlock, after the visitor has seen their directional leak map. W
   "ref": "PARTNERCODE" | null,            // from ?ref cookie, attribution
   "utm": { "source": "...", "medium": "..." } | null,
   "config_version": "2026-07-08",
-  "completed_at": "2026-07-08T12:34:56Z"
+  "completed_at": "2026-07-08T12:34:56Z",
+  "interview": true,
+  "research_id": "uuid" | null           // the run from /research; attached to this lead
 }
 // res
 { "ok": true, "session_id": "uuid", "portal_url": "https://..."|null }
 ```
-Behaviour: insert lead + answers + directional result into Postgres (they are now a lead we own) → enqueue the read-only evidence engine job for the full report → send the internal WhatsApp/Slack alert to Jordan + Cy (name, sector, primary leak, urgency, link). Two Python follow-up sequences hang off this row for drop-offs. On failure the frontend keeps the payload locally and retries; a lead is never silently lost.
+Behaviour: insert lead + answers + directional result into Postgres (they are now a lead we own) → attach the research run when `research_id` is sent (no second scrape), otherwise enqueue the read-only evidence engine job for the full report → send the internal WhatsApp/Slack alert to Jordan + Cy (name, sector, primary leak, urgency, link). Two Python follow-up sequences hang off this row for drop-offs. On failure the frontend keeps the payload locally and retries; a lead is never silently lost.
 
 ## 4. `POST /catalyst/{session_id}/pay` — Stripe checkout
 ```jsonc
