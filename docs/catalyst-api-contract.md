@@ -42,8 +42,25 @@ Fired the moment Q1 locks, with the confirmed match. The backend measures the bu
 ```
 A website that is not a public web address is refused with 422. 429 when the per-address cap is hit; the site then falls back to `/checks`.
 
-## 2b. `GET /catalyst/research/{run_id}` — progress, polled every few seconds
-Returns exactly the `/checks` result shape below. The fixed checks land within seconds; the deeper measurements follow. An unknown id answers `deferred`, like `/evidence`. Only unlinked scan runs are served: once a run belongs to a client it is no longer readable here.
+## 2b. `GET /catalyst/research/{run_id}?job_value=<pounds>&sector=<scan sector id>` — progress, polled every few seconds
+Returns the `/checks` result shape below plus what each scan section shows. The fixed checks land within seconds; the deeper measurements follow, then the findings. An unknown id answers `deferred` with everything else empty. Only unlinked scan runs are served: once a run belongs to a client it is no longer readable here. `job_value` is optional, a whole number of pounds from 1 to 1,000,000; without it the estimates use the sector's benchmarks. `sector` is optional, the scan's own sector id (`plumbers`, `gas-engineers`, ...), so the estimates use the same benchmarks as the report; without it the run's lookup sector is used.
+```jsonc
+{
+  // ...the /checks fields...
+  "finished": false,                                   // the run has stopped (done, stopped or failed)
+  "activity": "read_page" | null,                      // the agent's latest tool, for the live line
+  "findings": [ { "leak": "missed_calls", "side": "for" | "against", "claim": "...", "quote": "..." } ],
+  "rivals": [ { "name": "...", "rating": 4.8, "review_count": 120 } ],   // up to 3
+  "ai_named_by": [ "chatgpt" ],
+  "estimates": {
+    "one_job_a_week_pence": 108333 | null,             // only with job_value
+    "missed_calls":     { "monthly_pence": 0, "basis": "their_number" | "benchmark", "workings": "..." } | null,
+    "cold_quotes":      { ... } | null,
+    "lapsed_customers": { ... } | null
+  } | null
+}
+```
+Findings carry the claim and the quote, never the source text. Every estimate that used a benchmark says `benchmark`.
 
 ## 2. `POST /catalyst/checks` — live background checks (non-blocking, kept as the fallback for `research`)
 Fired the moment Q1 locks; runs while they tap through Q2–Q13. Tight budget (single-digit seconds).
@@ -77,11 +94,13 @@ Called once, at unlock, after the visitor has seen their directional leak map. W
   "utm": { "source": "...", "medium": "..." } | null,
   "config_version": "2026-07-08",
   "completed_at": "2026-07-08T12:34:56Z",
-  "interview": true,
-  "research_id": "uuid" | null           // the run from /research; attached to this lead
+  "interview": false,                    // the scan in sections sends false: the report starts at once
+  "research_id": "uuid" | null,          // the run from /research; attached to this lead
+  "job_value": 320 | null                // whole pounds from the job value section; stored as their own figure
 }
 // res
-{ "ok": true, "session_id": "uuid", "portal_url": "https://..."|null }
+{ "ok": true, "session_id": "uuid", "portal_url": "https://..."|null, "interview": false,
+  "report_token": "..." | null }         // opens /catalyst/report/{token} in the same visit
 ```
 Behaviour: insert lead + answers + directional result into Postgres (they are now a lead we own) → attach the research run when `research_id` is sent (no second scrape), otherwise enqueue the read-only evidence engine job for the full report → send the internal WhatsApp/Slack alert to Jordan + Cy (name, sector, primary leak, urgency, link). Two Python follow-up sequences hang off this row for drop-offs. On failure the frontend keeps the payload locally and retries; a lead is never silently lost.
 

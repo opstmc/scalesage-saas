@@ -97,25 +97,23 @@ const NODE_GEO: Geo[] = LEAKS.map((leak, i) => geo(leak, i * 60));
 
 /* ---------- answer → part mapping (all derived from real state) ---------- */
 
-/** The question(s) that make a leak's part ATTACH (become a real piece). */
+/** The question(s) that make a leak's part ATTACH (become a real piece).
+ *  Invisible online has no question: it attaches once the checks measured it. */
 const GOVERN: Record<LeakKey, string[]> = {
-  "Missed calls": ["channels", "capture"],
-  "Cold quotes": ["convert"],
+  "Missed calls": ["capture"],
+  "Cold quotes": ["followup"],
   "Forgotten reviews": ["reviews"],
-  "Lapsed customers": ["return"],
-  "Invisible online": ["findable"],
-  "Admin drag": ["memory"],
+  "Lapsed customers": ["retention"],
+  "Invisible online": [],
+  "Admin drag": ["capture"],
 };
 
 /** The leak a given question is currently working on (for the "just added" emphasis). */
 const ACTIVE_LEAK: Record<string, LeakKey> = {
-  channels: "Missed calls",
   capture: "Missed calls",
-  convert: "Cold quotes",
+  followup: "Cold quotes",
   reviews: "Forgotten reviews",
-  return: "Lapsed customers",
-  findable: "Invisible online",
-  memory: "Admin drag",
+  retention: "Lapsed customers",
 };
 
 const SCAN_STEP_IDS = STEPS.map((s) => s.id);
@@ -190,7 +188,7 @@ export default function LiveDiagram({
     const scored = nodeByLeak.get(g.leak);
     const severity = scored?.severity ?? 0;
     const chip: Chip = scored?.chip ?? "Clear";
-    const present = GOVERN[g.leak].some(answered);
+    const present = GOVERN[g.leak].some(answered) || (g.leak === "Invisible online" && scored?.tier === "checked");
     const lit = present && severity >= 2; // Likely / Detected, a real finding
     return {
       ...g,

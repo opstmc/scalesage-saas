@@ -12,7 +12,17 @@ import type { ScanAnswers } from "@/lib/catalyst";
 import type { LookupMatch, ChecksResult } from "@/lib/catalyst-api";
 import { EMPTY_SELECTION, isPlanSelection, type PlanSelection } from "./recommendation";
 
-export type CatalystPhase = "entry" | "scan" | "result" | "unlock" | "interview" | "confirmed";
+export type CatalystPhase = "entry" | "scan" | "unlock" | "confirmed";
+
+/** Sessions saved before the scan moved to sections can carry phases that no
+ *  longer exist: a finished scan goes to the details form, an interview to the
+ *  confirmation. */
+function phaseOf(value: unknown): CatalystPhase {
+  if (value === "scan" || value === "unlock" || value === "confirmed") return value;
+  if (value === "result") return "unlock";
+  if (value === "interview") return "confirmed";
+  return "entry";
+}
 
 /** The confirmed Q1 identity + its lock reason (match vs. manual add). */
 export interface LookupState {
@@ -29,20 +39,13 @@ export interface CatalystSession {
   lookup: LookupState | null;
   /** Background live-check facts (public business data only). */
   checks: ChecksResult | null;
-  /** The server session id, once unlock has captured the lead. Needed to resume
-   *  the deep interview after a refresh — without it the answers have nowhere
-   *  to go. Not personal data: an unguessable id, not a contact detail. */
+  /** The server session id, once unlock has captured the lead, so a refresh shows
+   *  the confirmation instead of asking for the same details again. Not personal
+   *  data: an unguessable id, not a contact detail. */
   sessionId: string | null;
   /** The research run started at Q1, sent with unlock so the server attaches
    *  it to the lead instead of measuring the business a second time. */
   researchId: string | null;
-  /** How far into the deep interview, and what has been answered so far. The
-   *  interview is long, so an abandoned one has to survive a closed tab. */
-  interviewIdx: number;
-  interviewAnswers: Record<string, unknown>;
-  /** Set once the interview has been completed, so the flow never asks for the
-   *  same details or the same answers a second time. */
-  interviewDone: boolean;
   /** The plan and add-ons the VISITOR picked, so a refresh does not make them
    *  pick again. Only ever written from a click in PlanChoice: a recommendation
    *  never lands here, which is what keeps "recommended" from quietly becoming
@@ -60,9 +63,6 @@ const EMPTY: CatalystSession = {
   checks: null,
   sessionId: null,
   researchId: null,
-  interviewIdx: 0,
-  interviewAnswers: {},
-  interviewDone: false,
   selection: { ...EMPTY_SELECTION },
 };
 
@@ -73,16 +73,13 @@ export function loadSession(): CatalystSession {
     if (!raw) return { ...EMPTY };
     const parsed = JSON.parse(raw) as Partial<CatalystSession>;
     return {
-      phase: parsed.phase ?? "entry",
+      phase: phaseOf(parsed.phase),
       idx: typeof parsed.idx === "number" ? parsed.idx : 0,
       answers: (parsed.answers ?? {}) as ScanAnswers,
       lookup: parsed.lookup ?? null,
       checks: parsed.checks ?? null,
       sessionId: parsed.sessionId ?? null,
       researchId: typeof parsed.researchId === "string" ? parsed.researchId : null,
-      interviewIdx: typeof parsed.interviewIdx === "number" ? parsed.interviewIdx : 0,
-      interviewAnswers: parsed.interviewAnswers ?? {},
-      interviewDone: Boolean(parsed.interviewDone),
       // Anything malformed reads back as "nothing chosen". A storage blob can
       // never talk this UI into arriving pre-selected.
       selection: isPlanSelection(parsed.selection) ? parsed.selection : { ...EMPTY_SELECTION },

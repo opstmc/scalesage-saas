@@ -1,48 +1,38 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { buildResult, type ScanAnswers, type ScanResult } from "@/lib/catalyst";
-import api, { type ChecksResult } from "@/lib/catalyst-api";
+import type { ChecksResult } from "@/lib/catalyst-api";
 import SageOrb, { type OrbState } from "./SageOrb";
 import ScanFlow from "./ScanFlow";
-import ResultScreen from "./ResultScreen";
 import UnlockForm from "./UnlockForm";
-import InterviewFlow from "./InterviewFlow";
 import { isNoFit } from "./meta";
+import { evidenceFrom } from "./sections";
 import { clearSession, loadSession, saveSession, type CatalystPhase, type LookupState } from "./session";
 import styles from "./catalyst.module.css";
 
-/** The sector the mini captured, which picks the interview's spine. */
-function sectorOf(answers: ScanAnswers): string | null {
-  const raw = (answers as unknown as Record<string, unknown>).sectors;
-  if (Array.isArray(raw) && typeof raw[0] === "string") return raw[0];
-  if (typeof raw === "string") return raw;
-  return null;
-}
+/** Past the last screen: ScanFlow clamps it to the priority question. */
+const LAST_SCREEN = Number.MAX_SAFE_INTEGER;
 
-function safeResult(answers: ScanAnswers): ScanResult {
+function safeResult(answers: ScanAnswers, checks: ChecksResult | null): ScanResult {
   try {
-    return buildResult(answers as never);
+    return buildResult(answers, evidenceFrom(checks));
   } catch {
     return {} as ScanResult;
   }
 }
 
 export default function CatalystExperience() {
+  const router = useRouter();
   const [phase, setPhase] = useState<CatalystPhase>("entry");
   const [answers, setAnswers] = useState<ScanAnswers>({} as ScanAnswers);
   const [resumeIdx, setResumeIdx] = useState(0);
   const [orb, setOrb] = useState<OrbState>("idle");
   const [progress, setProgress] = useState(0);
-  const [unlockMode, setUnlockMode] = useState<"build" | "nofit">("build");
   const [lookup, setLookup] = useState<LookupState | null>(null);
   const [checks, setChecks] = useState<ChecksResult | null>(null);
-  // Deep-interview state. sessionId only exists once unlock captured the lead;
-  // without it the interview has nowhere to save, so it is never entered.
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [interviewIdx, setInterviewIdx] = useState(0);
-  const [interviewAnswers, setInterviewAnswers] = useState<Record<string, unknown>>({});
-  const [interviewDone, setInterviewDone] = useState(false);
 
   // Resume after a refresh. Runs post-mount only: sessionStorage is unavailable
   // during SSR, so both the server output and the first client render are the
@@ -57,96 +47,44 @@ export default function CatalystExperience() {
       setResumeIdx(s.idx);
       setPhase("scan");
       setOrb("listening");
-    } else if (s.phase === "interview" && s.sessionId) {
-      // The interview is long, so an abandoned one has to survive a closed tab.
+    } else if (s.phase === "unlock" || s.phase === "confirmed") {
       setAnswers(s.answers);
       setSessionId(s.sessionId);
-      setInterviewIdx(s.interviewIdx);
-      setInterviewAnswers(s.interviewAnswers ?? {});
-      setPhase("interview");
-      setOrb("listening");
-    } else if (s.phase === "confirmed") {
-      setAnswers(s.answers);
-      setSessionId(s.sessionId);
-      setInterviewDone(Boolean(s.interviewDone));
-      setPhase("confirmed");
-      setOrb("handover");
-      setProgress(1);
-    } else if (s.phase === "result" || s.phase === "unlock") {
-      setAnswers(s.answers);
-      setSessionId(s.sessionId);
-      setInterviewDone(Boolean(s.interviewDone));
-      setPhase(s.phase === "unlock" ? "unlock" : "result");
+      setPhase(s.phase === "confirmed" && s.sessionId ? "confirmed" : "unlock");
       setOrb("handover");
       setProgress(1);
     }
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
-  /* Read inside the poll below without making it a dependency: restarting the
-     poll every time its own result lands is exactly the runaway loop the bound
-     exists to prevent. */
-  const checksRef = useRef<ChecksResult | null>(checks);
-  useEffect(() => {
-    checksRef.current = checks;
-  }, [checks]);
-
-  /* ---- late-arriving evidence ------------------------------------------
-   * The mini's live checks fire once, at Q1. When that call defers there is
-   * nothing on the diagram and nothing for the deep interview to ask about,
-   * and before unlock there is no session to ask again about.
-   *
-   * Unlock gives us one. The evidence engine is already running underneath the
-   * interview, so GET /catalyst/{id}/evidence can hand back whatever it has
-   * found since. Bounded inside pollEvidence: seven attempts over ~70s, stops
-   * on a complete answer, on three dead requests, and on unmount. Answers only
-   * ever improve — mergeChecks never replaces a finding with a null — and the
-   * new checks flow straight into InterviewFlow, which re-asks its conditional
-   * questions without losing the visitor's place. */
-  useEffect(() => {
-    if (!sessionId || checksRef.current?.status === "complete") return;
-    const ctrl = new AbortController();
-    void api.pollEvidence(sessionId, {
-      known: checksRef.current,
-      signal: ctrl.signal,
-      onResult: (next) => {
-        setChecks(next);
-        saveSession({ checks: next });
-      },
-    });
-    return () => ctrl.abort();
-  }, [sessionId]);
-
   const result = useMemo<ScanResult | null>(
-    () => (phase === "result" || phase === "unlock" || phase === "confirmed" ? safeResult(answers) : null),
-    [phase, answers],
+    () => (phase === "unlock" || phase === "confirmed" ? safeResult(answers, checks) : null),
+    [phase, answers, checks],
   );
 
+  /* The scan ends on the details form: the email is asked before the final
+   * result, which then shows with the report in the same visit. */
   const handleComplete = (a: ScanAnswers, extras: { lookup: LookupState | null; checks: ChecksResult | null }) => {
     setAnswers(a);
     setLookup(extras.lookup);
     setChecks(extras.checks);
     setProgress(1);
-    setPhase("result");
+    setPhase("unlock");
     setOrb("handover");
-    saveSession({ phase: "result", answers: a, lookup: extras.lookup, checks: extras.checks });
+    saveSession({ phase: "unlock", answers: a, lookup: extras.lookup, checks: extras.checks });
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const openUnlock = () => {
-    setUnlockMode(result && isNoFit(result) ? "nofit" : "build");
-    // Their details are already captured — show the confirmation, not the form.
-    // Asking a second time reads as though the first attempt failed.
-    const next = sessionId ? "confirmed" : "unlock";
-    setPhase(next);
-    saveSession({ phase: next });
-    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  const backToScan = () => {
+    setResumeIdx(LAST_SCREEN);
+    setPhase("scan");
+    setOrb("listening");
+    saveSession({ phase: "scan", idx: LAST_SCREEN });
   };
-  const openBook = () => {
-    setUnlockMode("nofit");
-    setPhase("unlock");
-    saveSession({ phase: "unlock" });
-    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+
+  const openReport = (id: string | null, token: string) => {
+    saveSession({ phase: "confirmed", sessionId: id });
+    router.push(`/catalyst/report/${encodeURIComponent(token)}`);
   };
 
   const reset = () => {
@@ -157,9 +95,6 @@ export default function CatalystExperience() {
     setChecks(null);
     setProgress(0);
     setSessionId(null);
-    setInterviewIdx(0);
-    setInterviewAnswers({});
-    setInterviewDone(false);
     setPhase("entry");
     setOrb("idle");
   };
@@ -176,7 +111,7 @@ export default function CatalystExperience() {
         />
       ) : (
         <>
-          <TopBar orb={orb} progress={phase === "scan" || phase === "interview" ? progress : 1} onReset={reset} />
+          <TopBar orb={orb} progress={phase === "scan" ? progress : 1} onReset={reset} />
           {phase === "scan" && (
             <ScanFlow
               initialIdx={resumeIdx}
@@ -190,80 +125,18 @@ export default function CatalystExperience() {
               onChecks={setChecks}
             />
           )}
-          {phase === "result" && result && (
-            <div className={styles.shell}>
-              <ResultScreen result={result} answers={answers} checks={checks} lookup={lookup} onUnlock={openUnlock} onBookWalkthrough={openBook} />
-            </div>
-          )}
-          {phase === "interview" && (
-            <InterviewFlow
-              sessionId={sessionId}
-              sector={sectorOf(answers)}
-              /* Passed only once we actually hold something, so a null here
-                 still means "look in the session yourself" rather than "there
-                 is no evidence" — the phase-1 fallback stays exactly as it was.
-                 Passed live, so evidence that lands mid-interview reaches it. */
-              checks={checks ?? undefined}
-              lookup={lookup?.match ?? undefined}
-              initialIdx={interviewIdx}
-              initialAnswers={interviewAnswers}
-              onOrb={setOrb}
-              onProgress={setProgress}
-              onComplete={() => {
-                setInterviewDone(true);
-                setPhase("confirmed");
-                setOrb("handover");
-                setProgress(1);
-                saveSession({ phase: "confirmed", interviewDone: true });
-              }}
-            />
-          )}
-          {phase === "confirmed" && result && (
+          {(phase === "unlock" || phase === "confirmed") && result && (
             <div className={styles.shell}>
               <UnlockForm
+                key={phase}
                 result={result}
                 answers={answers}
                 checks={checks}
                 lookup={lookup}
-                mode={unlockMode}
-                initialSessionId={sessionId}
-                interviewComplete={interviewDone}
-                onContinueToInterview={(id) => {
-                  setSessionId(id);
-                  setPhase("interview");
-                  setOrb("listening");
-                  setProgress(0);
-                  saveSession({ phase: "interview", sessionId: id });
-                }}
-                onBack={() => {
-                  setPhase("result");
-                  saveSession({ phase: "result" });
-                }}
-              />
-            </div>
-          )}
-          {phase === "unlock" && result && (
-            <div className={styles.shell}>
-              <UnlockForm
-                result={result}
-                answers={answers}
-                checks={checks}
-                lookup={lookup}
-                mode={unlockMode}
-                onContinueToInterview={(id) => {
-                  setSessionId(id);
-                  setInterviewIdx(0);
-                  setInterviewAnswers({});
-                  setPhase("interview");
-                  setOrb("listening");
-                  setProgress(0);
-                  saveSession({ phase: "interview", sessionId: id, interviewIdx: 0, interviewAnswers: {} });
-                  if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-                onBack={() => {
-                  setPhase("result");
-                  saveSession({ phase: "result" });
-                }}
+                mode={isNoFit(result) ? "nofit" : "build"}
+                initialSessionId={phase === "confirmed" ? sessionId : null}
+                onReport={openReport}
+                onBack={backToScan}
               />
             </div>
           )}
@@ -273,7 +146,6 @@ export default function CatalystExperience() {
   );
 }
 
-/* ---- persistent Sage presence bar (scan / result / unlock) ---- */
 function TopBar({ orb, progress, onReset }: { orb: OrbState; progress: number; onReset: () => void }) {
   const labels: Record<OrbState, string> = {
     idle: "Ready",

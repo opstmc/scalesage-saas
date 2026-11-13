@@ -21,6 +21,11 @@ import {
   type RankedLeak,
 } from "@/lib/report";
 import PlanChoice from "@/components/catalyst/PlanChoice";
+import ResultScreen from "@/components/catalyst/ResultScreen";
+import { activityLine, evidenceFrom } from "@/components/catalyst/sections";
+import { loadSession, type LookupState } from "@/components/catalyst/session";
+import { buildResult, type ScanAnswers, type ScanResult } from "@/lib/catalyst";
+import { research, type ChecksResult } from "@/lib/catalyst-api";
 import {
   EMPTY_SELECTION,
   planByKey,
@@ -743,25 +748,109 @@ function CompleteReport({ data, token }: { data: CatalystReport; token: string }
 
 /* ---------- page ---------- */
 
+/** How often, and how many times, a pending report is asked for again. The
+ *  report waits for the research run (up to its own limit) and then one AI
+ *  call, so three minutes covers it; after that the email takes over. */
+const REPORT_POLL_MS = 3000;
+const REPORT_POLL_LIMIT = 60;
+
+interface ScanSummary {
+  result: ScanResult;
+  answers: ScanAnswers;
+  checks: ChecksResult | null;
+  lookup: LookupState | null;
+  researchId: string | null;
+}
+
+/** The scan this browser just finished, if there is one, so the summary can
+ *  show at once while the report is written. Opened from the email on another
+ *  device, there is none and the plain pending state shows instead. */
+function scanFromSession(): ScanSummary | null {
+  const s = loadSession();
+  if (!Object.keys(s.answers ?? {}).length) return null;
+  try {
+    return {
+      result: buildResult(s.answers, evidenceFrom(s.checks)),
+      answers: s.answers,
+      checks: s.checks,
+      lookup: s.lookup,
+      researchId: s.researchId,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function PendingReport({ scan, activity, timedOut }: { scan: ScanSummary; activity: string | null; timedOut: boolean }) {
+  return (
+    <Shell>
+      <ResultScreen result={scan.result} answers={scan.answers} checks={scan.checks} lookup={scan.lookup} />
+      <div style={{ ...CARD, marginTop: 24 }} role="status" aria-live="polite">
+        {/* JW-approval-pending */}
+        <h2 className="h3" style={{ margin: "0 0 8px" }}>
+          Sage is writing your full report
+        </h2>
+        <p style={{ margin: "0 0 12px", fontSize: 15, lineHeight: 1.6 }}>
+          {timedOut
+            ? "This is taking longer than usual. We'll email you the moment it's ready."
+            : "It appears here in about a minute, with the pounds, the evidence and your plan. We'll email you a copy too."}
+        </p>
+        {!timedOut && <p style={{ margin: 0, fontSize: 13.5, color: "var(--text-muted)" }}>{activityLine(activity)}</p>}
+      </div>
+    </Shell>
+  );
+}
+
 export default function CatalystReportPage() {
   const params = useParams<{ token: string }>();
   const token = Array.isArray(params?.token) ? params.token[0] : params?.token ?? "";
 
   const [state, setState] = useState<"loading" | "ready">("loading");
   const [data, setData] = useState<CatalystReport | null>(null);
+  const [scan, setScan] = useState<ScanSummary | null>(null);
+  const [activity, setActivity] = useState<string | null>(null);
+  const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
     let active = true;
-    setState("loading");
     getReport(token).then((res) => {
       if (!active) return;
       setData(res);
+      setScan(scanFromSession());
       setState("ready");
     });
     return () => {
       active = false;
     };
   }, [token]);
+
+  const pending = data?.status === "pending";
+  const researchId = scan?.researchId ?? null;
+  useEffect(() => {
+    if (!pending) return;
+    let active = true;
+    let tries = 0;
+    const id = window.setInterval(() => {
+      tries += 1;
+      if (tries > REPORT_POLL_LIMIT) {
+        window.clearInterval(id);
+        setTimedOut(true);
+        return;
+      }
+      getReport(token).then((res) => {
+        if (active && res && res.status !== "pending") setData(res);
+      });
+      if (researchId) {
+        research(researchId).then((run) => {
+          if (active && run) setActivity(run.finished ? "writing_report" : run.activity);
+        });
+      }
+    }, REPORT_POLL_MS);
+    return () => {
+      active = false;
+      window.clearInterval(id);
+    };
+  }, [pending, token, researchId]);
 
   if (state === "loading") {
     return (
@@ -776,12 +865,17 @@ export default function CatalystReportPage() {
   const status = data?.status ?? "not_found";
 
   if (status === "pending") {
+    if (scan) return <PendingReport scan={scan} activity={activity} timedOut={timedOut} />;
     return (
       <CalmState
         eyebrow="YOUR CATALYST REPORT"
         title="Your report is being prepared"
         // JW-approval-pending
-        body="Your full report is being prepared. We'll email you the moment it's ready."
+        body={
+          timedOut
+            ? "Your full report is taking longer than usual. We'll email you the moment it's ready."
+            : "Your full report is being prepared. This page updates by itself, and we'll email you when it's ready."
+        }
       />
     );
   }

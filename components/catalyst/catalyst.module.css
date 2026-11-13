@@ -1590,3 +1590,65 @@
   color: var(--text-muted);
   margin: 0;
 }
+
+/* Section results: what Sage can already say after each section */
+.resultBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.resultChipRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.resultLeak {
+  font-weight: 600;
+  color: var(--text-headline);
+}
+.resultLine {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+.resultNote {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.resultFinding {
+  margin: 4px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+}
+.resultQuote {
+  margin: 6px 0 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.liveLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+.liveDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  animation: ssAskPulse 2.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .liveDot {
+    animation: none;
+  }
+}

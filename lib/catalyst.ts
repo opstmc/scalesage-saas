@@ -67,6 +67,8 @@ export interface StepOption {
   /** Q4 team scale signals. */
   teamMin?: number;
   weeklyMid?: number;
+  /** Job value band midpoint in pounds. Absent for "Not sure". */
+  mid?: number;
   /** Q13 relief target + urgency. */
   relief?: LeakKey;
   urgency?: "low" | "medium" | "high";
@@ -127,6 +129,7 @@ interface CatalystConfig {
   sectorPattern: Record<string, LeakKey[]>;
   groupStems: Record<string, Record<SectorGroup, string>>;
   questions: ConfigQuestion[];
+  valve: { id: string; question: string; hint?: string };
   benchmarks: {
     bandsEnabled: boolean;
     jobValueBySector: Record<string, JobValueEntry>;
@@ -154,7 +157,7 @@ function inputTypeFor(kind: Kind): InputType {
 
 /* ---------- Public data ---------- */
 
-/** The ordered 13-question mini-scan, sorted by `order`, ready for the UI. */
+/** The ordered mini-scan questions, sorted by `order`, ready for the UI. */
 export const STEPS: Step[] = [...config.questions]
   .sort((a, b) => a.order - b.order)
   .map((q) => ({
@@ -171,6 +174,9 @@ export const LEAKS: LeakKey[] = config.leaks;
 export const SYSTEMS: SystemKey[] = config.systems;
 
 export const CONFIG_VERSION = config.configVersion;
+
+/** The optional free-text question asked on the last screen. */
+export const VALVE = config.valve;
 
 /* ---------- Answers + result types ---------- */
 
@@ -338,10 +344,29 @@ export function pipe(text: string, a: ScanAnswers): string {
 
 /* ---------- Scoring ---------- */
 
-/** Sum the per-option severity deltas across every answered question. */
-export function scoreLeaks(a: ScanAnswers): Record<LeakKey, number> {
+/** Invisible online has no question: it is scored from what the checks measured,
+ *  one point each for missing Google's first page, having no Google Business
+ *  Profile, and not being named by the AI engines. Nothing measured, no points. */
+function invisibleOnlineFromChecks(checks?: ChecksInput | null): number {
+  if (!checks) return 0;
+  let points = 0;
+  if (checks.googleBusiness?.ranksPageOne === false) points += 1;
+  if (checks.googleBusiness?.exists === false) points += 1;
+  if (checks.aiPresence?.appears === false) points += 1;
+  return points;
+}
+
+/** Whether any check measured the online presence at all. */
+function invisibleOnlineMeasured(checks?: ChecksInput | null): boolean {
+  return Boolean(checks && (checks.googleBusiness != null || checks.aiPresence != null));
+}
+
+/** Sum the per-option severity deltas across every answered question, plus the
+ *  measured Invisible online points when checks are given. */
+export function scoreLeaks(a: ScanAnswers, evidence?: ScanEvidence): Record<LeakKey, number> {
   const scores = zeroScores();
   const answers = a ?? {};
+  scores["Invisible online"] += invisibleOnlineFromChecks(evidence?.checks);
   for (const step of STEPS) {
     for (const value of selectedValues(answers, step.id)) {
       const opt = optionByValue(step, value);
@@ -433,10 +458,10 @@ function weeklyEnquiryProxy(a: ScanAnswers): number {
  * Pro if the team is 6+ (Q4) OR three-or-more leaks sit at severity ≥ 2.
  * Otherwise Starter. The scan never recommends Max.
  */
-export function matchTier(a: ScanAnswers): "Starter" | "Pro" {
+export function matchTier(a: ScanAnswers, evidence?: ScanEvidence): "Starter" | "Pro" {
   const { proTeamMin, proLikelyLeakCount, likelyThreshold } = config.tier;
   if (teamMin(a) >= proTeamMin) return "Pro";
-  const scores = scoreLeaks(a);
+  const scores = scoreLeaks(a, evidence);
   const likelyOrWorse = LEAKS.filter((l) => scores[l] >= likelyThreshold).length;
   return likelyOrWorse >= proLikelyLeakCount ? "Pro" : "Starter";
 }
@@ -456,6 +481,9 @@ const round10 = (n: number) => Math.round(n / 10) * 10;
  */
 export function revenueBand(a: ScanAnswers): Band {
   if (!config.benchmarks.bandsEnabled) return DISABLED_BAND;
+  // Their own job value beats the sector's guessed range, and the report prices
+  // the leaks from it, so the guessed band would only contradict their answer.
+  if (jobValueOf(a) != null) return DISABLED_BAND;
   const sector = sectorOf(a);
   const job = config.benchmarks.jobValueBySector[sector];
   if (!job || !job.enabled) return DISABLED_BAND;
@@ -545,13 +573,15 @@ function evidenceTierForLeak(leak: LeakKey, ev?: ScanEvidence): EvidenceTier {
 
 export function buildResult(a: ScanAnswers, evidence?: ScanEvidence): ScanResult {
   const answers = a ?? {};
-  const scores = scoreLeaks(answers);
+  const scores = scoreLeaks(answers, evidence);
   const ranked = rankedLeaks(answers, scores);
   const primary = ranked[0];
   const secondary = ranked[1];
 
   const nodes: ScanNode[] = LEAKS.map((leak) => {
-    const chip = chipFor(scores[leak]);
+    const unmeasured = leak === "Invisible online" && !invisibleOnlineMeasured(evidence?.checks);
+    const scored = chipFor(scores[leak]);
+    const chip: Chip = unmeasured && scored === "Clear" ? "Needs full scan" : scored;
     return {
       leak,
       severity: scores[leak],
@@ -593,7 +623,7 @@ export function buildResult(a: ScanAnswers, evidence?: ScanEvidence): ScanResult
     secondaryLeak: secondary,
     needsFullScan: nodes.filter((n) => n.needsFullScan).map((n) => n.leak),
     fixFirst: fixFirstSystem(primary),
-    tier: matchTier(answers),
+    tier: matchTier(answers, evidence),
     revenueBand: revenueBand(answers),
     timeBand: timeBand(answers),
   };
@@ -614,6 +644,7 @@ export interface ScanContact {
 }
 
 export interface ScanMeta {
+  evidence?: ScanEvidence;
   utmSource?: string | null;
   problemsRaw?: string;
   intake?: Record<string, unknown>;
@@ -627,9 +658,17 @@ function urgencyOf(a: ScanAnswers): string {
   return optionByValue(stepById("relief"), v)?.urgency ?? "medium";
 }
 
+/** Pounds for the chosen job value band, or null for "Not sure" or no answer. */
+export function jobValueOf(a: ScanAnswers): number | null {
+  const v = a?.job_value;
+  if (typeof v !== "string") return null;
+  const mid = optionByValue(stepById("job_value"), v)?.mid;
+  return typeof mid === "number" ? mid : null;
+}
+
 export function buildPayload(a: ScanAnswers, contact: ScanContact, meta: ScanMeta = {}) {
   const answers = a ?? {};
-  const result = buildResult(answers);
+  const result = buildResult(answers, meta.evidence);
   const answerList = STEPS.map((s) => ({ id: s.id, value: answers[s.id] ?? null }));
 
   // Free-text "Other" reveals collected alongside the scan feed the intake bag.
@@ -647,11 +686,10 @@ export function buildPayload(a: ScanAnswers, contact: ScanContact, meta: ScanMet
     sector: result.sector,
     sector_group: result.sectorGroup,
     sectors: selectedValues(answers, "sectors"),
-    sources: selectedValues(answers, "sources"),
-    years: typeof answers.years === "string" ? answers.years : null,
     team: typeof answers.team === "string" ? answers.team : null,
+    job_value: jobValueOf(answers),
     answers: answerList,
-    leak_severities: scoreLeaks(answers),
+    leak_severities: scoreLeaks(answers, meta.evidence),
     primary_leak: result.primaryLeak,
     secondary_leak: result.secondaryLeak,
     needs_full_scan: result.needsFullScan,
