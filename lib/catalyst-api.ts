@@ -87,12 +87,46 @@ export interface ChecksInput {
   location?: string | null;
 }
 
+export interface PublicFinding {
+  leak: string;
+  side: "for" | "against";
+  claim: string;
+  quote: string;
+}
+export interface Rival {
+  name: string | null;
+  rating: number | null;
+  review_count: number | null;
+}
+export interface PricedLeak {
+  monthly_pence: number;
+  basis: "their_number" | "benchmark";
+  workings: string;
+}
+export interface Estimates {
+  one_job_a_week_pence: number | null;
+  missed_calls: PricedLeak | null;
+  cold_quotes: PricedLeak | null;
+  lapsed_customers: PricedLeak | null;
+}
+/** The research read: the checks shape plus what each scan section shows. */
+export interface ResearchState extends ChecksResult {
+  finished: boolean;
+  activity: string | null;
+  findings: PublicFinding[];
+  rivals: Rival[];
+  ai_named_by: string[];
+  estimates: Estimates | null;
+}
+
 export interface UnlockResult {
   ok: boolean;
   /** true when captured via fallback / local-persist rather than the backend. */
   deferred: boolean;
   session_id: string | null;
   portal_url: string | null;
+  /** Opens the report page in the same visit. Only the backend path has one. */
+  report_token: string | null;
 }
 
 export interface PayResult {
@@ -358,10 +392,17 @@ export interface ResearchInput extends ChecksInput {
 export interface ResearchOptions extends PollOptions {
   /** Fired once with the run id, so a refresh can carry it to unlock. */
   onRun?: (runId: string) => void;
+  /** Fired on every successful read, with the findings and estimates. */
+  onState?: (state: ResearchState) => void;
+  /** The job value in pounds once the visitor has given one, for the estimates. */
+  jobValue?: () => number | null;
+  /** The scan's own sector id, so estimates use the same benchmarks as the report. */
+  sector?: () => string | null;
 }
 
-const RESEARCH_POLL_MS = 4000;
-const RESEARCH_POLL_LIMIT_MS = 120000;
+const RESEARCH_POLL_MS = 2500;
+/** The agent's own limit is 180 s after the measurements, so this outlasts it. */
+const RESEARCH_POLL_LIMIT_MS = 210000;
 
 function researchBody(input: ResearchInput): Record<string, unknown> {
   const body: Record<string, unknown> = {
@@ -386,15 +427,35 @@ export async function startResearch(input: ResearchInput): Promise<string | null
   return typeof json?.run_id === "string" ? json.run_id : null;
 }
 
-/** What the run has measured so far, in the same shape the checks returned. */
-export async function research(runId: string): Promise<ChecksResult | null> {
-  return normaliseChecks(await get<Partial<ChecksResult>>(`/research/${encodeURIComponent(runId)}`, 9000));
+/** What the run has found so far: the checks shape plus findings and estimates. */
+export async function research(
+  runId: string,
+  jobValue?: number | null,
+  sector?: string | null,
+): Promise<ResearchState | null> {
+  const params = new URLSearchParams();
+  if (jobValue) params.set("job_value", String(Math.round(jobValue)));
+  if (sector && sector !== "other") params.set("sector", sector);
+  const query = params.toString() ? `?${params.toString()}` : "";
+  const json = await get<Partial<ResearchState>>(`/research/${encodeURIComponent(runId)}${query}`, 9000);
+  const checks = normaliseChecks(json);
+  if (!json || !checks) return null;
+  return {
+    ...checks,
+    finished: json.finished === true,
+    activity: typeof json.activity === "string" ? json.activity : null,
+    findings: Array.isArray(json.findings) ? json.findings : [],
+    rivals: Array.isArray(json.rivals) ? json.rivals : [],
+    ai_named_by: Array.isArray(json.ai_named_by) ? json.ai_named_by : [],
+    estimates: json.estimates ?? null,
+  };
 }
 
 /**
- * Start the research and poll it until the measurements are complete or the
- * poll limit passes. Falls back to the fixed checks when no run could start,
- * so an older backend still fills the live diagram.
+ * Start the research and poll it until the run has finished or the poll limit
+ * passes, reporting the findings and estimates on every read. Falls back to the
+ * fixed checks when no run could start, so an older backend still fills the
+ * live diagram.
  */
 export async function researchWithChecks(input: ResearchInput, opts: ResearchOptions = {}): Promise<ChecksResult> {
   const runId = await startResearch(input);
@@ -405,79 +466,15 @@ export async function researchWithChecks(input: ResearchInput, opts: ResearchOpt
   const deadline = Date.now() + RESEARCH_POLL_LIMIT_MS;
   while (Date.now() < deadline) {
     if (await sleep(RESEARCH_POLL_MS, opts.signal)) break;
-    const next = await research(runId);
+    const next = await research(runId, opts.jobValue?.() ?? null, opts.sector?.() ?? null);
     if (!next) continue;
+    opts.onState?.(next);
     const merged = mergeChecks(best, next);
     if (!sameChecks(merged, best)) {
       best = merged;
       opts.onResult?.(best);
     }
-    if (best.status === "complete") break;
-  }
-  return best;
-}
-
-/* ---------- 2b. evidence — the same findings, asked for again ---------- */
-
-/**
- * What the backend has gathered for this session, in the ChecksResult shape.
- *
- * Reads whatever exists: the checks the mini managed at Q1, plus anything the
- * evidence engine has since found while running underneath the interview. An
- * unknown session id answers "deferred" rather than 404, so a stale id is calm
- * rather than an error.
- */
-export async function evidence(sessionId: string | null): Promise<ChecksResult | null> {
-  if (!sessionId || sessionId.startsWith("local_")) return null;
-  return normaliseChecks(
-    await get<Partial<ChecksResult>>(`/${encodeURIComponent(sessionId)}/evidence`, 9000),
-  );
-}
-
-/**
- * Delays between evidence polls. BOUNDED: seven attempts, ~70s of wall clock,
- * and it stops the moment the answer is complete. The scrape it is waiting on
- * takes seconds, not minutes; anything past this is not late, it is not coming.
- */
-const EVIDENCE_POLL_DELAYS_MS = [2000, 3000, 5000, 8000, 12000, 20000, 20000];
-
-/** Consecutive dead requests before we accept the backend is not answering.
- *  A poll that keeps retrying a down service is a flat battery and a support
- *  call, and it will not produce evidence either way. */
-const EVIDENCE_MAX_FAILURES = 3;
-
-/**
- * Poll GET /evidence until the answer is complete, or until the bound runs out.
- *
- * Every exit is bounded: the fixed ladder above, an early stop on a complete
- * answer, three consecutive transport failures, an abort from the caller, and
- * an immediate no-op when there is no backend configured or the session was
- * only ever captured locally. It never loops on its own output.
- */
-export async function pollEvidence(
-  sessionId: string | null,
-  opts: PollOptions & { known?: ChecksResult | null } = {},
-): Promise<ChecksResult | null> {
-  if (!API_BASE || !sessionId || sessionId.startsWith("local_")) return null;
-  let best = opts.known ?? null;
-  if (best?.status === "complete") return best;
-
-  let failures = 0;
-  for (const delay of EVIDENCE_POLL_DELAYS_MS) {
-    if (await sleep(delay, opts.signal)) return best;
-    const next = await evidence(sessionId);
-    if (!next) {
-      failures += 1;
-      if (failures >= EVIDENCE_MAX_FAILURES) return best;
-      continue;
-    }
-    failures = 0;
-    const merged = mergeChecks(best, next);
-    if (!sameChecks(merged, best)) {
-      best = merged;
-      opts.onResult?.(best);
-    }
-    if (best?.status === "complete") return best;
+    if (next.finished) break;
   }
   return best;
 }
@@ -489,26 +486,33 @@ export async function unlock(payload: Record<string, unknown>): Promise<UnlockRe
   const body: Record<string, unknown> = { ...(payload ?? {}), ...(ref ? { ref } : {}) };
 
   // 1) The contract endpoint (owns persistence, the 24h engine, the alert).
-  const direct = await post<{ ok?: boolean; session_id?: string; portal_url?: string | null }>(
-    "/unlock",
-    body,
-    12000,
-  );
+  const direct = await post<{
+    ok?: boolean;
+    session_id?: string;
+    portal_url?: string | null;
+    report_token?: string | null;
+  }>("/unlock", body, 12000);
   if (direct?.ok) {
     clearPending();
-    return { ok: true, deferred: false, session_id: direct.session_id ?? null, portal_url: direct.portal_url ?? null };
+    return {
+      ok: true,
+      deferred: false,
+      session_id: direct.session_id ?? null,
+      portal_url: direct.portal_url ?? null,
+      report_token: typeof direct.report_token === "string" ? direct.report_token : null,
+    };
   }
 
   // 2) Same-origin fallback — captures the lead even with no base configured.
   const local = await postLocal(body);
   if (local?.ok) {
     clearPending();
-    return { ok: true, deferred: true, session_id: local.id ?? null, portal_url: null };
+    return { ok: true, deferred: true, session_id: local.id ?? null, portal_url: null, report_token: null };
   }
 
   // 3) Nothing reachable — keep the lead locally so the UI can retry.
   const localId = persistPending(body);
-  return { ok: false, deferred: true, session_id: localId, portal_url: null };
+  return { ok: false, deferred: true, session_id: localId, portal_url: null, report_token: null };
 }
 
 /* ---------- 4. pay ---------- */
@@ -539,47 +543,6 @@ export async function bookCall(sessionId: string | null): Promise<BookCallResult
   return { ok: false, deferred: true, booking_url: null };
 }
 
-/* ---------- 6. the deep interview ---------- */
-
-/**
- * Save interview answers as they are given, not only at the end.
- *
- * The interview is long enough that some people will abandon it, and a partial
- * interview is still a warm lead with real answers in it. Fire-and-forget by
- * design: a failed save must never block the person mid-question, and the next
- * save carries the same answers again (the endpoint merges, later wins).
- */
-export async function saveInterview(
-  sessionId: string | null,
-  answers: Record<string, unknown>,
-  figures?: Record<string, { value: number | null; basis: string }>,
-): Promise<boolean> {
-  if (!sessionId || sessionId.startsWith("local_")) return false;
-  const json = await post<{ ok?: boolean }>(
-    `/${encodeURIComponent(sessionId)}/interview`,
-    figures ? { answers, figures } : { answers },
-    9000,
-  );
-  return Boolean(json?.ok);
-}
-
-/**
- * Close the interview and release the report.
- *
- * This is the gate: the full report exists only on the far side of it. The
- * endpoint is idempotent, so a retry after a flaky connection cannot produce a
- * second report.
- */
-export async function completeInterview(sessionId: string | null): Promise<boolean> {
-  if (!sessionId || sessionId.startsWith("local_")) return false;
-  const json = await post<{ ok?: boolean }>(
-    `/${encodeURIComponent(sessionId)}/interview/complete`,
-    {},
-    12000,
-  );
-  return Boolean(json?.ok);
-}
-
 /** True when a backend is configured. Lets the UI soften copy in preview. */
 export const hasBackend = Boolean(API_BASE);
 
@@ -590,14 +553,10 @@ export const api = {
   startResearch,
   research,
   researchWithChecks,
-  evidence,
-  pollEvidence,
   mergeChecks,
   unlock,
   pay,
   bookCall,
-  saveInterview,
-  completeInterview,
   hasBackend,
 };
 export default api;

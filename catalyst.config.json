@@ -1,5 +1,5 @@
 {
-  "configVersion": "5.1.0",
+  "configVersion": "6.0.0",
   "currency": "GBP",
   "approvals": {
     "note": "All customer-facing copy (questions, hints, insight lines, the directional tag, band notes) is awaiting sign-off. Do not ship without JW approval.",
@@ -143,28 +143,10 @@
       ]
     },
     {
-      "id": "years",
+      "id": "team",
       "order": 3,
       "kind": "single",
-      "kicker": "03 · Track record",
-      "question": "How long have you been trading?",
-      "hint": "Roughly is fine.",
-      "insight": "The longer you have traded, the bigger the base of past customers sitting idle.",
-      "insightApproval": "JW-approval-pending",
-      "other": true,
-      "confirmFromLookup": true,
-      "options": [
-        { "value": "under-1", "label": "Under a year" },
-        { "value": "1-3", "label": "1 to 3 years" },
-        { "value": "3-10", "label": "3 to 10 years" },
-        { "value": "10-plus", "label": "10 or more years" }
-      ]
-    },
-    {
-      "id": "team",
-      "order": 4,
-      "kind": "single",
-      "kicker": "04 · The team",
+      "kicker": "03 · The team",
       "question": "How many of you are there?",
       "hint": "Everyone who works in the business counts.",
       "insight": "The smaller the team, the more the whole business runs through you.",
@@ -179,48 +161,29 @@
       ]
     },
     {
-      "id": "sources",
-      "order": 5,
-      "kind": "multi",
-      "kicker": "05 · Where work comes from",
-      "question": "Where does most of your work come from today?",
-      "hint": "Select every one that sounds familiar.",
-      "insight": "If you cannot name where work comes from, you cannot protect it.",
+      "id": "job_value",
+      "order": 4,
+      "kind": "single",
+      "kicker": "04 · Job value",
+      "question": "What is a typical job or order worth to you?",
+      "hint": "A rough band is fine. This is what turns a leak into a number.",
+      "insight": "One lost job tells you what every missed enquiry is worth.",
       "insightApproval": "JW-approval-pending",
-      "other": true,
+      "other": false,
       "options": [
-        { "value": "google", "label": "Google", "deltas": {} },
-        { "value": "referrals", "label": "Referrals and word of mouth", "deltas": {} },
-        { "value": "repeat", "label": "Repeat customers", "deltas": {} },
-        { "value": "social", "label": "Social media", "deltas": {} },
-        { "value": "directory", "label": "A directory like Checkatrade", "deltas": {} },
-        { "value": "paid-ads", "label": "Paid ads", "deltas": {} },
-        { "value": "not-sure", "label": "Not sure any more", "deltas": { "Invisible online": 1 } }
-      ]
-    },
-    {
-      "id": "capacity",
-      "order": 6,
-      "kind": "multi",
-      "kicker": "06 · Under load",
-      "question": "If the phone went off for a day, what would happen?",
-      "hint": "Be honest. This is where most leaks start.",
-      "insight": "A business that stops when the phone does is a business with a single point of failure.",
-      "insightApproval": "JW-approval-pending",
-      "other": true,
-      "options": [
-        { "value": "cope-fine", "label": "We would cope fine", "deltas": {}, "exclusiveWith": ["pile-up", "couldnt-reach", "through-me"] },
-        { "value": "pile-up", "label": "Enquiries would pile up unanswered", "deltas": { "Missed calls": 2, "Admin drag": 1 } },
-        { "value": "couldnt-reach", "label": "New customers could not reach us", "deltas": { "Missed calls": 3 } },
-        { "value": "through-me", "label": "Most things run through me", "deltas": { "Admin drag": 3 } },
-        { "value": "team-handles", "label": "The team would handle it", "deltas": {} }
+        { "value": "under_150", "label": "Under £150", "mid": 100, "deltas": {} },
+        { "value": "150_500", "label": "£150 to £500", "mid": 325, "deltas": {} },
+        { "value": "500_1500", "label": "£500 to £1,500", "mid": 1000, "deltas": {} },
+        { "value": "1500_5000", "label": "£1,500 to £5,000", "mid": 3250, "deltas": {} },
+        { "value": "over_5000", "label": "Over £5,000", "mid": 8000, "deltas": {} },
+        { "value": "not_sure", "label": "Not sure", "deltas": {} }
       ]
     },
     {
       "id": "capture",
-      "order": 7,
+      "order": 5,
       "kind": "single",
-      "kicker": "07 · Missed enquiries",
+      "kicker": "05 · Missed enquiries",
       "question": "When a call or enquiry comes in, what usually happens?",
       "stemGroupKey": "capture",
       "hint": "Pick the one that happens most.",
@@ -229,18 +192,18 @@
       "other": true,
       "options": [
         { "value": "answers-quick", "label": "Someone answers quickly", "deltas": {} },
-        { "value": "rings-out", "label": "It rings out", "deltas": { "Missed calls": 3 } },
-        { "value": "voicemail", "label": "Goes to voicemail", "deltas": { "Missed calls": 2 } },
+        { "value": "rings-out", "label": "It rings out or goes to voicemail", "deltas": { "Missed calls": 3 } },
         { "value": "reply-later", "label": "We reply later", "deltas": { "Missed calls": 1, "Cold quotes": 1 } },
         { "value": "waits-morning", "label": "After hours it waits till morning", "deltas": { "Missed calls": 1 } },
-        { "value": "depends", "label": "Depends who is around", "deltas": { "Missed calls": 2 } }
+        { "value": "depends", "label": "Depends who is around", "deltas": { "Missed calls": 2 } },
+        { "value": "through-me", "label": "It all comes through me", "deltas": { "Admin drag": 3, "Missed calls": 1 } }
       ]
     },
     {
       "id": "followup",
-      "order": 8,
+      "order": 6,
       "kind": "single",
-      "kicker": "08 · Follow-up",
+      "kicker": "06 · Follow-up",
       "question": "After you send a quote, what happens next?",
       "stemGroupKey": "followup",
       "hint": "The gap between sent and won is where quotes go cold.",
@@ -257,9 +220,9 @@
     },
     {
       "id": "reviews",
-      "order": 9,
+      "order": 7,
       "kind": "single",
-      "kicker": "09 · Proof",
+      "kicker": "07 · Proof",
       "question": "How do you collect reviews?",
       "hint": "The proof that wins the next customer.",
       "insight": "Every happy customer is a five star review you did not ask for.",
@@ -275,9 +238,9 @@
     },
     {
       "id": "retention",
-      "order": 10,
+      "order": 8,
       "kind": "single",
-      "kicker": "10 · Coming back",
+      "kicker": "08 · Coming back",
       "question": "How do past customers come back?",
       "stemGroupKey": "retention",
       "hint": "The base you already earned.",
@@ -293,46 +256,10 @@
       ]
     },
     {
-      "id": "visibility",
-      "order": 11,
-      "kind": "multi",
-      "kicker": "11 · Findability",
-      "question": "If someone searched for a business like yours, where would you show up?",
-      "hint": "Google, and now AI tools like ChatGPT, are where the next recommendation happens.",
-      "insight": "Buyers are already asking AI who to call. If you are not the answer, you are invisible.",
-      "insightApproval": "JW-approval-pending",
-      "other": true,
-      "options": [
-        { "value": "top-google", "label": "Top of Google", "deltas": {} },
-        { "value": "somewhere", "label": "On there somewhere", "deltas": { "Invisible online": 1 } },
-        { "value": "not-sure", "label": "Not sure", "deltas": { "Invisible online": 2 } },
-        { "value": "never-ai", "label": "Never checked an AI tool for my own business", "deltas": { "Invisible online": 2 } },
-        { "value": "invisible", "label": "Probably invisible", "deltas": { "Invisible online": 3 } }
-      ]
-    },
-    {
-      "id": "ai",
-      "order": 12,
-      "kind": "single",
-      "kicker": "12 · How you run",
-      "question": "How much do you use AI or automation in the business already?",
-      "hint": "No wrong answer. Sage just wants the lay of the land.",
-      "insight": "The work you still do by hand is the work a system should be doing for you.",
-      "insightApproval": "JW-approval-pending",
-      "other": true,
-      "options": [
-        { "value": "none", "label": "None, would not know where to start", "deltas": { "Admin drag": 2 } },
-        { "value": "a-bit", "label": "A bit here and there", "deltas": { "Admin drag": 1 } },
-        { "value": "few-tools", "label": "We use a few tools", "deltas": {} },
-        { "value": "quite-a-lot", "label": "Quite a lot, it is part of how we work", "deltas": {} },
-        { "value": "not-sure-counts", "label": "Not sure what counts", "deltas": { "Admin drag": 1 } }
-      ]
-    },
-    {
       "id": "relief",
-      "order": 13,
+      "order": 9,
       "kind": "single",
-      "kicker": "13 · First relief",
+      "kicker": "09 · First relief",
       "question": "If Sage could take one thing off your plate first, what would it be?",
       "hint": "This tells Sage where to start. You can rank the rest later.",
       "insight": "We fix the leak costing you most first, then build out from there.",

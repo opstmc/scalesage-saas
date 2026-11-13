@@ -112,8 +112,10 @@ export default function ResultScreen({
   answers: ScanAnswers;
   checks?: ChecksResult | null;
   lookup?: LookupState | null;
-  onUnlock: () => void;
-  onBookWalkthrough: () => void;
+  /** Absent on the report page, where the summary sits above the report and
+   *  its own Pay and booking buttons, so no call to action is repeated. */
+  onUnlock?: () => void;
+  onBookWalkthrough?: () => void;
 }) {
   const reduced = useReducedMotion();
   const noFit = isNoFit(result);
@@ -193,15 +195,19 @@ export default function ResultScreen({
             Sage doesn&rsquo;t see enough here to recommend a build yet, and we won&rsquo;t sell you something you
             don&rsquo;t need.
           </p>
-          <div className={styles.ctaRow}>
-            <button type="button" className="btn btn-secondary btn-lg" onClick={onUnlock}>
-              Keep my leak report
-            </button>
-            <button type="button" className="btn btn-ghost btn-lg" onClick={onBookWalkthrough}>
-              Talk it through
-            </button>
-          </div>
-          <p className={styles.reassureLine}>No payment to begin. You keep the leak report either way.</p>
+          {onUnlock && onBookWalkthrough && (
+            <>
+              <div className={styles.ctaRow}>
+                <button type="button" className="btn btn-secondary btn-lg" onClick={onUnlock}>
+                  Keep my leak report
+                </button>
+                <button type="button" className="btn btn-ghost btn-lg" onClick={onBookWalkthrough}>
+                  Talk it through
+                </button>
+              </div>
+              <p className={styles.reassureLine}>No payment to begin. You keep the leak report either way.</p>
+            </>
+          )}
         </div>
       ) : (
         <>
@@ -277,6 +283,7 @@ export default function ResultScreen({
           )}
 
           {/* CTA */}
+          {onUnlock && (
           <div className={`glass ${styles.ctaBlock}`}>
             <h2 className="h2" style={{ marginBottom: 6 }}>
               Ready for the real numbers?
@@ -294,6 +301,7 @@ export default function ResultScreen({
             {/* Reassurance, verbatim from brief */}
             <p className={styles.reassureLine}>No payment to begin. You keep the leak report either way.</p>
           </div>
+          )}
         </>
       )}
     </div>

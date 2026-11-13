@@ -2,13 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as Catalyst from "@/lib/catalyst";
-import { STEPS, buildResult, type ScanAnswers, type ScanNode } from "@/lib/catalyst";
-import api, { type LookupMatch, type LookupResult, type ChecksResult } from "@/lib/catalyst-api";
+import { STEPS, VALVE, buildResult, jobValueOf, type ScanAnswers, type ScanNode } from "@/lib/catalyst";
+import api, { type LookupMatch, type LookupResult, type ChecksResult, type ResearchState } from "@/lib/catalyst-api";
 import type { OrbState } from "./SageOrb";
 import LiveDiagram from "./LiveDiagram";
 import { saveSession, type LookupState } from "./session";
-import { reactionFor, reactionForLookup } from "./reactions";
+import { reactionForLookup } from "./reactions";
 import SageReaction, { sageReactDurationMs } from "./SageReaction";
+import SectionResult from "./SectionResult";
+import { SECTIONS, evidenceFrom, type Section } from "./sections";
 import styles from "./catalyst.module.css";
 
 /* ---------------------------------------------------------------------------
@@ -22,14 +24,10 @@ const RAW = STEPS as unknown as Raw[];
 const OTHER = "__other__";
 const BEAT_MS = 520; // ~500ms (max 900ms) non-blocking reaction beat (brief)
 const DEBOUNCE_MS = 340; // Q1 lookup debounce
-// Questions per page after Q1. Four keeps a page readable on a phone without
-// making the scan feel like a form.
-const QUESTIONS_PER_PAGE = 4;
 
 // Which step ids the Q1 lookup can satisfy (for auto-skip / auto-confirm).
 const LOOKUP_IDS = new Set(["business", "company", "business_name", "businessname", "name", "lookup"]);
 const SECTOR_IDS = new Set(["sector", "industry", "trade"]);
-const YEAR_IDS = new Set(["years", "year", "established", "trading", "tenure", "age", "since"]);
 
 type Kind = "lookup" | "single" | "multi" | "text" | "slide";
 
@@ -105,21 +103,11 @@ function stemText(st: Raw, a: ScanAnswers): string {
   return pipeText(s, a);
 }
 
-/* ---- lookup -> answer prefill (auto-skip / auto-confirm) ---- */
-function parseRange(value: string, label: string): [number, number] | null {
-  const text = `${value} ${label}`.toLowerCase();
-  const nums = (text.match(/\d+/g) ?? []).map(Number);
-  if (/\b(under|less|below|<)\b/.test(text) && nums.length >= 1) return [0, nums[0]];
-  if ((/\+/.test(text) || /\b(over|more|plus|above|>)\b/.test(text)) && nums.length >= 1) return [nums[0], Infinity];
-  if (nums.length >= 2) return [Math.min(nums[0], nums[1]), Math.max(nums[0], nums[1])];
-  if (nums.length === 1) return [nums[0], nums[0]];
-  return null;
-}
+/* ---- lookup -> answer prefill (auto-skip) ---- */
 /** Answers the lookup can pre-fill, plus the ids to auto-skip past. */
 function fillsFromLookup(match: LookupMatch): { fills: Record<string, string>; skip: Set<string> } {
   const fills: Record<string, string> = {};
   const skip = new Set<string>();
-  const age = typeof match.incorporated_year === "number" ? new Date().getFullYear() - match.incorporated_year : null;
   for (const st of RAW) {
     const id = stepId(st).toLowerCase();
     const opts = stepOptions(st);
@@ -129,19 +117,18 @@ function fillsFromLookup(match: LookupMatch): { fills: Record<string, string>; s
         fills[stepId(st)] = hit.value;
         skip.add(stepId(st));
       }
-    } else if (YEAR_IDS.has(id) && age != null && age >= 0) {
-      const hit = opts.find((o) => {
-        const r = parseRange(o.value, o.label);
-        return r ? age >= r[0] && age <= r[1] : false;
-      });
-      if (hit) {
-        fills[stepId(st)] = hit.value;
-        skip.add(stepId(st));
-      }
     }
   }
   return { fills, skip };
 }
+
+/* ---- screens: Q1 alone, then each section's questions and its result ---- */
+type Screen =
+  | { kind: "lookup"; steps: number[] }
+  | { kind: "questions"; section: Section; steps: number[] }
+  | { kind: "result"; section: Section };
+
+const STEP_INDEX = new Map(RAW.map((st, i) => [stepId(st), i] as const));
 
 /** The business's own site off the Q1 match, if it carries one.
  *
@@ -192,9 +179,8 @@ export default function ScanFlow({
   onChecks?: (checks: ChecksResult) => void;
 }) {
   const reduced = usePrefersReducedMotion();
-  const VALVE = RAW.length; // the expression valve sits after the last real step
 
-  const [idx, setIdx] = useState(Math.min(Math.max(0, initialIdx), VALVE));
+  const [idx, setIdx] = useState(Math.max(0, initialIdx));
   const [answers, setAnswers] = useState<ScanAnswers>(initialAnswers ?? ({} as ScanAnswers));
   const [reaction, setReaction] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
@@ -203,6 +189,8 @@ export default function ScanFlow({
   const [lookup, setLookup] = useState<LookupState | null>(initialLookup ?? null);
   const [checks, setChecks] = useState<ChecksResult | null>(initialChecks ?? null);
   const [checkState, setCheckState] = useState<"idle" | "running" | "done">(initialChecks ? "done" : "idle");
+  const [research, setResearch] = useState<ResearchState | null>(null);
+  const runIdRef = useRef<string | null>(null);
 
   const answersRef = useRef(answers);
   useEffect(() => {
@@ -252,32 +240,31 @@ export default function ScanFlow({
     el.focus({ preventScroll: true });
   }, [idx, reduced]);
 
-  /* ---- pages ----------------------------------------------------------
-   * Q1 sits alone: it is the live lookup, it fires the background checks, and
-   * its reply ("I am already pulling what is public on you") is the moment the
-   * scan earns the next twelve answers. Everything after it groups four to a
-   * page, and the free-text valve rides on the last one.
-   *
-   * Computed from the steps the lookup did NOT already answer, so a business we
-   * recognise gets a shorter scan rather than pages with holes in them. */
-  const pages = useMemo<number[][]>(() => {
-    const live: number[] = [];
-    for (let i = 0; i < VALVE; i += 1) {
-      if (i === 0 || !skipIds.has(stepId(RAW[i]))) live.push(i);
-    }
-    const out: number[][] = [];
-    if (live.length) out.push([live[0]]); // Q1, alone
-    for (let i = 1; i < live.length; i += QUESTIONS_PER_PAGE) {
-      out.push(live.slice(i, i + QUESTIONS_PER_PAGE));
+  /* ---- screens --------------------------------------------------------
+   * Q1 sits alone: it is the live lookup and it starts the research. Then each
+   * section asks its questions and shows its result, built from the steps the
+   * lookup did NOT already answer. The optional free-text line rides on the
+   * last screen, with the priority question. */
+  const screens = useMemo<Screen[]>(() => {
+    const out: Screen[] = [{ kind: "lookup", steps: [0] }];
+    for (const section of SECTIONS) {
+      const steps = section.steps
+        .filter((id) => !skipIds.has(id))
+        .map((id) => STEP_INDEX.get(id))
+        .filter((i): i is number => typeof i === "number");
+      if (steps.length) out.push({ kind: "questions", section, steps });
+      if (section.id !== "priority") out.push({ kind: "result", section });
     }
     return out;
-  }, [VALVE, skipIds]);
+  }, [skipIds]);
+  const at = Math.min(idx, screens.length - 1);
+  const screen = screens[at];
+  const isLast = at >= screens.length - 1;
 
   // ---- progress ring feed ----
   useEffect(() => {
-    const totalPages = pages.length + 1; // + the valve
-    onProgress?.(Math.min(idx, totalPages) / totalPages);
-  }, [idx, pages.length, onProgress]);
+    onProgress?.(at / screens.length);
+  }, [at, screens.length, onProgress]);
 
   // ---- orb ----
   const setOrb = useCallback((s: OrbState) => onOrb?.(s), [onOrb]);
@@ -292,7 +279,6 @@ export default function ScanFlow({
   }, [reduced, setOrb]);
 
 
-  const step = RAW[idx] as Raw | undefined;
   const A = answers as unknown as Record<string, unknown>;
 
   const setAnswer = useCallback((id: string, val: unknown) => {
@@ -302,39 +288,49 @@ export default function ScanFlow({
   /* ---- live nodes for LiveDiagram (brief: buildResult(answers)) ---- */
   const nodes = useMemo<ScanNode[]>(() => {
     try {
-      const r = buildResult(answers);
+      const r = buildResult(answers, evidenceFrom(checks));
       return Array.isArray(r?.nodes) ? r.nodes : [];
     } catch {
       return [];
     }
-  }, [answers]);
+  }, [answers, checks]);
   const liveCount = nodes.filter((n) => {
     const c = String((n as unknown as { chip?: string }).chip ?? "").toLowerCase();
     return c.includes("detect") || c.includes("likely");
   }).length;
 
-  /* ---- navigation, a page at a time ----
-   * idx is the PAGE index now, not the step index. Page 0 is Q1 alone, the
-   * pages after it hold four questions each, and the page after the last one is
-   * the free-text valve. Steps the lookup already answered never appear on a
-   * page, so recognising a business shortens the scan instead of leaving holes
-   * in it. */
-  const onValve = idx >= pages.length;
-  const pageSteps = onValve ? [] : (pages[idx] ?? []);
-
+  /* ---- navigation, a screen at a time ----
+   * idx is the SCREEN index: Q1, then each section's questions and result. The
+   * last screen is the priority question; continuing from it ends the scan. */
   const goForward = useCallback(() => {
     clearTimers();
-    if (onValve) {
+    if (isLast) {
       setOrb("handover");
       onComplete(answersRef.current, { lookup, checks });
       return;
     }
-    trail.current.push(idx);
+    trail.current.push(at);
     setTrailLen(trail.current.length);
-    setIdx(idx + 1);
+    setIdx(at + 1);
     pulse();
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [idx, onValve, onComplete, lookup, checks, pulse, setOrb]);
+  }, [at, isLast, onComplete, lookup, checks, pulse, setOrb]);
+
+  /* ---- a result screen reads the research once on arrival, so the job value
+   * estimate and the latest findings show without waiting for the next poll. */
+  useEffect(() => {
+    const runId = runIdRef.current;
+    if (screen?.kind !== "result" || !runId) return;
+    let live = true;
+    void api
+      .research(runId, jobValueOf(answersRef.current), Catalyst.sectorOf(answersRef.current))
+      .then((state) => {
+        if (live && state) setResearch(state);
+      });
+    return () => {
+      live = false;
+    };
+  }, [screen]);
 
   const goBack = useCallback(() => {
     clearTimers();
@@ -383,26 +379,11 @@ export default function ScanFlow({
   }, [goForward]);
 
   /* ---- answer helpers ---- */
-  /* Choosing an answer records it and nothing else. Advancing is the page's
-   * Continue button, because on a page of four questions an auto-advance would
-   * throw the reader forward the instant they touched the first one. */
+  /* Choosing an answer records it and nothing else. Advancing is the screen's
+   * Continue button, so a section with two questions never jumps ahead after
+   * the first. */
   const chooseSingle = (st: Raw, value: string) => {
     setAnswer(stepId(st), value);
-  };
-
-  /** Sage's line when a page closes, taken from the strongest answer on it. */
-  const reactionForPage = (indices: number[]): string | null => {
-    const current = answersRef.current as unknown as Record<string, unknown>;
-    for (const i of indices) {
-      const id = stepId(RAW[i]);
-      const value = current[id];
-      const line = reactionFor(
-        id,
-        Array.isArray(value) ? (value as string[]) : String(value ?? ""),
-      );
-      if (line) return line;
-    }
-    return null;
   };
 
   /** Every question on the page has an answer. */
@@ -476,7 +457,13 @@ export default function ScanFlow({
           },
           {
             signal: ctrl.signal,
-            onRun: (runId) => saveSession({ researchId: runId }),
+            onRun: (runId) => {
+              runIdRef.current = runId;
+              saveSession({ researchId: runId });
+            },
+            onState: (state) => setResearch(state),
+            jobValue: () => jobValueOf(answersRef.current),
+            sector: () => Catalyst.sectorOf(answersRef.current),
             onResult: (res) => {
               setChecks(res);
               onChecks?.(res);
@@ -492,7 +479,7 @@ export default function ScanFlow({
   );
 
   const confirmMatch = (match: LookupMatch) => {
-    const id = step ? stepId(step) : "business";
+    const id = stepId(RAW[0]);
     const { fills, skip } = fillsFromLookup(match);
     setSkipIds(skip);
     // one write: the business name plus every field the lookup could auto-fill
@@ -502,33 +489,43 @@ export default function ScanFlow({
   const manualContinue = (name: string) => {
     const clean = name.trim();
     if (!clean) return;
-    const id = step ? stepId(step) : "business";
-    setSkipIds(new Set()); // manual add answers Q2/Q3 itself, no skipping
+    const id = stepId(RAW[0]);
+    setSkipIds(new Set()); // manual add answers the sector question itself, no skipping
     setAnswer(id, clean);
     lockQ1(null, true, clean);
   };
 
-  const totalPages = pages.length + 1; // + the valve
-  const count = Math.min(idx, pages.length) + 1;
-
   /* ---- render ---- */
-  const activeStepId = idx >= VALVE ? "valve" : step ? stepId(step) : "";
+  const screenSteps = screen.kind === "result" ? [] : screen.steps;
+  const activeStepId = screenSteps.length ? stepId(RAW[screenSteps[0]]) : "";
+  const running = checkState === "running" && !research?.finished;
 
   return (
     <div className={styles.shell}>
       <div className={styles.scanCols}>
         {/* LEFT (desktop) / BELOW (mobile): the question card */}
         <div className={styles.cardCol}>
-          {onValve ? (
-            <ValveCard
-              value={String(A["problems_raw"] ?? "")}
-              onChange={(v) => setAnswer("problems_raw", v)}
-              onSubmit={goForward}
-              onBack={goBack}
-              stepNo={totalPages}
-              total={totalPages}
-            />
-          ) : pageSteps.length ? (
+          {screen.kind === "result" ? (
+            <div ref={cardRef} tabIndex={-1} className={`glass ${styles.card}`}>
+              <SectionResult
+                section={screen.section}
+                answers={answers}
+                checks={checks}
+                research={research}
+                lookup={lookup}
+                running={running}
+                onContinue={goForward}
+              />
+              <div className={styles.controls}>
+                <button type="button" className={styles.back} onClick={goBack}>
+                  &larr; Back
+                </button>
+                <span className={styles.count}>
+                  {at + 1} / {screens.length}
+                </span>
+              </div>
+            </div>
+          ) : (
             <div ref={cardRef} tabIndex={-1} className={`glass ${styles.card}`}>
               <div className={styles.sageAsk} aria-hidden="true">
                 <span className={styles.sageAskDot} />
@@ -540,7 +537,7 @@ export default function ScanFlow({
               ) : (
                 <>
                   <div className={styles.pageStack}>
-                    {pageSteps.map((si) => {
+                    {screenSteps.map((si) => {
                       const st = RAW[si];
                       const sid = stepId(st);
                       const k = stepKind(st, si);
@@ -552,9 +549,8 @@ export default function ScanFlow({
                             <p className={styles.hint}>{pipeText(stepHint(st)!, answers)}</p>
                           )}
 
-                          {/* Q1 live lookup. Alone on its own page: it fires the
-                              background checks and confirming it is what lets
-                              Sage say it is already reading their world. */}
+                          {/* Q1 live lookup. Alone on its own screen: confirming
+                              it starts the research the sections report on. */}
                           {k === "lookup" && (
                             <LookupField
                               initialQuery={String(A[sid] ?? lookup?.match?.name ?? "")}
@@ -601,36 +597,51 @@ export default function ScanFlow({
                         </div>
                       );
                     })}
+
+                    {/* The optional free-text line rides on the last screen. */}
+                    {isLast && (
+                      <div>
+                        <label className={styles.hint} htmlFor="ss-problems-raw" style={{ display: "block", marginBottom: 10 }}>
+                          {pipeText(VALVE.question, answers)} {VALVE.hint}
+                        </label>
+                        <textarea
+                          id="ss-problems-raw"
+                          className={styles.textarea}
+                          value={String(A[VALVE.id] ?? "")}
+                          onChange={(e) => setAnswer(VALVE.id, e.target.value)}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Q1 advances itself: confirming a business IS the answer, so
                       a second button to press would be a step for nothing. */}
-                  {!pageSteps.some((si) => stepKind(RAW[si], si) === "lookup") && (
+                  {screen.kind !== "lookup" && (
                     <button
                       type="button"
                       className="btn btn-primary btn-md"
                       style={{ marginTop: 22, alignSelf: "flex-start" }}
-                      disabled={!pageAnswered(pageSteps)}
-                      onClick={() => reactThenAdvance(reactionForPage(pageSteps))}
+                      disabled={!pageAnswered(screenSteps)}
+                      onClick={goForward}
                     >
                       Continue
                     </button>
                   )}
 
                   <div className={styles.controls}>
-                    {(idx > 0 || trailLen > 0) && (
+                    {(at > 0 || trailLen > 0) && (
                       <button type="button" className={styles.back} onClick={goBack}>
                         &larr; Back
                       </button>
                     )}
                     <span className={styles.count}>
-                      {count} / {totalPages}
+                      {at + 1} / {screens.length}
                     </span>
                   </div>
                 </>
               )}
             </div>
-          ) : null}
+          )}
         </div>
 
         {/* RIGHT (desktop) / TOP strip (mobile): the live diagram */}
@@ -970,66 +981,4 @@ function matchLine(m: LookupMatch): string {
   if (m.location) bits.push(m.location);
   if (typeof m.review_count === "number" && m.review_count > 0) bits.push(`${m.review_count} Google reviews`);
   return bits.length ? `${bits.join(" · ")}. Is this you?` : "Is this you?";
-}
-
-/* ---- expression valve (the open step before unlock) ---- */
-function ValveCard({
-  value,
-  carriedInsight,
-  onChange,
-  onSubmit,
-  onBack,
-  stepNo,
-  total,
-}: {
-  value: string;
-  carriedInsight?: string;
-  onChange: (v: string) => void;
-  onSubmit: () => void;
-  onBack: () => void;
-  stepNo: number;
-  total: number;
-}) {
-  return (
-    <div className={`glass ${styles.card}`}>
-      <div className={styles.kicker}>One more, optional</div>
-      {/* Copy JW-approval-pending */}
-      <h2 className={styles.question}>Anything else leaking?</h2>
-      <p className={styles.hint}>Tell Sage everything that&rsquo;s eating your time or money. The more you say, the sharper the report.</p>
-
-      {carriedInsight && (
-        <div className={styles.sageNote}>
-          <span className={styles.sageNoteLabel}>Sage</span>
-          <span className={styles.sageNoteText}>{carriedInsight}</span>
-        </div>
-      )}
-
-      <textarea
-        className={styles.textarea}
-        style={{ minHeight: 128 }}
-        placeholder="The bit that keeps you up at night…"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        aria-label="Anything else leaking?"
-      />
-
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 18 }}>
-        <button type="button" className="btn btn-primary btn-md" onClick={onSubmit}>
-          See my leak map &rarr;
-        </button>
-        <button type="button" className="btn btn-ghost btn-md" onClick={onSubmit}>
-          Skip, show my leak map
-        </button>
-      </div>
-
-      <div className={styles.controls}>
-        <button type="button" className={styles.back} onClick={onBack}>
-          &larr; Back
-        </button>
-        <span className={styles.count}>
-          {stepNo} / {total}
-        </span>
-      </div>
-    </div>
-  );
 }
