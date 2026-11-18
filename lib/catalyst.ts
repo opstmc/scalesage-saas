@@ -64,6 +64,8 @@ export interface StepOption {
   desc?: string;
   /** Q2 sector group. */
   group?: SectorGroup;
+  /** Q2: the business lookup's sectors this trade matches. */
+  matches?: string[];
   /** Q4 team scale signals. */
   teamMin?: number;
   weeklyMid?: number;
