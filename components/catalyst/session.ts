@@ -11,17 +11,25 @@
 import type { ScanAnswers } from "@/lib/catalyst";
 import type { LookupMatch, ChecksResult } from "@/lib/catalyst-api";
 import { EMPTY_SELECTION, isPlanSelection, type PlanSelection } from "./recommendation";
+import type { Leads } from "./thread";
 
-export type CatalystPhase = "entry" | "scan" | "unlock" | "confirmed";
+export type CatalystPhase = "entry" | "scan" | "confirmed";
 
-/** Sessions saved before the scan moved to sections can carry phases that no
- *  longer exist: a finished scan goes to the details form, an interview to the
- *  confirmation. */
+/** Sessions saved by earlier versions can carry phases that no longer exist: the
+ *  details form is now the end of the conversation, and an interview goes to
+ *  the confirmation. */
 function phaseOf(value: unknown): CatalystPhase {
-  if (value === "scan" || value === "unlock" || value === "confirmed") return value;
-  if (value === "result") return "unlock";
+  if (value === "scan" || value === "confirmed") return value;
+  if (value === "unlock" || value === "result") return "scan";
   if (value === "interview") return "confirmed";
   return "entry";
+}
+
+function leadsOf(value: unknown): Leads {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).filter(([, v]) => v === null || typeof v === "string"),
+  ) as Leads;
 }
 
 /** The confirmed Q1 identity + its lock reason (match vs. manual add). */
@@ -33,7 +41,6 @@ export interface LookupState {
 
 export interface CatalystSession {
   phase: CatalystPhase;
-  idx: number;
   answers: ScanAnswers;
   /** Q1 live-lookup identity (public business data only). */
   lookup: LookupState | null;
@@ -51,19 +58,22 @@ export interface CatalystSession {
    *  never lands here, which is what keeps "recommended" from quietly becoming
    *  "selected" across a reload. */
   selection: PlanSelection;
+  /** The finding Sage led each section with, so a refresh rebuilds the same
+   *  conversation. Public research only. */
+  leads: Leads;
 }
 
 const KEY = "ss_catalyst_v1";
 
 const EMPTY: CatalystSession = {
   phase: "entry",
-  idx: 0,
   answers: {} as ScanAnswers,
   lookup: null,
   checks: null,
   sessionId: null,
   researchId: null,
   selection: { ...EMPTY_SELECTION },
+  leads: {},
 };
 
 export function loadSession(): CatalystSession {
@@ -74,7 +84,6 @@ export function loadSession(): CatalystSession {
     const parsed = JSON.parse(raw) as Partial<CatalystSession>;
     return {
       phase: phaseOf(parsed.phase),
-      idx: typeof parsed.idx === "number" ? parsed.idx : 0,
       answers: (parsed.answers ?? {}) as ScanAnswers,
       lookup: parsed.lookup ?? null,
       checks: parsed.checks ?? null,
@@ -83,6 +92,7 @@ export function loadSession(): CatalystSession {
       // Anything malformed reads back as "nothing chosen". A storage blob can
       // never talk this UI into arriving pre-selected.
       selection: isPlanSelection(parsed.selection) ? parsed.selection : { ...EMPTY_SELECTION },
+      leads: leadsOf(parsed.leads),
     };
   } catch {
     return { ...EMPTY };

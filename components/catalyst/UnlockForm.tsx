@@ -55,13 +55,19 @@ export default function UnlockForm({
   onBack,
   onReport,
   initialSessionId = null,
+  inThread = false,
 }: {
   result: ScanResult;
   answers: ScanAnswers;
   checks?: ChecksResult | null;
   lookup?: LookupState | null;
   mode?: "build" | "nofit";
-  onBack: () => void;
+  /** Without it there is no Back button: inside the conversation there is
+   *  nowhere separate to go back to. */
+  onBack?: () => void;
+  /** Rendered as Sage's last message: Sage has already asked where to send the
+   *  report, so the form drops its own heading. */
+  inThread?: boolean;
   /** Opens the report page once the backend has captured the lead and returned
    *  its token. A deferred or local capture has no token and shows the
    *  confirmation below instead, so an outage never strands anyone. */
@@ -397,22 +403,29 @@ export default function UnlockForm({
   /* ---------------- the form (the single capture point) ---------------- */
   return (
     <div className={styles.result}>
-      <div className={styles.resultHead}>
-        <div style={{ flex: 1 }}>
-          <span className={styles.tag}>
-            <span className={styles.tagDot} aria-hidden="true" />
-            Last step
-          </span>
-          <h1 className="h1" style={{ margin: "12px 0 8px" }}>
-            Where do we send your report?
-          </h1>
-          {/* Copy JW-approval-pending */}
-          <p className="lead">
-            Add your details and Sage shows your result straight away, then writes your full report while you read.
-            We email you a copy. No payment to begin.
-          </p>
+      {inThread ? (
+        <p className={styles.chatHint}>
+          Add your details and Sage shows your result straight away, then writes your full report while you read.
+          We email you a copy. No payment to begin.
+        </p>
+      ) : (
+        <div className={styles.resultHead}>
+          <div style={{ flex: 1 }}>
+            <span className={styles.tag}>
+              <span className={styles.tagDot} aria-hidden="true" />
+              Last step
+            </span>
+            <h1 className="h1" style={{ margin: "12px 0 8px" }}>
+              Where do we send your report?
+            </h1>
+            {/* Copy JW-approval-pending */}
+            <p className="lead">
+              Add your details and Sage shows your result straight away, then writes your full report while you read.
+              We email you a copy. No payment to begin.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       <form className={`glass ${styles.block} ${styles.form}`} onSubmit={submit}>
         <div className={styles.formGrid}>
@@ -470,9 +483,11 @@ export default function UnlockForm({
           <button type="submit" className="btn btn-primary btn-lg" disabled={status === "sending"}>
             {status === "sending" ? "Saving your request…" : "Unlock the full leak report."}
           </button>
-          <button type="button" className={styles.back} onClick={onBack}>
-            &larr; Back to leak map
-          </button>
+          {onBack && (
+            <button type="button" className={styles.back} onClick={onBack}>
+              &larr; Back to leak map
+            </button>
+          )}
         </div>
         {/* Reassurance, JW-approval-pending */}
         <p className={styles.reassureLine}>
