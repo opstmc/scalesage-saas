@@ -1,86 +1,51 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { buildResult, type ScanAnswers, type ScanResult } from "@/lib/catalyst";
+import type { ScanAnswers } from "@/lib/catalyst";
 import type { ChecksResult } from "@/lib/catalyst-api";
-import SageOrb, { type OrbState } from "./SageOrb";
+import SageOrb from "./SageOrb";
 import ScanFlow from "./ScanFlow";
-import UnlockForm from "./UnlockForm";
-import { isNoFit } from "./meta";
-import { evidenceFrom } from "./sections";
 import { clearSession, loadSession, saveSession, type CatalystPhase, type LookupState } from "./session";
+import type { Leads } from "./thread";
 import styles from "./catalyst.module.css";
 
-/** Past the last screen: ScanFlow clamps it to the priority question. */
-const LAST_SCREEN = Number.MAX_SAFE_INTEGER;
-
-function safeResult(answers: ScanAnswers, checks: ChecksResult | null): ScanResult {
-  try {
-    return buildResult(answers, evidenceFrom(checks));
-  } catch {
-    return {} as ScanResult;
-  }
+interface Resume {
+  answers: ScanAnswers;
+  lookup: LookupState | null;
+  checks: ChecksResult | null;
+  researchId: string | null;
+  leads: Leads;
+  sessionId: string | null;
 }
+
+const FRESH: Resume = { answers: {}, lookup: null, checks: null, researchId: null, leads: {}, sessionId: null };
 
 export default function CatalystExperience() {
   const router = useRouter();
   const [phase, setPhase] = useState<CatalystPhase>("entry");
-  const [answers, setAnswers] = useState<ScanAnswers>({} as ScanAnswers);
-  const [resumeIdx, setResumeIdx] = useState(0);
-  const [orb, setOrb] = useState<OrbState>("idle");
-  const [progress, setProgress] = useState(0);
-  const [lookup, setLookup] = useState<LookupState | null>(null);
-  const [checks, setChecks] = useState<ChecksResult | null>(null);
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [resume, setResume] = useState<Resume>(FRESH);
+  const [run, setRun] = useState(0);
 
   // Resume after a refresh. Runs post-mount only: sessionStorage is unavailable
   // during SSR, so both the server output and the first client render are the
   // "entry" screen, and we only diverge once mounted — no hydration mismatch.
   useEffect(() => {
     const s = loadSession();
+    const started = Object.keys(s.answers ?? {}).length > 0 || Boolean(s.lookup?.confirmed);
+    if (s.phase === "entry" || (s.phase === "scan" && !started)) return;
     /* eslint-disable react-hooks/set-state-in-effect -- one-time resume */
-    if (s.lookup) setLookup(s.lookup);
-    if (s.checks) setChecks(s.checks);
-    if (s.phase === "scan" && Object.keys(s.answers ?? {}).length > 0) {
-      setAnswers(s.answers);
-      setResumeIdx(s.idx);
-      setPhase("scan");
-      setOrb("listening");
-    } else if (s.phase === "unlock" || s.phase === "confirmed") {
-      setAnswers(s.answers);
-      setSessionId(s.sessionId);
-      setPhase(s.phase === "confirmed" && s.sessionId ? "confirmed" : "unlock");
-      setOrb("handover");
-      setProgress(1);
-    }
+    setResume({
+      answers: s.answers,
+      lookup: s.lookup,
+      checks: s.checks,
+      researchId: s.researchId,
+      leads: s.leads,
+      sessionId: s.phase === "confirmed" ? s.sessionId : null,
+    });
+    setPhase(s.phase);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
-
-  const result = useMemo<ScanResult | null>(
-    () => (phase === "unlock" || phase === "confirmed" ? safeResult(answers, checks) : null),
-    [phase, answers, checks],
-  );
-
-  /* The scan ends on the details form: the email is asked before the final
-   * result, which then shows with the report in the same visit. */
-  const handleComplete = (a: ScanAnswers, extras: { lookup: LookupState | null; checks: ChecksResult | null }) => {
-    setAnswers(a);
-    setLookup(extras.lookup);
-    setChecks(extras.checks);
-    setProgress(1);
-    setPhase("unlock");
-    setOrb("handover");
-    saveSession({ phase: "unlock", answers: a, lookup: extras.lookup, checks: extras.checks });
-    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const backToScan = () => {
-    setResumeIdx(LAST_SCREEN);
-    setPhase("scan");
-    setOrb("listening");
-    saveSession({ phase: "scan", idx: LAST_SCREEN });
-  };
 
   const openReport = (id: string | null, token: string) => {
     saveSession({ phase: "confirmed", sessionId: id });
@@ -89,14 +54,9 @@ export default function CatalystExperience() {
 
   const reset = () => {
     clearSession();
-    setAnswers({} as ScanAnswers);
-    setResumeIdx(0);
-    setLookup(null);
-    setChecks(null);
-    setProgress(0);
-    setSessionId(null);
+    setResume(FRESH);
     setPhase("entry");
-    setOrb("idle");
+    setRun((r) => r + 1);
   };
 
   return (
@@ -105,67 +65,22 @@ export default function CatalystExperience() {
         <EntryScreen
           onBegin={() => {
             setPhase("scan");
-            setOrb("listening");
             saveSession({ phase: "scan" });
           }}
         />
       ) : (
-        <>
-          <TopBar orb={orb} progress={phase === "scan" ? progress : 1} onReset={reset} />
-          {phase === "scan" && (
-            <ScanFlow
-              initialIdx={resumeIdx}
-              initialAnswers={answers}
-              initialLookup={lookup}
-              initialChecks={checks}
-              onComplete={handleComplete}
-              onOrb={setOrb}
-              onProgress={setProgress}
-              onLookup={setLookup}
-              onChecks={setChecks}
-            />
-          )}
-          {(phase === "unlock" || phase === "confirmed") && result && (
-            <div className={styles.shell}>
-              <UnlockForm
-                key={phase}
-                result={result}
-                answers={answers}
-                checks={checks}
-                lookup={lookup}
-                mode={isNoFit(result) ? "nofit" : "build"}
-                initialSessionId={phase === "confirmed" ? sessionId : null}
-                onReport={openReport}
-                onBack={backToScan}
-              />
-            </div>
-          )}
-        </>
+        <ScanFlow
+          key={run}
+          initialAnswers={resume.answers}
+          initialLookup={resume.lookup}
+          initialChecks={resume.checks}
+          initialResearchId={resume.researchId}
+          initialLeads={resume.leads}
+          sessionId={resume.sessionId}
+          onReport={openReport}
+          onReset={reset}
+        />
       )}
-    </div>
-  );
-}
-
-function TopBar({ orb, progress, onReset }: { orb: OrbState; progress: number; onReset: () => void }) {
-  const labels: Record<OrbState, string> = {
-    idle: "Ready",
-    listening: "Listening",
-    thinking: "Scanning",
-    detection: "Detected",
-    handover: "Ready for you",
-  };
-  return (
-    <div style={{ maxWidth: 1180, width: "100%", margin: "0 auto", padding: "18px 24px 0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <SageOrb state={orb} size={44} progress={progress} />
-        <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.1 }}>
-          <span style={{ fontWeight: 600, fontSize: 16, color: "var(--text-headline)" }}>Sage</span>
-          <span style={{ fontSize: 12, color: "var(--accent-primary)" }}>{labels[orb]}</span>
-        </div>
-      </div>
-      <button type="button" className={styles.back} onClick={onReset} aria-label="Start the scan over">
-        Start over
-      </button>
     </div>
   );
 }
