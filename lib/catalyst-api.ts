@@ -461,7 +461,15 @@ export async function researchWithChecks(input: ResearchInput, opts: ResearchOpt
   const runId = await startResearch(input);
   if (!runId) return checksWithRetry(input, opts);
   opts.onRun?.(runId);
+  return followResearch(runId, opts);
+}
 
+/**
+ * Poll a research run that has already started, until it has finished or the
+ * poll limit passes. A refresh mid-scan calls this with the saved run id, so the
+ * findings come back instead of being lost with the page.
+ */
+export async function followResearch(runId: string, opts: ResearchOptions = {}): Promise<ChecksResult> {
   let best: ChecksResult = DEFERRED_CHECKS;
   const deadline = Date.now() + RESEARCH_POLL_LIMIT_MS;
   while (Date.now() < deadline) {
@@ -553,6 +561,7 @@ export const api = {
   startResearch,
   research,
   researchWithChecks,
+  followResearch,
   mergeChecks,
   unlock,
   pay,
