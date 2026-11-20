@@ -9,7 +9,7 @@
  * SSR-safe: every accessor no-ops when there is no window.
  */
 import type { ScanAnswers } from "@/lib/catalyst";
-import type { LookupMatch, ChecksResult } from "@/lib/catalyst-api";
+import type { CarryOver, LookupMatch, ChecksResult } from "@/lib/catalyst-api";
 import { EMPTY_SELECTION, isPlanSelection, type PlanSelection } from "./recommendation";
 import type { Leads } from "./thread";
 
@@ -61,6 +61,11 @@ export interface CatalystSession {
   /** The finding Sage led each section with, so a refresh rebuilds the same
    *  conversation. Public research only. */
   leads: Leads;
+  /** The visitor's own words from their reply to our email, carried over from
+   *  our reply's link, and the link's token, sent with unlock. Their words about
+   *  their business, never contact details. */
+  carryOver: CarryOver | null;
+  emailFrom: string | null;
 }
 
 const KEY = "ss_catalyst_v1";
@@ -74,6 +79,8 @@ const EMPTY: CatalystSession = {
   researchId: null,
   selection: { ...EMPTY_SELECTION },
   leads: {},
+  carryOver: null,
+  emailFrom: null,
 };
 
 export function loadSession(): CatalystSession {
@@ -93,6 +100,8 @@ export function loadSession(): CatalystSession {
       // never talk this UI into arriving pre-selected.
       selection: isPlanSelection(parsed.selection) ? parsed.selection : { ...EMPTY_SELECTION },
       leads: leadsOf(parsed.leads),
+      carryOver: parsed.carryOver && typeof parsed.carryOver.said === "string" ? parsed.carryOver : null,
+      emailFrom: typeof parsed.emailFrom === "string" ? parsed.emailFrom : null,
     };
   } catch {
     return { ...EMPTY };

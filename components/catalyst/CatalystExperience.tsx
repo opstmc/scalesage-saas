@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ScanAnswers } from "@/lib/catalyst";
-import type { ChecksResult } from "@/lib/catalyst-api";
+import { carryOver, type CarryOver, type ChecksResult } from "@/lib/catalyst-api";
 import SageOrb from "./SageOrb";
 import ScanFlow from "./ScanFlow";
 import { clearSession, loadSession, saveSession, type CatalystPhase, type LookupState } from "./session";
@@ -17,9 +17,10 @@ interface Resume {
   researchId: string | null;
   leads: Leads;
   sessionId: string | null;
+  carryOver: CarryOver | null;
 }
 
-const FRESH: Resume = { answers: {}, lookup: null, checks: null, researchId: null, leads: {}, sessionId: null };
+const FRESH: Resume = { answers: {}, lookup: null, checks: null, researchId: null, leads: {}, sessionId: null, carryOver: null };
 
 export default function CatalystExperience() {
   const router = useRouter();
@@ -33,8 +34,11 @@ export default function CatalystExperience() {
   useEffect(() => {
     const s = loadSession();
     const started = Object.keys(s.answers ?? {}).length > 0 || Boolean(s.lookup?.confirmed);
-    if (s.phase === "entry" || (s.phase === "scan" && !started)) return;
     /* eslint-disable react-hooks/set-state-in-effect -- one-time resume */
+    if (s.phase === "entry" || (s.phase === "scan" && !started)) {
+      if (s.carryOver) setResume((r) => ({ ...r, carryOver: s.carryOver }));
+      return;
+    }
     setResume({
       answers: s.answers,
       lookup: s.lookup,
@@ -42,9 +46,31 @@ export default function CatalystExperience() {
       researchId: s.researchId,
       leads: s.leads,
       sessionId: s.phase === "confirmed" ? s.sessionId : null,
+      carryOver: s.carryOver,
     });
     setPhase(s.phase);
     /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
+
+  // Arriving from our reply's link: keep its token for the unlock, take it out
+  // of the address bar so a shared scan URL does not carry it, and fetch what
+  // they wrote. A link that returned nothing is asked again when it is opened again.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const token = url.searchParams.get("from");
+    if (!token) return;
+    url.searchParams.delete("from");
+    window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+    const saved = loadSession();
+    if (token === saved.emailFrom && saved.carryOver) return;
+    saveSession({ emailFrom: token, carryOver: null });
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time: a new link drops the old link's words
+    setResume((r) => ({ ...r, carryOver: null }));
+    void carryOver(token).then((found) => {
+      if (!found) return;
+      saveSession({ carryOver: found });
+      setResume((r) => ({ ...r, carryOver: found }));
+    });
   }, []);
 
   const openReport = (id: string | null, token: string) => {
@@ -52,9 +78,12 @@ export default function CatalystExperience() {
     router.push(`/catalyst/report/${encodeURIComponent(token)}`);
   };
 
+  // Starting over is the same visitor from the same link, so their email's words stay.
   const reset = () => {
+    const { carryOver: kept, emailFrom } = loadSession();
     clearSession();
-    setResume(FRESH);
+    saveSession({ carryOver: kept, emailFrom });
+    setResume({ ...FRESH, carryOver: kept });
     setPhase("entry");
     setRun((r) => r + 1);
   };
@@ -77,6 +106,7 @@ export default function CatalystExperience() {
           initialResearchId={resume.researchId}
           initialLeads={resume.leads}
           sessionId={resume.sessionId}
+          carryOver={resume.carryOver}
           onReport={openReport}
           onReset={reset}
         />

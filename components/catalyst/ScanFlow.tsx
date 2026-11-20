@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { buildResult, jobValueOf, sectorOf, type ScanAnswers, type ScanNode, type ScanResult } from "@/lib/catalyst";
-import api, { type ChecksResult, type LookupMatch, type ResearchOptions, type ResearchState } from "@/lib/catalyst-api";
+import api, { type CarryOver, type ChecksResult, type LookupMatch, type ResearchOptions, type ResearchState } from "@/lib/catalyst-api";
 import Conversation, { type ConversationActions } from "./Conversation";
 import LiveDiagram from "./LiveDiagram";
 import SageHeader, { type ResearchStep } from "./SageHeader";
@@ -72,6 +72,7 @@ export default function ScanFlow({
   initialResearchId,
   initialLeads,
   sessionId,
+  carryOver,
   onReport,
   onReset,
 }: {
@@ -81,6 +82,7 @@ export default function ScanFlow({
   initialResearchId: string | null;
   initialLeads: Leads;
   sessionId: string | null;
+  carryOver: CarryOver | null;
   onReport: (sessionId: string | null, token: string) => void;
   onReset: () => void;
 }) {
@@ -163,7 +165,7 @@ export default function ScanFlow({
 
   /* ---- the conversation ---- */
   const running = phase === "running" && !finished;
-  const base: ThreadInput = { answers, lookup, naming, checks, research, running, leads, editing, tradeList, year };
+  const base: ThreadInput = { answers, lookup, naming, checks, research, running, leads, editing, tradeList, year, carryOver };
   const pinned = pinLeads(leads, base);
   if (pinned !== leads) setLeads(pinned);
   const thread = buildThread({ ...base, leads: pinned });

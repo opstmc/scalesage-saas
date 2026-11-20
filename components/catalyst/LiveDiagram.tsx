@@ -98,13 +98,13 @@ const NODE_GEO: Geo[] = LEAKS.map((leak, i) => geo(leak, i * 60));
 /* ---------- answer → part mapping (all derived from real state) ---------- */
 
 /** The question(s) that make a leak's part ATTACH (become a real piece).
- *  Invisible online has no question: it attaches once the checks measured it. */
+ *  Invisible online attaches when its question is answered or the checks measured it. */
 const GOVERN: Record<LeakKey, string[]> = {
   "Missed calls": ["capture"],
   "Cold quotes": ["followup"],
   "Forgotten reviews": ["reviews"],
   "Lapsed customers": ["retention"],
-  "Invisible online": [],
+  "Invisible online": ["ai_check"],
   "Admin drag": ["capture"],
 };
 
@@ -114,6 +114,7 @@ const ACTIVE_LEAK: Record<string, LeakKey> = {
   followup: "Cold quotes",
   reviews: "Forgotten reviews",
   retention: "Lapsed customers",
+  ai_check: "Invisible online",
 };
 
 const SCAN_STEP_IDS = STEPS.map((s) => s.id);

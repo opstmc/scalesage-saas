@@ -164,12 +164,13 @@ export default function UnlockForm({
     }
     // interview: false starts the report straight away: the scan in sections
     // asks the job value itself, and the other numbers come after payment.
-    const researchId = loadSession().researchId;
+    const { researchId, emailFrom } = loadSession();
     const body = {
       ...(payload as Record<string, unknown>),
       checks: checks ?? null,
       interview: false,
       ...(researchId ? { research_id: researchId } : {}),
+      ...(emailFrom ? { email_from: emailFrom } : {}),
     };
 
     const res = await api.unlock(body); // never throws; local-persists on failure

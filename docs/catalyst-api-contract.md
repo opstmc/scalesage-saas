@@ -96,13 +96,23 @@ Called once, at unlock, after the visitor has seen their directional leak map. W
   "completed_at": "2026-07-08T12:34:56Z",
   "interview": false,                    // the scan in sections sends false: the report starts at once
   "research_id": "uuid" | null,          // the run from /research; attached to this lead
-  "job_value": 320 | null                // whole pounds from the job value section; stored as their own figure
+  "job_value": 320 | null,               // whole pounds from the job value section; stored as their own figure
+  "email_from": "<prospect id>.<signature>" | null  // the ?from= token from our reply's link; stored in the result blob
 }
 // res
 { "ok": true, "session_id": "uuid", "portal_url": "https://..."|null, "interview": false,
   "report_token": "..." | null }         // opens /catalyst/report/{token} in the same visit
 ```
 Behaviour: insert lead + answers + directional result into Postgres (they are now a lead we own) → attach the research run when `research_id` is sent (no second scrape), otherwise enqueue the read-only evidence engine job for the full report → send the internal WhatsApp/Slack alert to Jordan + Cy (name, sector, primary leak, urgency, link). Two Python follow-up sequences hang off this row for drop-offs. On failure the frontend keeps the payload locally and retries; a lead is never silently lost.
+
+## 3b. `GET /catalyst/from/{token}` — what a prospect wrote in their reply
+Our reply drafts for ScaleSage's own outreach link to `/catalyst?from=<token>`, a prospect id signed with the server secret. The scan fetches this once and, at the priority question, asks "You mentioned in your email that {said}. Is that still the part you would most like help with?".
+```jsonc
+// res 200
+{ "said": "you miss calls at weekends", "relief": "stop-missing" | null }   // relief is a scan option value
+// res 404 when the token is wrong or nothing was saved
+```
+Public like every `/catalyst` route, under the app-wide per-IP limit. It returns only the prospect's own words, and only to someone holding their signed link.
 
 ## 4. `POST /catalyst/{session_id}/pay` — Stripe checkout
 ```jsonc
