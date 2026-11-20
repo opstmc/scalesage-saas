@@ -346,9 +346,10 @@ export function pipe(text: string, a: ScanAnswers): string {
 
 /* ---------- Scoring ---------- */
 
-/** Invisible online has no question: it is scored from what the checks measured,
- *  one point each for missing Google's first page, having no Google Business
- *  Profile, and not being named by the AI engines. Nothing measured, no points. */
+/** Invisible online is scored from what the checks measured, one point each for
+ *  missing Google's first page, having no Google Business Profile, and not being
+ *  named by the AI engines, on top of the AI question's answer. Nothing measured,
+ *  no points from the checks. */
 function invisibleOnlineFromChecks(checks?: ChecksInput | null): number {
   if (!checks) return 0;
   let points = 0;

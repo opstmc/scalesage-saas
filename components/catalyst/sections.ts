@@ -37,7 +37,7 @@ export const SECTIONS: Section[] = [
   { id: "quotes", title: "Quotes", steps: ["followup"], leak: "Cold quotes", findingLeak: "cold_quotes", estimate: "cold_quotes" },
   { id: "reviews", title: "Reviews", steps: ["reviews"], leak: "Forgotten reviews", findingLeak: "forgotten_reviews" },
   { id: "past_customers", title: "Past customers", steps: ["retention"], leak: "Lapsed customers", findingLeak: "lapsed_customers", estimate: "lapsed_customers" },
-  { id: "online", title: "Online", steps: [], leak: "Invisible online", findingLeak: "invisible_online" },
+  { id: "online", title: "Online", steps: ["ai_check"], leak: "Invisible online", findingLeak: "invisible_online" },
   { id: "priority", title: "Your priority", steps: ["relief"] },
 ];
 

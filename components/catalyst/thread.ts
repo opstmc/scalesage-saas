@@ -138,6 +138,8 @@ export const LINES = {
   closing: (leaks: string[]) =>
     leaks.length ? `That's everything I need. I can see likely leaks in ${listOf(leaks)}.` : "That's everything I need.",
   closingAsk: "Where should I send your report?",
+  aiExplained:
+    "They are AI assistants that answer questions in plain words, and more people now ask them to recommend a local business. Your report checks whether they name you.",
 };
 
 export const TRADE_GROUPS: { label: string; values: string[] }[] = [
@@ -478,6 +480,9 @@ export function buildThread(input: ThreadInput): Thread {
       messages.push(question(step, answers));
       if (stepId === target) return { messages, open: openFor(step) };
       messages.push(reply(answers, stepId));
+      if (stepId === "ai_check" && answers.ai_check === "what-are-those") {
+        messages.push({ id: "s:ai-explained", kind: "sage", text: LINES.aiExplained });
+      }
     }
     if (section.id !== "priority") messages.push(resultOf(section, input, lead, chips));
   }

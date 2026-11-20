@@ -1,5 +1,5 @@
 {
-  "configVersion": "6.0.0",
+  "configVersion": "6.1.0",
   "currency": "GBP",
   "approvals": {
     "note": "All customer-facing copy (questions, hints, insight lines, the directional tag, band notes) is awaiting sign-off. Do not ship without JW approval.",
@@ -256,10 +256,26 @@
       ]
     },
     {
-      "id": "relief",
+      "id": "ai_check",
       "order": 9,
       "kind": "single",
-      "kicker": "09 · First relief",
+      "kicker": "09 · Online",
+      "question": "Have you checked whether tools such as ChatGPT or Perplexity suggest your business when someone asks for this service?",
+      "hint": "Pick the closest.",
+      "insight": "More people now ask an AI tool before they search. Sage asks them for you.",
+      "other": false,
+      "options": [
+        { "value": "yes-suggested", "label": "Yes, and they suggest us", "deltas": {} },
+        { "value": "yes-not-suggested", "label": "Yes, and they don't", "deltas": { "Invisible online": 2 } },
+        { "value": "not-checked", "label": "No, I haven't checked", "deltas": { "Invisible online": 1 } },
+        { "value": "what-are-those", "label": "What are those?", "deltas": { "Invisible online": 1 } }
+      ]
+    },
+    {
+      "id": "relief",
+      "order": 10,
+      "kind": "single",
+      "kicker": "10 · First relief",
       "question": "If Sage could take one thing off your plate first, what would it be?",
       "hint": "This tells Sage where to start. You can rank the rest later.",
       "insight": "We fix the leak costing you most first, then build out from there.",

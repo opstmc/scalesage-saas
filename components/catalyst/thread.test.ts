@@ -4,6 +4,7 @@ import type { LookupMatch, PublicFinding, ResearchState } from "@/lib/catalyst-a
 import type { LookupState } from "./session";
 import { pounds } from "./sections";
 import {
+  LINES,
   OTHER,
   buildThread,
   findingKey,
@@ -75,6 +76,7 @@ const ALL: ScanAnswers = {
   followup: "try-once",
   reviews: "when-remember",
   retention: "just-hope",
+  ai_check: "not-checked",
   relief: "stop-missing",
   problems_raw: "",
 };
@@ -163,6 +165,35 @@ describe("buildThread", () => {
       const result = thread.messages.find((m) => m.kind === "result" && m.section === section);
       expect(result && result.kind === "result" && result.stillChecking, section).toBe(true);
     }
+  });
+
+  it("asks Jordan's AI question in the Online section, before the online result", () => {
+    const { messages } = buildThread(input());
+    const question = messages.findIndex((m) => m.kind === "question" && m.stepId === "ai_check");
+    const result = messages.findIndex((m) => m.kind === "result" && m.section === "online");
+    expect(question).toBeGreaterThan(-1);
+    expect(messages[question].kind === "question" && messages[question].text).toBe(
+      "Have you checked whether tools such as ChatGPT or Perplexity suggest your business when someone asks for this service?",
+    );
+    expect(question).toBeLessThan(result);
+  });
+
+  it("explains AI assistants to a visitor who asks what they are", () => {
+    const { messages } = buildThread(input({ answers: { ...ALL, ai_check: "what-are-those" } }));
+    const answered = messages.findIndex((m) => m.kind === "reply" && m.stepId === "ai_check");
+    expect(messages[answered + 1]).toEqual({ id: "s:ai-explained", kind: "sage", text: LINES.aiExplained });
+    expect(buildThread(input()).messages.some((m) => m.id === "s:ai-explained")).toBe(false);
+  });
+
+  it("opens the AI question when it is the first one unanswered", () => {
+    const { open } = buildThread(input({ answers: { ...ALL, ai_check: undefined, relief: undefined } }));
+    expect(open.kind === "single" && open.stepId).toBe("ai_check");
+    expect(open.kind === "single" && open.options.map((o) => o.value)).toEqual([
+      "yes-suggested",
+      "yes-not-suggested",
+      "not-checked",
+      "what-are-those",
+    ]);
   });
 
   it("keeps later answers when an earlier one is edited", () => {
