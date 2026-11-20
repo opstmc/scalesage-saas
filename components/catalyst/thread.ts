@@ -11,7 +11,7 @@ import {
   type ScanAnswers,
   type Step,
 } from "@/lib/catalyst";
-import type { ChecksResult, LookupMatch, PublicFinding, ResearchState } from "@/lib/catalyst-api";
+import type { CarryOver, ChecksResult, LookupMatch, PublicFinding, ResearchState } from "@/lib/catalyst-api";
 import { reactionForLookup } from "./reactions";
 import type { LookupState } from "./session";
 import { SECTIONS, evidenceFrom, pounds, type Section, type SectionId } from "./sections";
@@ -20,8 +20,9 @@ import { SECTIONS, evidenceFrom, pounds, type Section, type SectionId } from "./
  * never stored: buildThread turns the answers, the lookup and the research into
  * Sage's messages and the visitor's replies, and says which question is open.
  * Editing, a refresh and the honesty rule all follow from that: every Sage line
- * is a fixed template filled from the answers, the lookup or the research, and
- * nothing is generated on the page.
+ * is a fixed template filled from the answers, the lookup, the research or the
+ * visitor's own words carried over from their email reply, and nothing is
+ * generated on the page.
  *
  * Question wording comes from catalyst.config.json. The connecting lines in
  * LINES and the trade groups are new and JW-approval-pending. The result lines
@@ -59,6 +60,8 @@ export interface ThreadInput {
   /** The visitor said "Not quite" to the trade the lookup found. */
   tradeList: boolean;
   year: number;
+  /** What the visitor wrote in their reply to our email, when they came from its link. */
+  carryOver: CarryOver | null;
 }
 
 export interface Estimate {
@@ -138,6 +141,9 @@ export const LINES = {
   closing: (leaks: string[]) =>
     leaks.length ? `That's everything I need. I can see likely leaks in ${listOf(leaks)}.` : "That's everything I need.",
   closingAsk: "Where should I send your report?",
+  emailAsk: (said: string) => `You mentioned in your email that ${said}. Is that still the part you would most like help with?`,
+  emailSaid: (said: string) => `You mentioned in your email that ${said}.`,
+  emailYes: "Yes, that's still it",
   aiExplained:
     "They are AI assistants that answer questions in plain words, and more people now ask them to recommend a local business. Your report checks whether they name you.",
 };
@@ -456,6 +462,30 @@ function trade(input: ThreadInput, messages: Message[], target: string | null): 
   return null;
 }
 
+/** The priority question when the visitor came from our reply: Jordan's line
+ *  with their own choice first, or a plain acknowledgement when it matched none. */
+function relief(input: ThreadInput, step: Step, messages: Message[], target: string | null): Open | null {
+  const { answers, carryOver } = input;
+  const mapped = carryOver?.relief ? step.options.find((o) => o.value === carryOver.relief) : undefined;
+  if (carryOver && mapped) {
+    messages.push({ id: `q:${step.id}`, kind: "question", stepId: step.id, text: LINES.emailAsk(carryOver.said) });
+    if (step.id === target) {
+      const rest = optionsOf(step).filter((o) => o.value !== mapped.value);
+      return { kind: "single", stepId: step.id, options: [{ value: mapped.value, label: LINES.emailYes }, ...rest], other: step.other === true };
+    }
+    if (answers[step.id] === mapped.value) {
+      messages.push({ id: `r:${step.id}`, kind: "reply", stepId: step.id, text: LINES.emailYes, editable: true });
+      return null;
+    }
+  } else {
+    if (carryOver) messages.push({ id: "s:email", kind: "sage", text: LINES.emailSaid(carryOver.said) });
+    messages.push(question(step, answers));
+    if (step.id === target) return openFor(step);
+  }
+  messages.push(reply(answers, step.id));
+  return null;
+}
+
 export function buildThread(input: ThreadInput): Thread {
   const messages: Message[] = [];
   const first = opening(input, messages);
@@ -477,6 +507,11 @@ export function buildThread(input: ThreadInput): Thread {
       }
       const step = STEP_BY_ID.get(stepId);
       if (!step) continue;
+      if (stepId === "relief") {
+        const open = relief(input, step, messages, target);
+        if (open) return { messages, open };
+        continue;
+      }
       messages.push(question(step, answers));
       if (stepId === target) return { messages, open: openFor(step) };
       messages.push(reply(answers, stepId));

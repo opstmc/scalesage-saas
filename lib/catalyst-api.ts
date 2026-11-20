@@ -6,6 +6,7 @@
  *   POST /catalyst/checks              — live background checks (non-blocking)
  *   GET  /catalyst/{id}/evidence       — the same findings, asked for again
  *   POST /catalyst/unlock              — the SINGLE lead-capture point
+ *   GET  /catalyst/from/{token}        — what a prospect wrote in their email reply
  *   POST /catalyst/{id}/pay            — Stripe checkout (may be stubbed)
  *   POST /catalyst/{id}/book-call      — "talk it through first" door
  *
@@ -22,6 +23,7 @@
  *   evidence-> null                                   (caller keeps what it had)
  *   unlock  -> tries the backend, then the same-origin /api/catalyst route,
  *              then local-persist + retry. A lead is never silently lost.
+ *   carryOver -> null                                 (the scan asks as usual)
  *   pay     -> { ok: false, deferred: true }          (UI shows a calm note)
  *   book    -> { ok: false, deferred: true }
  */
@@ -139,6 +141,13 @@ export interface BookCallResult {
   ok: boolean;
   deferred: boolean;
   booking_url: string | null;
+}
+
+/** What a prospect wrote in their reply to our email: `said` follows
+ *  "You mentioned in your email that", `relief` is a scan option value. */
+export interface CarryOver {
+  said: string;
+  relief: string | null;
 }
 
 /* ---------- low-level POST with timeout + graceful null ---------- */
@@ -523,6 +532,14 @@ export async function unlock(payload: Record<string, unknown>): Promise<UnlockRe
   return { ok: false, deferred: true, session_id: localId, portal_url: null, report_token: null };
 }
 
+/* ---------- 3b. carry-over (what they wrote in their email reply) ---------- */
+
+export async function carryOver(token: string): Promise<CarryOver | null> {
+  if (!token) return null;
+  const found = await get<CarryOver>(`/from/${encodeURIComponent(token)}`, 5000);
+  return found && typeof found.said === "string" && found.said ? found : null;
+}
+
 /* ---------- 4. pay ---------- */
 
 export async function pay(sessionId: string | null, tier: "Starter" | "Pro"): Promise<PayResult> {
@@ -564,6 +581,7 @@ export const api = {
   followResearch,
   mergeChecks,
   unlock,
+  carryOver,
   pay,
   bookCall,
   hasBackend,

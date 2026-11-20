@@ -93,6 +93,7 @@ function input(over: Partial<ThreadInput> = {}): ThreadInput {
     editing: null,
     tradeList: false,
     year: YEAR,
+    carryOver: null,
     ...over,
   };
 }
@@ -194,6 +195,40 @@ describe("buildThread", () => {
       "not-checked",
       "what-are-those",
     ]);
+  });
+
+  it("asks Jordan's carry-over line with the email's choice first", () => {
+    const { messages, open } = buildThread(
+      input({
+        answers: { ...ALL, relief: undefined },
+        carryOver: { said: "missed calls cost you jobs at weekends", relief: "stop-missing" },
+      }),
+    );
+    const asked = messages.find((m) => m.kind === "question" && m.stepId === "relief");
+    expect(asked && asked.kind === "question" && asked.text).toBe(
+      "You mentioned in your email that missed calls cost you jobs at weekends. Is that still the part you would most like help with?",
+    );
+    expect(open.kind === "single" && open.options[0]).toEqual({ value: "stop-missing", label: "Yes, that's still it" });
+    expect(open.kind === "single" && open.options.filter((o) => o.value === "stop-missing")).toHaveLength(1);
+  });
+
+  it("acknowledges the email and asks the usual question when it matched no option", () => {
+    const { messages, open } = buildThread(
+      input({ answers: { ...ALL, relief: undefined }, carryOver: { said: "proposals take most of Friday", relief: null } }),
+    );
+    expect(messages.some((m) => m.kind === "sage" && m.text === "You mentioned in your email that proposals take most of Friday.")).toBe(true);
+    expect(open.kind === "single" && open.stepId).toBe("relief");
+  });
+
+  it("echoes the visitor's own tap when they keep the email's choice", () => {
+    const { messages } = buildThread(input({ carryOver: { said: "missed calls cost you jobs", relief: "stop-missing" } }));
+    const answered = messages.find((m) => m.kind === "reply" && m.stepId === "relief");
+    expect(answered && answered.kind === "reply" && answered.text).toBe("Yes, that's still it");
+  });
+
+  it("asks the usual priority question without an email", () => {
+    const { messages } = buildThread(input({ answers: { ...ALL, relief: undefined } }));
+    expect(messages.some((m) => m.kind === "sage" && m.text.startsWith("You mentioned"))).toBe(false);
   });
 
   it("keeps later answers when an earlier one is edited", () => {
