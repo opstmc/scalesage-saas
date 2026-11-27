@@ -11,7 +11,7 @@ export const generateMetadata = pageMetadata({
   path: "/partners",
   title: "Partners",
   description:
-    "Earn recurring commission on every client you introduce to ScaleSage, 20-25% in Year 1, a lifetime trail from Year 4 for Gold and Platinum partners, full support from day one. No technical expertise required.",
+    "Earn recurring commission on every client you introduce to ScaleSage, 10-20% in Year 1, a lifetime trail from Year 4 for Gold and Platinum partners, full support from day one. No technical expertise required.",
 });
 
 const PARTNER_EMAIL = "admin@scalesage.ai";
@@ -37,9 +37,9 @@ const STEPS = [
 ];
 
 const TIERS = [
-  { name: "Silver", when: "From your first close", rate: "20%", sub: "of monthly subscription · Year 1", trail: [["Y2", "5%"], ["Y3", "3%"], ["Y4", "Stops"]], note: "For partners getting started. No threshold, you earn from your very first introduction." },
-  { name: "Gold", when: "5+ closes in 12 months", rate: "25%", sub: "of monthly subscription · Year 1", trail: [["Y2", "8%"], ["Y3", "5%"], ["Y4", "4% ∞"]], note: "For serious partners building recurring income. A lifetime trail from Year 4 that never stops.", featured: true },
-  { name: "Platinum", when: "15+ closes in 12 months", rate: "25% +5%", sub: "Year 1 + a 5% retention bonus", trail: [["Y2", "12%"], ["Y3", "8%"], ["Y4", "5% ∞"]], note: "For top partners building a portfolio. A one-time 5% of the client's first 12 months of subscription revenue, paid at the 12-month mark if they are still active, on clients closed after you reached Platinum." },
+  { name: "Silver", when: "From your first close", rate: "10%", sub: "of monthly subscription · Year 1", trail: [["Y2", "5%"], ["Y3", "3%"], ["Y4", "Stops"]], note: "For partners getting started. No threshold, you earn from your very first introduction." },
+  { name: "Gold", when: "5+ closes in 12 months", rate: "15%", sub: "of monthly subscription · Year 1", trail: [["Y2", "8%"], ["Y3", "5%"], ["Y4", "4% ∞"]], note: "For serious partners building recurring income. A lifetime trail from Year 4 that never stops.", featured: true },
+  { name: "Platinum", when: "15+ closes in 12 months", rate: "20% +5%", sub: "Year 1 + a 5% retention bonus", trail: [["Y2", "12%"], ["Y3", "8%"], ["Y4", "5% ∞"]], note: "For top partners building a portfolio. A one-time 5% of the client's first 12 months of subscription revenue, paid at the 12-month mark if they are still active, on clients closed after you reached Platinum." },
 ];
 
 const GETS = [
@@ -169,7 +169,7 @@ export default function PartnersPage() {
           <div className="section-head" data-reveal="">
             <div className="eyebrow">What you earn</div>
             <h2 className="h2">Commission that trails into Year 4 and beyond.</h2>
-            <p className="lead">Earn 20-25% of every subscription in Year 1. Gold and Platinum partners earn a lifetime trail that never stops, ongoing income even if you stop actively selling.</p>
+            <p className="lead">Earn 10-20% of every subscription in Year 1. Gold and Platinum partners earn a lifetime trail that never stops, ongoing income even if you stop actively selling.</p>
           </div>
           <div className="grid-3">
             {TIERS.map((t) => (
@@ -196,11 +196,11 @@ export default function PartnersPage() {
             <div className="eyebrow">What one client earns you</div>
             <h3 className="h3" style={{ marginTop: 6 }}>A single Pro client over 3 years</h3>
             <p className="small" style={{ marginBottom: 8 }}>Pro · £1,497/month · Silver tier · monthly billing</p>
-            <div className={styles.calcRow}><span className={styles.calcLabel}>Year 1 (20% × £1,497 × 12)</span><span className={styles.calcVal}>£3,593</span></div>
+            <div className={styles.calcRow}><span className={styles.calcLabel}>Year 1 (10% × £1,497 × 12)</span><span className={styles.calcVal}>£1,796</span></div>
             <div className={styles.calcRow}><span className={styles.calcLabel}>Year 2 trail (5% × £1,497 × 12)</span><span className={styles.calcVal}>£898</span></div>
             <div className={styles.calcRow}><span className={styles.calcLabel}>Year 3 trail (3% × £1,497 × 12)</span><span className={styles.calcVal}>£539</span></div>
-            <div className={styles.calcTotal}><span className={styles.calcTotalLabel}>Total from one client, 3 years</span><span className={styles.calcTotalVal}>£5,030</span></div>
-            <p className={styles.calcFoot}>At Gold tier: about £8,264 from the same client over 5 years, including the lifetime trail. Annual-prepay closes pay the full Year-1 commission as a lump sum within 5 business days of the prepayment clearing.</p>
+            <div className={styles.calcTotal}><span className={styles.calcTotalLabel}>Total from one client, 3 years</span><span className={styles.calcTotalVal}>£3,233</span></div>
+            <p className={styles.calcFoot}>At Gold tier: about £6,467 from the same client over 5 years, including the lifetime trail. Annual-prepay closes pay the full Year-1 commission as a lump sum within 5 business days of the prepayment clearing.</p>
           </div>
         </div>
       </section>
@@ -211,7 +211,7 @@ export default function PartnersPage() {
           <div className={styles.founding} data-reveal="">
             <div className="eyebrow">★ Founding Partner, first 10 only</div>
             <div className={styles.foundingTitle}>Gold economics from close number one.</div>
-            <p className="lead" style={{ margin: 0 }}>Founding Partner status goes to the first 10 partners to close a paying Qualifying Referral, not the first 10 to sign. They earn 25% commission from that very first client, no threshold, no waiting. Once the 10th qualifying close lands, this closes permanently.</p>
+            <p className="lead" style={{ margin: 0 }}>Founding Partner status goes to the first 10 partners to close a paying Qualifying Referral, not the first 10 to sign. They earn 15% commission from that very first client, no threshold, no waiting. Once the 10th qualifying close lands, this closes permanently.</p>
             <div className={styles.foundingList}>
               <div className={styles.foundingItem}><strong>&pound;150 per founding referral</strong>Founding Cohort referrals earn a flat &pound;150 per customer, paid after the 90-day retention milestone, in place of standard percentage commission.</div>
               <div className={styles.foundingItem}><strong>Lifetime priority access to the founder</strong>A direct line with a 2-hour response during UK business hours, for life while you&rsquo;re active.</div>
