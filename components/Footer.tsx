@@ -10,7 +10,7 @@ import Link from "next/link";
  * Both live on the app host, set via NEXT_PUBLIC_PORTAL_URL. */
 const PORTAL_BASE = process.env.NEXT_PUBLIC_PORTAL_URL?.replace(/\/+$/, "") ?? "";
 const CLIENT_PORTAL = PORTAL_BASE ? `${PORTAL_BASE}/portal/login` : null;
-const PARTNER_HUB = PORTAL_BASE ? `${PORTAL_BASE}/portal/login?as=partner` : null;
+const PARTNER_HUB = PORTAL_BASE ? `${PORTAL_BASE}/portal/partner/login` : null;
 
 // A contact route has to end somewhere a human answers. "#contact" pointed at
 // this footer, which is where the visitor already was: the dead end on the fix

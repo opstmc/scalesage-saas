@@ -21,7 +21,7 @@ const APPLY = `mailto:${PARTNER_EMAIL}?subject=${encodeURIComponent("Partner app
 // retired as a label because it read as the door for paying clients.
 // Falls back to the application email rather than an anchor that goes nowhere.
 const PARTNER_HUB = process.env.NEXT_PUBLIC_PORTAL_URL
-  ? `${process.env.NEXT_PUBLIC_PORTAL_URL.replace(/\/+$/, "")}/portal/login?as=partner`
+  ? `${process.env.NEXT_PUBLIC_PORTAL_URL.replace(/\/+$/, "")}/portal/partner/login`
   : APPLY;
 
 const STEPS = [
